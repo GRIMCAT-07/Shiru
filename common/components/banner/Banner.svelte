@@ -5,8 +5,9 @@
   import { settings } from '@/modules/settings.js'
   export let data
 
-  function shuffle (array) {
-    let currentIndex = (array.length >= 20 ? 20 : array.length) // We only need the first 20 entries, anything else wouldn't really be high in popularity.
+  function shuffle (media) {
+    const array = media.filter(media => media.bannerImage || media.trailer?.id || (settings.value.adult === 'hentai' && settings.value.hentaiBanner && media.coverImage?.extraLarge)) // filter entries that shouldn't be considered first.
+    let currentIndex = (array.length >= 10 ? 10 : array.length) // We only need the first 10 entries, anything else wouldn't really be high in popularity.
     let randomIndex
     while (currentIndex > 0) {
       randomIndex = Math.floor(Math.random() * currentIndex--);
@@ -16,7 +17,7 @@
   }
 
   function shuffleAndFilter (media) {
-    return shuffle(media).filter(media => media.bannerImage || media.trailer?.id || (settings.value.adult === 'hentai' && settings.value.hentaiBanner && media.coverImage?.extraLarge)).slice(0, 5)
+    return shuffle(media).slice(0, 5)
   }
 </script>
 

@@ -70,7 +70,7 @@
 {/if}
 <div class='pl-20 pb-20 justify-content-end d-flex flex-column h-full banner mw-full grab' use:drag={swipeMedia}>
   <div class='text-white font-weight-bold font-size-40' class:font-size-40={!SUPPORTS.isAndroid} class:font-size-24={SUPPORTS.isAndroid}>
-    <div class='default-cursor title overflow-hidden d-inline-block'>{anilistClient.title(currentStatic)}</div>
+    <div class='default-cursor title overflow-hidden d-inline-block pr-5'>{anilistClient.title(currentStatic)}</div>
   </div>
   <div class='details text-white text-capitalize pt-15 pb-10 d-flex w-600 mw-full default-cursor'>
     <span class='text-nowrap d-flex align-items-center'>
