@@ -1,6 +1,6 @@
 <script>
-  import { formatMap, getMediaMaxEp, playMedia } from '@/modules/anime.js'
-  import { anilistClient } from '@/modules/anilist.js'
+  import { formatMap, getKitsuMappings, getMediaMaxEp, playMedia } from '@/modules/anime.js'
+  import { anilistClient, seasons } from '@/modules/anilist.js'
   import { episodesList } from '@/modules/episodes.js'
   import { SUPPORTS } from '@/modules/support.js'
   import { click } from '@/modules/click.js'
@@ -123,11 +123,16 @@
             Rated 18+
           </span>
         {/if}
-        {#if media.season || media.seasonYear}
-          <span class='badge pl-5 pr-5' class:font-size-14={!SUPPORTS.isAndroid} class:font-size-12={SUPPORTS.isAndroid}>
-            {[media.season?.toLowerCase(), media.seasonYear].filter(s => s).join(' ')}
-          </span>
-        {/if}
+        {#await ((media.season || media.seasonYear) && media) || getKitsuMappings(media.id) then details}
+          {@const attributes = details?.included?.[0]?.attributes}
+          {@const seasonYear = details.seasonYear || (attributes?.startDate && new Date(attributes?.startDate).getFullYear()) || (attributes?.createdAt && new Date(attributes?.createdAt).getFullYear())}
+          {@const season = (details.season || seasonYear && seasons[Math.floor((((attributes?.startDate && new Date(attributes?.startDate).getMonth()) || (attributes?.createdAt && new Date(attributes?.createdAt).getMonth())) / 12) * 4) % 4])?.toLowerCase()}
+          {#if season || seasonYear}
+            <span class='badge pl-5 pr-5' class:font-size-14={!SUPPORTS.isAndroid} class:font-size-12={SUPPORTS.isAndroid}>
+              {[season, seasonYear].filter(s => s).join(' ')}
+            </span>
+          {/if}
+        {/await}
         {#if media.averageScore}
           <span class='badge pl-5 pr-5' class:font-size-14={!SUPPORTS.isAndroid}
                 class:font-size-12={SUPPORTS.isAndroid}>{media.averageScore + '%'} Rating</span>

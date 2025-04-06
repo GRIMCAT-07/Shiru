@@ -1,13 +1,13 @@
 <script>
   import { getContext } from 'svelte'
   import PreviewCard from './PreviewCard.svelte'
-  import { episode, airingAt, formatMap, statusColorMap } from '@/modules/anime.js'
+  import { episode, airingAt, getKitsuMappings, formatMap, statusColorMap } from '@/modules/anime.js'
   import { createListener } from '@/modules/util.js'
   import { hoverClick } from '@/modules/click.js'
   import AudioLabel from '@/views/ViewAnime/AudioLabel.svelte'
 
   import { page } from '@/App.svelte'
-  import { anilistClient } from '@/modules/anilist.js'
+  import { anilistClient, currentYear } from '@/modules/anilist.js'
   import { mediaCache } from '@/modules/cache.js'
   import { CalendarDays, Tv, ThumbsUp, ThumbsDown } from 'lucide-svelte'
 
@@ -78,7 +78,10 @@
     <div class='d-flex flex-row mt-auto font-weight-medium justify-content-between w-full text-muted'>
       <div class='d-flex align-items-center pr-5'>
         <CalendarDays class='pr-5' size='2.6rem' />
-        <span class='line-height-1'>{media.seasonYear || 'N/A'}</span>
+        {#await (media.seasonYear && media) || getKitsuMappings(media.id) then details}
+          {@const attributes = details?.included?.[0]?.attributes}
+          <span class='line-height-1'>{details.seasonYear || (attributes?.startDate && new Date(attributes?.startDate).getFullYear()) || (attributes?.createdAt && new Date(attributes?.createdAt).getFullYear()) || (media.status === 'RELEASING' && currentYear) || 'N/A'}</span>
+        {/await}
       </div>
       <div class='d-flex align-items-center text-nowrap text-right'>
         <span class='line-height-1'>{formatMap[media.format]}</span>

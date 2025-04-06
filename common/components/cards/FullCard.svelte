@@ -1,11 +1,11 @@
 <script>
   import { getContext } from 'svelte'
-  import { airingAt, episode, formatMap, getMediaMaxEp, statusColorMap } from '@/modules/anime.js'
+  import { airingAt, episode, formatMap, getKitsuMappings, getMediaMaxEp, statusColorMap } from '@/modules/anime.js'
   import { click } from '@/modules/click.js'
   import { page } from '@/App.svelte'
   import { SUPPORTS } from '@/modules/support.js'
   import AudioLabel from '@/views/ViewAnime/AudioLabel.svelte'
-  import { anilistClient } from '@/modules/anilist.js'
+  import { anilistClient, seasons } from '@/modules/anilist.js'
   import { mediaCache } from '@/modules/cache.js'
   /** @type {import('@/modules/al.d.ts').Media} */
   export let data
@@ -62,11 +62,16 @@
                   Rated 18+
                 </span>
             {/if}
-            {#if media.season || media.seasonYear}
+            {#await ((media.season || media.seasonYear) && media) || getKitsuMappings(media.id) then details}
+              {@const attributes = details?.included?.[0]?.attributes}
+              {@const seasonYear = details.seasonYear || (attributes?.startDate && new Date(attributes?.startDate).getFullYear()) || (attributes?.createdAt && new Date(attributes?.createdAt).getFullYear())}
+              {@const season = (details.season || seasonYear && seasons[Math.floor((((attributes?.startDate && new Date(attributes?.startDate).getMonth()) || (attributes?.createdAt && new Date(attributes?.createdAt).getMonth())) / 12) * 4) % 4])?.toLowerCase()}
+              {#if season || seasonYear}
                 <span class='badge pl-5 pr-5'>
-                  {[media.season?.toLowerCase(), media.seasonYear].filter(s => s).join(' ')}
+                  {[season, seasonYear].filter(s => s).join(' ')}
                 </span>
-            {/if}
+              {/if}
+            {/await}
             {#if media.averageScore}
               <span class='badge pl-5 pr-5'>{media.averageScore + '%'} Rating</span>
               {#if media.stats?.scoreDistribution}
