@@ -559,7 +559,7 @@ class Cache {
         const promiseData = (async () => {
             const res = await data
             const cacheRes = structuredClone(res)
-            if (!variables?.mappings && (res.errors && res.errors.length > 0)) return this.cachedEntry(cache, key, true) || res // best to return something rather than nothing...   //!res?.data ||
+            if (!variables?.mappings && (res.errors?.length > 0) && !res.errors?.[0]?.title?.match(/record not found/i)) return this.cachedEntry(cache, key, true) || res // best to return something rather than nothing...   //!res?.data ||
             if (cache !== caches.RECOMMENDATIONS || this.#general.value.settings.queryComplexity === 'Complex') {
                 if (res?.data?.Page?.media) {
                     cacheRes.data.Page.media = cacheRes.data.Page.media.map(media => media.id)
