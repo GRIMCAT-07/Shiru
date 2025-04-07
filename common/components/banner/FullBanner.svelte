@@ -23,8 +23,7 @@
   }
 
   function toggleFavourite () {
-    anilistClient.favourite({ id: current.id })
-    current.isFavourite = !current.isFavourite
+    current.isFavourite = anilistClient.favourite({ id: current.id })
   }
 
   function currentIndex () {
@@ -126,8 +125,10 @@
       <Scoring media={current} />
     {/if}
     {#if Helper.isAniAuth()}
-      <button class='btn bg-dark-light btn-square ml-10 d-flex align-items-center justify-content-center shadow-none border-0' title='Favorite' use:click={toggleFavourite} disabled={!Helper.isAniAuth()}>
-        <Heart fill={current.isFavourite ? 'currentColor' : 'transparent'} size='1.7rem' />
+      <button class='btn bg-dark-light btn-square ml-10 d-flex align-items-center justify-content-center shadow-none border-0' title={current.isFavourite ? 'Unfavourite' : 'Favourite'} use:click={toggleFavourite} disabled={!Helper.isAniAuth()}>
+        <div class='favourite d-flex align-items-center justify-content-center'>
+          <Heart color={current.isFavourite ? 'var(--tertiary-color)' : 'currentColor'} fill={current.isFavourite ? 'var(--tertiary-color)' : 'transparent'} size='1.7rem' />
+        </div>
       </button>
     {/if}
     <button class='btn bg-dark-light btn-square ml-10 d-flex align-items-center justify-content-center shadow-none border-0' title='View Details' use:click={viewMedia}>

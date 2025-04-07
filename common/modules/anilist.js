@@ -805,7 +805,11 @@ class AnilistClient {
       mutation($id: Int) {
         ToggleFavourite(animeId: $id) { anime { nodes { id } } } 
       }`
-    return this.alRequest(query, variables)
+    const cachedMedia = mediaCache.value[variables.id]
+    const isFavourite = cachedMedia?.isFavourite
+    if (cachedMedia) cachedMedia.isFavourite = !isFavourite
+    this.alRequest(query, variables)
+    return !isFavourite
   }
 
   /** @param {import('./al.d.ts').Media} media */

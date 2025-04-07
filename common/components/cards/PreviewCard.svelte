@@ -32,8 +32,7 @@
   }
   const playButtonText = getPlayButtonText(media)
   function toggleFavourite() {
-    anilistClient.favourite({ id: media.id })
-    media.isFavourite = !media.isFavourite
+    media.isFavourite = anilistClient.favourite({ id: media.id })
   }
   function play() {
     if (media.status === 'NOT_YET_RELEASED') return
@@ -85,9 +84,10 @@
         <Scoring {media} previewAnime={true}/>
       {/if}
       {#if Helper.isAniAuth()}
-        <button class='btn btn-square ml-10 d-flex align-items-center justify-content-center shadow-none border-0'
-                use:click={toggleFavourite} disabled={!Helper.isAniAuth()}>
-          <Heart fill={media.isFavourite ? 'currentColor' : 'transparent'} size='1.7rem'/>
+        <button class='btn btn-square ml-10 d-flex align-items-center justify-content-center shadow-none border-0' title={media.isFavourite ? 'Unfavourite' : 'Favourite'} use:click={toggleFavourite} disabled={!Helper.isAniAuth()}>
+          <div class='favourite d-flex align-items-center justify-content-center'>
+            <Heart color={media.isFavourite ? 'var(--tertiary-color)' : 'currentColor'} fill={media.isFavourite ? 'var(--tertiary-color)' : 'transparent'} size='1.7rem'/>
+          </div>
         </button>
       {/if}
     </div>

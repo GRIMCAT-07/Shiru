@@ -106,8 +106,7 @@
   }
   $: playButtonText = getPlayButtonText(media)
   function toggleFavourite () {
-    anilistClient.favourite({ id: media.id })
-    media.isFavourite = !media.isFavourite
+    media.isFavourite = anilistClient.favourite({ id: media.id })
   }
   function copyToClipboard (text) {
     navigator.clipboard.writeText(text)
@@ -263,8 +262,10 @@
                       <Scoring {media} viewAnime={true} />
                     {/if}
                     {#if Helper.isAniAuth()}
-                      <button class='btn bg-dark btn-lg btn-square d-flex align-items-center justify-content-center shadow-none border-0 ml-10' use:click={toggleFavourite} disabled={!Helper.isAniAuth()}>
-                        <Heart fill={media.isFavourite ? 'currentColor' : 'transparent'} size='1.7rem' />
+                      <button class='btn bg-dark btn-lg btn-square d-flex align-items-center justify-content-center shadow-none border-0 ml-10' title={media.isFavourite ? 'Unfavourite' : 'Favourite'} use:click={toggleFavourite} disabled={!Helper.isAniAuth()}>
+                        <div class='favourite d-flex align-items-center justify-content-center'>
+                          <Heart color={media.isFavourite ? 'var(--tertiary-color)' : 'currentColor'} fill={media.isFavourite ? 'var(--tertiary-color)' : 'transparent'} size='1.7rem' />
+                        </div>
                       </button>
                     {/if}
                     <button class='btn bg-dark btn-lg btn-square d-flex align-items-center justify-content-center shadow-none border-0' class:ml-10={Helper.isAuthorized()} use:click={() => copyToClipboard(Helper.isAniAuth() || !staticMedia.idMal ? `https://anilist.co/anime/${staticMedia.id}` : `https://myanimelist.net/anime/${staticMedia.idMal}`)}>
