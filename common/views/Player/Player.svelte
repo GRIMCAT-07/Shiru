@@ -1641,10 +1641,12 @@
                 {/if}
               {/each}
               <div class='mb-5 invisible'></div>
-              <div role='button' aria-label='Add External Subtitles' class='position-absolute bottom-0 not-reactive' title='Add External Subtitles' style='margin-left: 0.1rem !important' use:click={(target) => { fileInput.click(); toggleDropdown(target) }}>
-                <FilePlus2 size="2rem" strokeWidth={2.5} />
+              <div class='subtitle-offset'>
+                <div role='button' aria-label='Add External Subtitles' class='position-absolute not-reactive' title='Add External Subtitles' style='margin-left: 0.1rem !important; margin-top: 0.3rem !important' use:click={(target) => { fileInput.click(); toggleDropdown(target) }}>
+                  <FilePlus2 size="2rem" strokeWidth={2.5} />
+                </div>
+                <input type='text' inputmode='numeric' pattern='-?[0-9]*.?[0-9]*' step='0.1' title='Subtitle Offset' bind:value={subDelay} on:click|stopPropagation class='form-control text-right form-control-sm not-reactive' />
               </div>
-              <input type='text' inputmode='numeric' pattern='-?[0-9]*.?[0-9]*' step='0.1' title='Subtitle Offset' bind:value={subDelay} on:click|stopPropagation class='form-control text-right form-control-sm not-reactive' />
             </div>
           </div>
         </div>
