@@ -62,13 +62,18 @@
                   Rated 18+
                 </span>
             {/if}
-            {#await ((media.season || media.seasonYear) && media) || getKitsuMappings(media.id) then details}
+            {#await ((media.season || media.seasonYear || (media.status === 'NOT_YET_RELEASED')) && media) || getKitsuMappings(media.id) then details}
               {@const attributes = details?.included?.[0]?.attributes}
               {@const seasonYear = details.seasonYear || (attributes?.startDate && new Date(attributes?.startDate).getFullYear()) || (attributes?.createdAt && new Date(attributes?.createdAt).getFullYear())}
               {@const season = (details.season || seasonYear && seasons[Math.floor((((attributes?.startDate && new Date(attributes?.startDate).getMonth()) || (attributes?.createdAt && new Date(attributes?.createdAt).getMonth())) / 12) * 4) % 4])?.toLowerCase()}
-              {#if season || seasonYear}
+              {#if season || seasonYear || (media.status === 'NOT_YET_RELEASED')}
                 <span class='badge pl-5 pr-5'>
-                  {[season, seasonYear].filter(s => s).join(' ')}
+                  {(season || seasonYear) ? [season, seasonYear].filter(s => s).join(' ') : 'In Production'}
+                </span>
+              {/if}
+              {#if !season && !seasonYear && (media.status === 'NOT_YET_RELEASED')}
+                <span class='badge pl-5 pr-5'>
+                  Not Released
                 </span>
               {/if}
             {/await}

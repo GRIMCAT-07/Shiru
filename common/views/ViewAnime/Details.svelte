@@ -57,11 +57,11 @@
       studio = ((await alt)?.data?.Media || media)?.studios?.nodes?.map(node => node.name)?.[0] // sometimes this can still be wrong, so we just get the first studio in the list and assume that's correct.
       return studio
     } else if (property === 'season') {
-      const details = await (((media.season || media.seasonYear) && media) || getKitsuMappings(media.id))
+      const details = await (((media.season || media.seasonYear || (media.status === 'NOT_YET_RELEASED')) && media) || getKitsuMappings(media.id))
       const attributes = details?.included?.[0]?.attributes
       const seasonYear = details.seasonYear || (attributes?.startDate && new Date(attributes?.startDate).getFullYear()) || (attributes?.createdAt && new Date(attributes?.createdAt).getFullYear())
       const season = (details.season || seasonYear && seasons[Math.floor((((attributes?.startDate && new Date(attributes?.startDate).getMonth()) || (attributes?.createdAt && new Date(attributes?.createdAt).getMonth())) / 12) * 4) % 4])?.toLowerCase()
-      seasonal = (season || seasonYear) ? [season, seasonYear].filter(f => f).join(' ') : null
+      seasonal = (season || seasonYear) ? [season, seasonYear].filter(f => f).join(' ') : (media.status === 'NOT_YET_RELEASED') ? 'In Production' : null
       return seasonal
     }
     return media[property]

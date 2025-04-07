@@ -78,9 +78,9 @@
     <div class='d-flex flex-row mt-auto font-weight-medium justify-content-between w-full text-muted'>
       <div class='d-flex align-items-center pr-5'>
         <CalendarDays class='pr-5' size='2.6rem' />
-        {#await (media.seasonYear && media) || getKitsuMappings(media.id) then details}
+        {#await ((media.seasonYear || (media.status === 'NOT_YET_RELEASED')) && media) || getKitsuMappings(media.id) then details}
           {@const attributes = details?.included?.[0]?.attributes}
-          <span class='line-height-1'>{details.seasonYear || (attributes?.startDate && new Date(attributes?.startDate).getFullYear()) || (attributes?.createdAt && new Date(attributes?.createdAt).getFullYear()) || (media.status === 'RELEASING' && currentYear) || 'N/A'}</span>
+          <span class='line-height-1'>{details.seasonYear || ((media.status === 'NOT_YET_RELEASED') && 'TBA') || (attributes?.startDate && new Date(attributes?.startDate).getFullYear()) || (attributes?.createdAt && new Date(attributes?.createdAt).getFullYear()) || (media.status === 'RELEASING' && currentYear) || 'N/A'}</span>
         {/await}
       </div>
       <div class='d-flex align-items-center text-nowrap text-right'>
