@@ -33,6 +33,10 @@
   --episode-preview-card-gradient: linear-gradient(180deg, #0000 0%, #25292f00 80%, #25292f 100%);
   --preview-card-gradient: linear-gradient(180deg, #0000 0%, #25292f00 80%, #25292fe3 95%, #25292f 100%);
   --section-end-gradient: linear-gradient(270deg, #17191cff 0%, #17191c00 100%);
+  --adult-color: rgb(255, 96, 99);
+  --dubbed-color: rgb(255, 235, 136);
+  --subbed-color: rgb(207, 168, 255);
+  --incomplete-color: rgb(255, 149, 88);
   color-scheme: dark;
 }
 
