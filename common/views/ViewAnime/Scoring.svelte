@@ -157,7 +157,7 @@
   function handleEpisodes(event) {
     const enteredValue = event.currentTarget.value
     if (/^\d+$/.test(enteredValue)) {
-      const maxEpisodes = getMediaMaxEp(media)
+      const maxEpisodes = getMediaMaxEp(media) || (media.status === 'RELEASING' ? 12 : 0)
       if (parseInt(enteredValue) > maxEpisodes) {
         episode = maxEpisodes
         event.currentTarget.value = episode

@@ -107,7 +107,7 @@
       }
     }
 
-    if (alEpisodes.length < episodeCount) {
+    if ((alEpisodes.length < episodeCount) || (!alEpisodes.length && !episodeCount)) {
       const eps = await episodesList.getEpisodeData(idMal)
       if (eps?.length > 0) {
         const lastId = eps[eps.length - 1].episode_id
@@ -302,7 +302,7 @@
                   {:else}
                     {#if airdate}
                       {since(new Date(airdate))}
-                    {:else if media.status === 'RELEASING'}
+                    {:else if media.status === 'RELEASING' && episode > 1}
                       In Production
                     {/if}
                   {/if}
