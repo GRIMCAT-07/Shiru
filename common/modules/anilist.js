@@ -419,10 +419,9 @@ class AnilistClient {
   /** @returns {Promise<import('./al.d.ts').Query<{ MediaListCollection: import('./al.d.ts').MediaListCollection }>>} */
   async getUserLists(variables = {}, ignoreExpiry) {
     debug('Getting user lists')
-    variables.id = !variables.userID ? this.userID?.viewer?.data?.Viewer.id : variables.userID
-    variables.sort = variables.sort || 'UPDATED_TIME_DESC'
-    const userSort = variables.sort
-    if (Helper.isUserSort(variables)) variables.sort = 'UPDATED_TIME_DESC'
+    variables.id = variables.userID || this.userID?.viewer?.data?.Viewer.id
+    const userSort = variables.sort || 'UPDATED_TIME_DESC'
+    if (!variables.sort || Helper.isUserSort(variables)) variables.sort = 'UPDATED_TIME_DESC'
     const cachedEntry = this.sortListEntries(userSort, await cache.cachedEntry(caches.USER_LISTS, JSON.stringify(variables), ignoreExpiry))
     if (cachedEntry) return cachedEntry
     const query = /* js */` 
