@@ -133,7 +133,7 @@ class RSSMediaManager {
       const notify = (!media?.mediaListEntry && settings.value.rssNotify?.includes('NOTONLIST')) || (media?.mediaListEntry && settings.value.rssNotify?.includes(media?.mediaListEntry?.status))
       const dubbed = malDubs.isDubMedia(parseObject)
       if (notify && (!settings.value.preferDubs || dubbed || !malDubs.isDubMedia(media))) {
-        const highestEp = Number(episode) || ((episode?.match(/\b\d+\s*[-~]\s*\d+\b/) || []).map(m => m.split(/[-~]/).map(n => +n.trim()))[1] || Array.isArray(episode) ? episode[1] : (typeof episode === 'string' && episode?.match(/^\d+\s*~\s*\d+$/)) ? episode.split(/~\s*/).map(n => +n.trim())[1] : null)
+        const highestEp = Number(episode) || ((Array.isArray(episode) && episode) || (episode?.match(/\b\d+\s*[-~]\s*\d+\b/)?.[0]?.split(/[-~]/)?.map(n => +n.trim())) || (typeof episode === 'string' && episode.match(/^\d+\s*~\s*\d+$/) && episode.split(/~\s*/).map(n => +n.trim())))?.[1]
         const progress = media?.mediaListEntry?.progress
         const behind = progress < ((Number(episode) || Number(highestEp)) - 1)
         const details = {

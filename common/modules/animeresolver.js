@@ -199,6 +199,7 @@ export default new class AnimeResolver {
       name = name
           .replace('1-2', '1/2').replace('1_2', '1/2') // Ranma 1/2 fix.
           .replace(/new /i, '') // Prince of Tennis fix.
+          .replace(/\s*part\s*1\+2/i, '') // Primary Misfit of Demon King fix.
           .replace(/Link Click (Season\s*3|S\s*3|\s*03)/i, 'Link Click: Bridon Arc') // Link Click S3 fix.
           .replace(/Symphogear (Season\s*2|S\s*2|\s*02)/i, 'Symphogear G') // Not the releasers fault, Anilist is missing the "Season 2/2nd Season" synonym so this is difficult to resolve when G and GX is only different by 1 character.
           .replace(/Symphogear G (Season\s*2|S\s*2|\s*02)/i, 'Symphogear G') // Symphogear S2 fix. No you are not playing Season 2 of Symphogear G, why would you name it S2EXX but include the actual title.. that just makes it Season 1, aka "Symphogear G".
@@ -213,6 +214,17 @@ export default new class AnimeResolver {
       if (name.match(/Steins;Gate/i) && name.match(/Movie/i)) name = (/Steins;Gate 0/i.test(name) ? name.replace(/Steins;Gate 0/i, 'Steins;Gate 0:') : name.replace(/Steins;Gate/i, 'Steins;Gate:')).replace(/The Movie/i, '').replace(/Movie/i, '') // Steins;Gate movies are very sensitive when resolving.
       if (name.match(/Steins;Gate/i) && name.match(/Divide|β|Beta/i)) name = name.replace(/23β|23 β|23\(β\)|23 \(β\)|β|23Beta|23 Beta|Open the Missing Link|Divide By Zero/i, 'Kyoukaimenjou No Missing Link - Divide By Zero').replace(/Episode 23|23|Episode/i, '') // Steins;Gate 23β incorrectly detects as Episode 23 of the main series, we need to use the full Romaji name.
       if (name.match(/Code Geass /i) && !name.match(/Lelouch|Dakkan|Dakken|Rozé|Roze|Rose|Movie|Akito|Recapture/i)) name = name.replace(/Code Geass/i, 'Code Geass: Hangyaku No Lelouch') // fixes the main series being detected as the Spin-off (alternative) series.
+
+      // fix incorrect marker patterns to prevent them from being detected as episode count...
+      name = name
+          .replace(/H 264/i, 'H.264')
+          .replace(/H 265/i, 'H.265')
+          .replace(/MPEG 2/i, 'MPEG-2')
+          .replace(/MPEG 4/i, 'MPEG-4')
+          .replace(/AVC 1/i, 'AVC1')
+          .replace(/\s*2\.0/i, '2.0')
+          .replace(/\s*5\.0/i, '5.0')
+          .replace(/\s*5\.1/i, '5.1')
 
       // Restore preserved patterns by converting markers back
       name = name
