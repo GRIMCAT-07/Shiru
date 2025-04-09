@@ -214,6 +214,7 @@ export default new class AnimeResolver {
       if (name.match(/Steins;Gate/i) && name.match(/Movie/i)) name = (/Steins;Gate 0/i.test(name) ? name.replace(/Steins;Gate 0/i, 'Steins;Gate 0:') : name.replace(/Steins;Gate/i, 'Steins;Gate:')).replace(/The Movie/i, '').replace(/Movie/i, '') // Steins;Gate movies are very sensitive when resolving.
       if (name.match(/Steins;Gate/i) && name.match(/Divide|β|Beta/i)) name = name.replace(/23β|23 β|23\(β\)|23 \(β\)|β|23Beta|23 Beta|Open the Missing Link|Divide By Zero/i, 'Kyoukaimenjou No Missing Link - Divide By Zero').replace(/Episode 23|23|Episode/i, '') // Steins;Gate 23β incorrectly detects as Episode 23 of the main series, we need to use the full Romaji name.
       if (name.match(/Code Geass /i) && !name.match(/Lelouch|Dakkan|Dakken|Rozé|Roze|Rose|Movie|Akito|Recapture/i)) name = name.replace(/Code Geass/i, 'Code Geass: Hangyaku No Lelouch') // fixes the main series being detected as the Spin-off (alternative) series.
+      if (name.match(/Yami Healer/i) && !name.match(/Isshun|Shiteita|Yakutatazu|Tsuihou|Sareta|Toshite|Tanoshiku/i)) name = name.replace(/Yami Healer/i, 'Isshun de Chiryou Shiteita no ni Yakutatazu to Tsuihou Sareta Tensai Chiyushi, Yami Healer Toshite Tanoshiku Ikiru') // stupid fix for a synonym that doesn't exist with The Brilliant Healer's New Life in the Shadows...
 
       // fix incorrect marker patterns to prevent them from being detected as episode count...
       name = name
@@ -289,7 +290,7 @@ export default new class AnimeResolver {
             // if it starts with #1 and overflows then it includes more than 1 season in a batch, cant fix this cleanly, name is parsed per-file basis so this shouldn't be an issue
             episode = `${Number(parseObj.episode_number[0])} ~ ${Number(parseObj.episode_number[1])}`
             if (needsVerification) {
-              const mediaSearch = (await this.manualMediaSearch(parseObj, media, titleKeys, threshold))
+              const mediaSearch = (await this.manualMediaSearch(parseObj, maxep, media, titleKeys, threshold))
               media = mediaSearch.media
               episode = mediaSearch.episode || episode
               failed = mediaSearch.failed
@@ -305,7 +306,7 @@ export default new class AnimeResolver {
               // cant find ep count or range seems fine
               episode = `${Number(parseObj.episode_number[0])} ~ ${Number(parseObj.episode_number[1])}`
               if (needsVerification) {
-                const mediaSearch = (await this.manualMediaSearch(parseObj, media, titleKeys, threshold))
+                const mediaSearch = (await this.manualMediaSearch(parseObj, maxep, media, titleKeys, threshold))
                 media = mediaSearch.media
                 episode = mediaSearch.episode || episode
                 failed = mediaSearch.failed
@@ -333,7 +334,7 @@ export default new class AnimeResolver {
             // cant find ep count or episode seems fine
             episode = Number(parseObj.episode_number)
             if (needsVerification) {
-              const mediaSearch = (await this.manualMediaSearch(parseObj, media, titleKeys, threshold))
+              const mediaSearch = (await this.manualMediaSearch(parseObj, maxep, media, titleKeys, threshold))
               media = mediaSearch.media
               episode = mediaSearch.episode || episode
               failed = mediaSearch.failed
@@ -341,7 +342,7 @@ export default new class AnimeResolver {
           }
         }
       } else if (needsVerification) {
-        const mediaSearch = (await this.manualMediaSearch(parseObj, media, titleKeys, threshold))
+        const mediaSearch = (await this.manualMediaSearch(parseObj, maxep, media, titleKeys, threshold))
         media = mediaSearch.media
         episode = mediaSearch.episode || episode
         failed = mediaSearch.failed
@@ -394,7 +395,7 @@ export default new class AnimeResolver {
         }
         if (results.failed) debug(`Failed to resolve ${parseObj.anime_title} ${parseObj.episode_number} ${media?.title?.userPreferred}`)
         return results
-      } else return { parseObj, ...(await this.manualMediaSearch(parseObj, media, titleKeys, threshold)) }
+      } else return { parseObj, ...(await this.manualMediaSearch(parseObj, maxep, media, titleKeys, threshold)) }
     }
     return defaults
   }
@@ -459,7 +460,7 @@ export default new class AnimeResolver {
         return { media: probeMedia, parseObj: parseNew[0], episode: Number(parseNew[0]?.episode_number) }
       }
     }
-    return { ...(await this.manualMediaSearch(parseObj, media, titleKeys, threshold)), parseObj }
+    return { ...(await this.manualMediaSearch(parseObj, maxep, media, titleKeys, threshold)), parseObj }
   }
 
   /**
@@ -468,13 +469,14 @@ export default new class AnimeResolver {
    * or mismatched titles (e.g., for series like Misfit of a Demon King).
    *
    * @param {Object} parseObj - The parsed object containing details about the anime episode (e.g., title, episode number).
+   * @param {number} maxep - The maximum episode number available for the media, used to validate episode range.
    * @param {Object} media - The media object that contains data about the anime (e.g., title, episodes, format).
    * @param {string[]} titleKeys - The list of title keys to match against when verifying media (e.g., 'title.english', 'title.userPreferred').
    * @param {number} threshold - The threshold value to use when comparing titles for similarity (0 to 1 scale).
    *
    * @returns {Object} An object containing the resolved `media` object, and a `failed` flag indicating whether the manual search was successful.
    */
-  async manualMediaSearch(parseObj, media, titleKeys, threshold) {
+  async manualMediaSearch(parseObj, maxep, media, titleKeys, threshold) {
     debug(`Attempting final attempt to manual search for failed result ${parseObj.anime_title}: ${media?.id}:${media?.title?.userPreferred}.`)
     const titles = new Set()
     const multiTitleMatch = parseObj.anime_title.match(/^(.+?)\s*\((.+?)\)$/)
@@ -496,7 +498,8 @@ export default new class AnimeResolver {
         }
       }
     }
-    return { media, failed: true }
+    const episodeNumber = Array.isArray(parseObj.episode_number) ? parseObj.episode_number[1] : parseObj.episode_number
+    return { media, failed: !((episodeNumber > maxep) && (media?.status === 'RELEASING')) }
   }
 
   /**
