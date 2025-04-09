@@ -170,19 +170,19 @@
                     <p class='font-size-10 text-muted mt-0 mb-0'>{since(new Date(notification.timestamp * 1000))}</p>
                     <div>
                       {#if announcement}
-                        <span class='badge badge-announcement mr-5'>Announcement</span>
+                        <span class='badge text-dark bg-announcement mr-5'>Announcement</span>
                       {:else if notification.format === 'MOVIE'}
-                        <span class='badge badge-episode mr-5'>Movie</span>
+                        <span class='badge text-dark bg-episode mr-5'>Movie</span>
                       {:else if !notification.season}
-                        {#if delayed}<span class='badge badge-delayed mr-5'>Delayed</span>{/if}
-                        <span class='badge badge-episode mr-5'>{notification.episode ? `Episode ${Array.isArray(notification.episode) ? `${notification.episode[0]} ~ ${notification.episode[1]}` : notification.episode}` : `Batch`} </span>
+                        {#if delayed}<span class='badge text-dark bg-delayed mr-5'>Delayed</span>{/if}
+                        <span class='badge text-dark bg-episode mr-5'>{notification.episode ? `Episode ${Array.isArray(notification.episode) ? `${notification.episode[0]} ~ ${notification.episode[1]}` : notification.episode}` : `Batch`} </span>
                       {:else if notification.season}
-                      <span class='badge badge-episode mr-5'>Season {notification.episode}</span>
+                      <span class='badge text-dark bg-episode mr-5'>Season {notification.episode}</span>
                       {/if}
                       {#if notification.dub}
-                        <span class='badge badge-dub'>Dub</span>
+                        <span class='badge text-dark bg-dubbed'>Dub</span>
                       {:else}
-                        <span class='badge badge-sub'>Sub</span>
+                        <span class='badge text-dark bg-subbed'>Sub</span>
                       {/if}
                     </div>
                   </div>
@@ -252,32 +252,6 @@
   }
   .not-allowed {
     cursor: not-allowed !important;
-  }
-
-  .badge-sub {
-    color: #000000 !important;
-    border-color: rgb(154, 72, 255) !important;
-    background-color: rgb(154, 72, 255) !important;
-  }
-  .badge-dub {
-    color: #000000 !important;
-    border-color: rgb(255, 214, 0) !important;
-    background-color: rgb(255, 214, 0) !important;
-  }
-  .badge-episode {
-    color: #000000 !important;
-    border-color: #CCCCFF !important;
-    background-color: #CCCCFF !important;
-  }
-  .badge-announcement {
-    color: #000000 !important;
-    border-color: #FFFFF0 !important;
-    background-color: #FFFFF0 !important;
-  }
-  .badge-delayed {
-    color: #000000 !important;
-    border-color: #bc2023 !important;
-    background-color: #bc2023 !important;
   }
 
   .notification-item {

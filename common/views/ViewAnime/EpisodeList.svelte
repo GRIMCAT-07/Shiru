@@ -290,11 +290,11 @@
                 <div class='font-size-12 mt-auto' class:pt-10={dubAiring} class:pt-15={!dubAiring} class:mb-5={dubAiring} class:mb-10={!dubAiring}>
                   {#if dubAiring}
                     <div class='d-flex flex-row date-row'>
-                      <div class='{dubAiring.delayed ? `bg-danger` : `bg-secondary`} py-5 px-10 text-dark text-nowrap rounded-top rounded-left font-weight-bold'>
+                      <div class='py-5 px-10 text-dark text-nowrap rounded-top rounded-left font-weight-bold' class:bg-danger={dubAiring.delayed} class:bg-dubbed={!dubAiring.delayed}>
                         Dub: {dubAiring.text}
                       </div>
                       {#if airdate || dubAiring.delayed}
-                        <div class='ml-5 py-5 px-10 {!airdate && dubAiring.delayed ? `bg-danger` : `sub-color`} text-dark text-nowrap rounded-top rounded-left font-weight-bold'>
+                        <div class='ml-5 py-5 px-10 text-dark text-nowrap rounded-top rounded-left font-weight-bold' class:bg-danger={!airdate && dubAiring.delayed} class:bg-subbed={!(!airdate && dubAiring.delayed)}>
                           Sub: {airdate ? since(new Date(airdate)) : dubAiring.text}
                         </div>
                       {/if}
@@ -324,10 +324,6 @@
     display: -webkit-box !important;
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
-  }
-  .sub-color {
-    border-color: rgb(154, 72, 255) !important;
-    background-color: rgb(154, 72, 255) !important;
   }
   .scale {
     transition: transform 0.2s ease;

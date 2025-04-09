@@ -44,17 +44,17 @@
         {@const subEpisodes = String(media.status !== 'NOT_YET_RELEASED' && media.status !== 'CANCELLED' && getMediaMaxEp(media, (media.status !== 'FINISHED')) || dubEpisodes || '')}
         <div class='position-absolute bottom-0 right-0 d-flex h-2' class:mb-4={smallCard} class:mb-3={!smallCard}>
             {#if media.isAdult}
-                <div class='pl-10 pr-15 text-dark font-weight-bold d-flex align-items-center h-full lg-slant adult mrl-2'>
+                <div class='pl-10 pr-15 text-dark font-weight-bold d-flex align-items-center h-full lg-slant bg-adult mrl-2'>
                     <Adult size='2rem' strokeWidth='1.8' />
                 </div>
             {/if}
             {#if $isDubbed || $isPartial}
-                <div class='pl-10 pr-20 text-dark font-weight-bold d-flex align-items-center h-full slant' class:w-icon={!dubEpisodes || dubEpisodes.length === 0 || Number(dubEpisodes) === 0} class:w-text={dubEpisodes && dubEpisodes.length > 0 && Number(dubEpisodes) > 0} class:dubbed={$isDubbed} class:incomplete={$isPartial}>
+                <div class='pl-10 pr-20 text-dark font-weight-bold d-flex align-items-center h-full slant' class:w-icon={!dubEpisodes || dubEpisodes.length === 0 || Number(dubEpisodes) === 0} class:w-text={dubEpisodes && dubEpisodes.length > 0 && Number(dubEpisodes) > 0} class:bg-dubbed={$isDubbed} class:bg-incomplete={$isPartial}>
                     <svelte:component this={$isDubbed ? Mic : MicOff} size='1.8rem' strokeWidth='2' />
                     <span class='d-flex align-items-center line-height-1 ml-2'><div class='line-height-1 mt-2'>{#if Number(dubEpisodes) > 0}{Number(dubEpisodes)}{/if}</div></span>
                 </div>
             {/if}
-            <div class='px-10 z-10 text-dark rounded-right font-weight-bold d-flex align-items-center h-full subbed slant mrl-1'>
+            <div class='px-10 z-10 text-dark rounded-right font-weight-bold d-flex align-items-center h-full bg-subbed slant mrl-1'>
                 <Captions size='2rem' strokeWidth='1.5' />
                 <span class='d-flex align-items-center line-height-1' class:ml-3={(subEpisodes && subEpisodes.length > 0) || (dubEpisodes && Number(dubEpisodes) > 0)}><div class='line-height-1 mt-2'>{#if subEpisodes && (!dubEpisodes || (Number(subEpisodes) >= Number(dubEpisodes)))}{Number(subEpisodes)}{:else if dubEpisodes && (Number(dubEpisodes) > 0)}{Number(dubEpisodes)}{/if}</div></span>
             </div>
@@ -104,17 +104,5 @@
      }
      .lg-slant {
          clip-path: polygon(21% -1px, 100% 0, 100% 100%, 0% calc(100% + 1px));
-     }
-     .adult {
-         background-color: var(--adult-color);
-     }
-     .dubbed {
-         background-color: var(--dubbed-color);
-     }
-     .subbed {
-         background-color: var(--subbed-color);
-     }
-     .incomplete {
-         background-color: var(--incomplete-color);
      }
  </style>

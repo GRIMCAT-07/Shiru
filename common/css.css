@@ -37,6 +37,9 @@
   --dubbed-color: rgb(255, 214, 0);
   --subbed-color: rgb(137, 39, 255);
   --incomplete-color: rgb(255, 94, 0);
+  --delayed-color: rgb(188, 32, 35);
+  --episode-color: rgb(204, 204, 255);
+  --announcement-color: rgb(255, 255, 240);
   color-scheme: dark;
 }
 
@@ -157,6 +160,41 @@ body {
 
 .bg-black {
   background: #000;
+}
+
+.bg-adult {
+  border-color: var(--adult-color) !important;
+  background-color: var(--adult-color) !important;
+}
+
+.bg-dubbed {
+  border-color: var(--dubbed-color) !important;
+  background-color: var(--dubbed-color) !important;
+}
+
+.bg-subbed {
+  border-color: var(--subbed-color) !important;
+  background-color: var(--subbed-color) !important;
+}
+
+.bg-incomplete {
+  border-color: var(--incomplete-color) !important;
+  background-color: var(--incomplete-color) !important;
+}
+
+.bg-delayed {
+  border-color: var(--delayed-color) !important;
+  background-color: var(--delayed-color) !important;
+}
+
+.bg-episode {
+  border-color: var(--episode-color) !important;
+  background-color: var(--episode-color) !important;
+}
+
+.bg-announcement {
+  border-color: var(--announcement-color) !important;
+  background-color: var(--announcement-color) !important;
 }
 
 .btn:disabled {
