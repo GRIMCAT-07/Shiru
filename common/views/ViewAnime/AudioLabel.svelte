@@ -106,15 +106,15 @@
          clip-path: polygon(21% -1px, 100% 0, 100% 100%, 0% calc(100% + 1px));
      }
      .adult {
-         background-color: rgb(215, 6, 10) !important;
+         background-color: var(--adult-color);
      }
      .dubbed {
-         background-color: rgb(255, 214, 0) !important;
+         background-color: var(--dubbed-color);
      }
      .subbed {
-         background-color: rgb(137, 39, 255) !important;
+         background-color: var(--subbed-color);
      }
      .incomplete {
-         background-color: rgb(255, 94, 0) !important;
+         background-color: var(--incomplete-color);
      }
  </style>
