@@ -15,6 +15,11 @@
     export let viewAnime = false
     export let smallCard = true
     export let episode = false
+    export let episodeList = false
+
+    export let dubbed = false
+    export let subbed = false
+
     let isDubbed = writable(false)
     let isPartial = writable(false)
 
@@ -40,7 +45,7 @@
     }
 </script>
 {#if settings.value.cardAudio}
-    {#if !banner && !viewAnime}
+    {#if !banner && !viewAnime && !episodeList}
         {@const subEpisodes = String(media.status !== 'NOT_YET_RELEASED' && media.status !== 'CANCELLED' && getMediaMaxEp(media, (media.status !== 'FINISHED')) || dubEpisodes || '')}
         <div class='position-absolute bottom-0 right-0 d-flex h-2' class:mb-4={smallCard} class:mb-3={!smallCard}>
             {#if media.isAdult}
@@ -58,6 +63,19 @@
                 <Captions size='2rem' strokeWidth='1.5' />
                 <span class='d-flex align-items-center line-height-1' class:ml-3={(subEpisodes && subEpisodes.length > 0) || (dubEpisodes && Number(dubEpisodes) > 0)}><div class='line-height-1 mt-2'>{#if subEpisodes && (!dubEpisodes || (Number(subEpisodes) >= Number(dubEpisodes)))}{Number(subEpisodes)}{:else if dubEpisodes && (Number(dubEpisodes) > 0)}{Number(dubEpisodes)}{/if}</div></span>
             </div>
+        </div>
+    {:else if episodeList}
+        <div class='position-absolute bottom-0 right-0 d-flex h-2'>
+            {#if dubbed}
+                <div class='pl-10 pr-20 text-dark font-weight-bold d-flex align-items-center h-full bg-dubbed slant w-icon'>
+                    <Mic size='1.8rem' strokeWidth='2' />
+                </div>
+            {/if}
+            {#if subbed}
+                <div class='px-10 z-10 text-dark rounded-right font-weight-bold d-flex align-items-center h-full bg-subbed slant mrl-1'>
+                    <Captions size='2rem' strokeWidth='1.5' />
+                </div>
+            {/if}
         </div>
     {:else if !viewAnime}
         {@const multiAudio = (matchPhrase(data?.parseObject?.file_name, ['Multi Audio', 'Dual Audio'], 3) || matchPhrase(data?.parseObject?.file_name, ['Dual'], 1)) || (banner && !episode && ($isDubbed || $isPartial)) }

@@ -1,9 +1,11 @@
 <script context='module'>
   import { animeSchedule } from '@/modules/animeschedule.js'
   import { malDubs } from '@/modules/animedubs.js'
+  import { settings } from '@/modules/settings.js'
   import { past } from '@/modules/util.js'
 
   async function dubbedEpisode(i, media) {
+    if (!settings.value.cardAudio) return
     const episode = i + 1
     const entry = (await animeSchedule.dubAiringLists.value)?.find(entry => entry.media?.media?.id === media.id)
     const episodeEntry = (await animeSchedule.dubAiredLists.value)?.find(entry => entry?.id === media.id && entry?.episode?.aired === episode)
@@ -12,14 +14,14 @@
       const delayed = !!(entry.episodeDate && (((new Date(entry.delayedUntil) >= new Date(entry.episodeDate)) && ((new Date(entry.delayedFrom) > new Date(entry.episodeDate)) || (new Date(entry.delayedUntil).getTime() === new Date(entry.episodeDate).getTime()) || ((new Date(entry.delayedFrom) <= new Date(entry.episodeDate)) && (entry.episodeNumber === entry.media?.media?.airingSchedule?.nodes[0].episode) && (new Date(entry.delayedUntil).getTime() === new Date(entry.media?.media?.airingSchedule?.nodes[0].airingAt).getTime()))) && (new Date(entry.delayedUntil) > new Date())) || entry.delayedIndefinitely))
       const numberOfEpisodes = entry?.subtractedEpisodeNumber ? (entry.episodeNumber - entry.subtractedEpisodeNumber) : 1
       if (entry.episodeDate && (entry.episodeNumber <= episode)) {
-        return { text: `${entry.delayedIndefinitely && !entry.status?.toUpperCase()?.includes('FINISHED') ? 'Suspended' : entry.delayedIndefinitely ? 'Not Planned' : ((episode > entry.episodeNumber) && (numberOfEpisodes > 4) && !entry.unaired) ? 'In Production' : since(past(new Date(delayed ? entry.delayedUntil : entry.episodeDate), entry.episodeNumber >= episode ? 0 : episode - entry.episodeNumber, true)) + (delayed ? ` (${entry.delayedText || 'Delayed'})` : '')}`, delayed: delayed }
+        return { airdate: (delayed ? entry.delayedUntil : entry.episodeDate), text: `${entry.delayedIndefinitely && !entry.status?.toUpperCase()?.includes('FINISHED') ? 'Suspended' : entry.delayedIndefinitely ? 'Not Planned' : ((episode > entry.episodeNumber) && (numberOfEpisodes > 4) && !entry.unaired) ? 'In Production' : since(past(new Date(delayed ? entry.delayedUntil : entry.episodeDate), entry.episodeNumber >= episode ? 0 : episode - entry.episodeNumber, true)) + (delayed ? ` (${entry.delayedText || 'Delayed'})` : '')}`, delayed: delayed }
       } else if (airingSchedule && airingSchedule.episode <= episode) {
-        return { text: `${since(new Date(airingSchedule.airingAt))} ${(delayed ? `(${entry.delayedText || 'Delayed'})` : '')}`, delayed: delayed && !entry.delayedIndefinitely }
+        return { airdate: airingSchedule.airingAt, text: `${since(new Date(airingSchedule.airingAt))} ${(delayed ? `(${entry.delayedText || 'Delayed'})` : '')}`, delayed: delayed && !entry.delayedIndefinitely }
       } else {
-        return { text: `Finished`, delayed: false }
+        return { airdate: new Date().toISOString(), text: `Finished`, delayed: false }
       }
     } else if (episodeEntry) {
-      return { text: `${since(new Date(episodeEntry.episode.airedAt))}`, delayed: false }
+      return { airdate: episodeEntry.episode.airedAt, text: `${since(new Date(episodeEntry.episode.airedAt))}`, delayed: false }
     } else if (malDubs.dubLists.value.incomplete.includes(media.idMal) && (await animeSchedule.dubAiredLists.value).find(entry => entry?.id === media.id && entry?.episode?.aired === 1)) {
       return { text: `Not Planned`, delayed: true }
     } else if (!entry && !episodeEntry && (media.seasonYear >= new Date().getFullYear()) && malDubs.isDubMedia(media)) {
@@ -38,6 +40,7 @@
   import { getAniMappings, hasZeroEpisode, durationMap } from '@/modules/anime.js'
   import smoothScroll from '@/modules/scroll.js'
   import EpisodeSkeletonCard from '@/views/ViewAnime/EpisodeListSkeleton.svelte'
+  import AudioLabel from '@/views/ViewAnime/AudioLabel.svelte'
 
   export let media
 
@@ -255,8 +258,13 @@
           <div class='w-full content-visibility-auto scale' class:my-20={!mobileList || index !== 0} class:opacity-half={completed} class:scale-target={target} class:px-20={!target} class:px-10={target} class:h-150={image || summary}>
             <div class='rounded w-full h-full overflow-hidden d-flex flex-xsm-column flex-row pointer position-relative' class:border={target || hasFiller} class:bg-black={completed} class:border-secondary={hasFiller} class:bg-dark={!completed} use:click={() => play(episode)}>
               {#if image}
-                <div class='h-full'>
+                <div class='h-full d-flex'>
                   <img alt='thumbnail' src={image} class='img-cover h-full'/>
+                  {#if dubAiring}
+                    <div class='position-relative d-none sm-label'>
+                      <AudioLabel {media} episodeList={true} dubbed={dubAiring?.airdate && (new Date(dubAiring.airdate).getTime() <= new Date().getTime())} subbed={(airdate && (new Date(airdate).getTime() <= new Date().getTime())) || (dubAiring?.airdate && (new Date(dubAiring.airdate).getTime() <= new Date().getTime()))} />
+                    </div>
+                  {/if}
                 </div>
               {/if}
               {#if hasFiller}
@@ -284,17 +292,17 @@
                     <div class='progress-bar' style='width: {progress}%'/>
                   </div>
                 {/if}
-                <div class='font-size-12 overflow-hidden'>
+                <div class='font-size-12 overflow-hidden line-4'>
                   {summary || ''}
                 </div>
                 <div class='font-size-12 mt-auto' class:pt-10={dubAiring} class:pt-15={!dubAiring} class:mb-5={dubAiring} class:mb-10={!dubAiring}>
                   {#if dubAiring}
                     <div class='d-flex flex-row date-row'>
-                      <div class='py-5 px-10 text-dark text-nowrap rounded-top rounded-left font-weight-bold' class:bg-danger={dubAiring.delayed} class:bg-dubbed={!dubAiring.delayed}>
+                      <div class='mr-5 py-5 px-10 text-dark text-nowrap rounded-top rounded-left font-weight-bold' class:lg-label={image} class:bg-danger={dubAiring.delayed} class:bg-dubbed={!dubAiring.delayed}>
                         Dub: {dubAiring.text}
                       </div>
                       {#if airdate || dubAiring.delayed}
-                        <div class='ml-5 py-5 px-10 text-dark text-nowrap rounded-top rounded-left font-weight-bold' class:bg-danger={!airdate && dubAiring.delayed} class:bg-subbed={!(!airdate && dubAiring.delayed)}>
+                        <div class='py-5 px-10 text-dark text-nowrap rounded-top rounded-left font-weight-bold' class:lg-label={image} class:bg-danger={!airdate && dubAiring.delayed} class:bg-subbed={!(!airdate && dubAiring.delayed)}>
                           Sub: {airdate ? since(new Date(airdate)) : dubAiring.text}
                         </div>
                       {/if}
@@ -305,6 +313,9 @@
                     {:else if media.status === 'RELEASING' && episode > 1}
                       In Production
                     {/if}
+                  {/if}
+                  {#if airdate && dubAiring && (new Date(airdate).getTime() > new Date().getTime())}
+                    <span class='d-none' class:sm-label={image}>{since(new Date(airdate))}</span>
                   {/if}
                 </div>
               </div>
@@ -324,6 +335,7 @@
     display: -webkit-box !important;
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
+    word-break: break-all;
   }
   .scale {
     transition: transform 0.2s ease;
@@ -337,7 +349,15 @@
   .border {
     --dm-border-color: white
   }
-  @media (max-width: 470px) {
+  @media (max-width: 310px), (min-width: 993px) and (max-width: 1300px) {
+    .lg-label {
+      display: none !important;
+    }
+    .sm-label {
+      display: inline !important;
+    }
+  }
+  @media (max-width: 525px) {
     .flex-xsm-column {
       flex-direction: column !important;
     }

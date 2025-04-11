@@ -106,7 +106,7 @@
       </span>
     {/if}
   </div>
-  <div class='text-muted description overflow-hidden w-600 mw-full default-cursor'>
+  <div class='text-muted line-4 overflow-hidden w-600 mw-full default-cursor'>
     {currentStatic.description?.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim() || ''}
   </div>
   <div class='details text-white text-capitalize pt-15 pb-10 d-flex w-600 mw-full default-cursor'>
@@ -179,11 +179,6 @@
     align-self: center;
     white-space: normal;
     color: var(--dm-muted-text-color) !important;
-  }
-  .description {
-    display: -webkit-box !important;
-    -webkit-line-clamp: 4;
-    -webkit-box-orient: vertical;
   }
   .title {
     display: inline-block;
