@@ -13,6 +13,7 @@
     "web:build": "cross-env NODE_ENV=production webpack build",
     "electron:start": "electron ./build/main.js",
     "build": "npm run web:build && electron-builder",
+    "electron:build": "electron-builder",
     "publish": "npm run web:build && electron-builder -p always"
   },
   "devDependencies": {
@@ -20,7 +21,7 @@
     "common": "workspace:*",
     "discord-rpc": "4.0.1",
     "electron": "29.1.4",
-    "electron-builder": "^24.13.3",
+    "electron-builder": "26.0.3",
     "electron-log": "^5.1.7",
     "electron-updater": "^6.2.1",
     "webpack-merge": "^6.0.1"
@@ -108,11 +109,11 @@
       "description": "BitTorrent streaming software with no paws in the way—watch anime in real-time, no waiting for downloads!",
       "maintainer": "RockinChaos <RockinChaos@users.noreply.github.com>",
       "desktop": {
-        "Name": "${productName}",
-        "Comment": "BitTorrent streaming software with no paws in the way—watch anime in real-time, no waiting for downloads!",
-        "Keywords": "anime",
-        "Type": "Application",
-        "MimeType": "x-scheme-handler/shiru;"
+        "entry": {
+          "Comment": "BitTorrent streaming software with no paws in the way—watch anime in real-time, no waiting for downloads!",
+          "Keywords": "anime",
+          "MimeType": "x-scheme-handler/shiru;"
+        }
       },
       "target": [
         {
