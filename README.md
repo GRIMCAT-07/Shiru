@@ -99,13 +99,13 @@ Unlike qBit's sequential approach, seeking into data that hasn't been downloaded
 
 If you use paru:
 ```bash
-paru -S shiru-bin
+paru -S shiru
 ```
 
 If you use yay:
 
 ```bash
-yay -S shiru-bin
+yay -S shiru
 ```
 
 ### Debian/Ubuntu
