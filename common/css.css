@@ -69,8 +69,11 @@
 }
 
 .h-30 {
-  width: 3rem;
   height: 3rem;
+}
+
+.w-30 {
+  width: 3rem;
 }
 
 @media (min-width: 769px) {
@@ -130,6 +133,10 @@ a[href]:active, button:not([disabled]):active, fieldset:not([disabled]):active, 
   white-space: pre-wrap;
 }
 
+.z-55 {
+  z-index: 55;
+}
+
 .z-100 {
   z-index: 100;
 }
@@ -144,6 +151,10 @@ a[href]:active, button:not([disabled]):active, fieldset:not([disabled]):active, 
 
 .pointer {
   cursor: pointer;
+}
+
+.mt-2 {
+  margin-top: .2rem;
 }
 
 .h-10 {

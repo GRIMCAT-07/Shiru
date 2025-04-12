@@ -62,13 +62,13 @@
             <span class='mr-10 d-flex align-items-center'>
               <Minimize2 size='1.7rem' />
             </span>
-            <span class='align-middle mr-5 text-center'>Minimize</span>
+            <span class='mt-2 mr-5 text-center'>Minimize</span>
           </button>
           <button type='button' class='btn btn-danger d-flex justify-content-center align-items-center w-130' on:click={closeWindow}>
             <span class='mr-10 d-flex align-items-center'>
               <SquareX size='1.7rem' />
             </span>
-            <span class='align-middle mr-5 text-center'>Close</span>
+            <span class='mt-2 mr-5 text-center'>Close</span>
           </button>
         </div>
       </div>
@@ -77,12 +77,6 @@
 </div>
 
 <style>
-  .z-55 {
-    z-index: 55;
-  }
-  .w-600 {
-    width: 60rem;
-  }
   .w-130 {
     width: 13rem;
   }

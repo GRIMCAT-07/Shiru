@@ -222,9 +222,6 @@
 </div>
 
 <style>
-  .z-55 {
-    z-index: 55;
-  }
   .h-33 {
     height: 3.3rem !important;
   }

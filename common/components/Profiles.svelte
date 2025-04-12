@@ -86,7 +86,7 @@
 <div class='modal z-55' class:show={$profileView}>
   {#if $profileView}
     <div class='modal-dialog' on:pointerup|self={close} on:keydown={checkClose} tabindex='-1' role='button' bind:this={modal}>
-      <div class='modal-content w-auto mw-400 d-flex justify-content-center flex-column'>
+      <div class='modal-content w-auto mw-350 d-flex justify-content-center flex-column'>
         <div class="d-flex justify-content-end align-items-start w-auto">
           <button type='button' class='btn btn-square d-flex align-items-center justify-content-center' use:click={close}><X size='1.7rem' strokeWidth='3'/></button>
         </div>
@@ -190,10 +190,7 @@
   .mt-4 {
     margin-top: .4rem;
   }
-  .z-55 {
-    z-index: 55;
-  }
-  .mw-400 {
+  .mw-350 {
     min-width: 35rem;
   }
   .rounded-top-10 {

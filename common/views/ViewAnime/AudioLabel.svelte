@@ -105,9 +105,6 @@
      .mrl-2 {
          margin-right: -1.3rem !important;
      }
-     .mt-2 {
-         margin-top: .2rem;
-     }
      .mb-4 {
          margin-bottom: .38rem;
      }
