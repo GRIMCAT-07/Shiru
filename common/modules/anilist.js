@@ -154,6 +154,8 @@ relations {
       id,
       type,
       format,
+      genres,
+      isAdult,
       seasonYear
     }
   }
@@ -170,7 +172,9 @@ recommendations {
     node {
       rating,
       mediaRecommendation {
-        id
+        id,
+        genres,
+        isAdult,
       }
     }
   }

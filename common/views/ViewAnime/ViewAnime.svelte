@@ -313,38 +313,32 @@
             <div class='col-lg-5 col-12 d-flex d-lg-none flex-column pl-lg-20 overflow-x-hidden h-600 mt-20'>
               <EpisodeList bind:episodeList={episodeList} mobileList={true} {media} {episodeOrder} bind:userProgress bind:watched episodeCount={getMediaMaxEp(media)} {play} />
             </div>
-            <ToggleList list={ staticMedia.relations?.edges?.filter(({ node, relationType }) => relationType !== 'CHARACTER' && node.type === 'ANIME' && node.format !== 'MUSIC').sort((a, b) => (a.node.seasonYear || Infinity) - (b.node.seasonYear || Infinity)) } promise={searchIDS} let:item let:promise title='Relations'>
+            <ToggleList list={ staticMedia.relations?.edges?.filter(({ node, relationType }) => relationType !== 'CHARACTER' && node.type === 'ANIME' && node.format !== 'MUSIC' && !(settings.value.adult === 'none' && node.isAdult) && !(settings.value.adult !== 'hentai' && node.genres?.includes('Hentai'))).sort((a, b) => (a.node.seasonYear || Infinity) - (b.node.seasonYear || Infinity)) } promise={searchIDS} let:item let:promise title='Relations'>
               {#await promise}
                 <div class='small-card'>
                   <SkeletonCard />
                 </div>
               {:then res }
                 {#if res}
-                  {@const foundMedia = mediaCache.value[item.node.id]}
-                  {#if foundMedia && !(settings.value.adult === 'none' && foundMedia.isAdult) && !(settings.value.adult !== 'hentai' && foundMedia.genres?.includes('Hentai'))} <!-- sometimes anilist query just doesn't return the requested ids, and sometimes includes adult media and hentai that should be filtered out based on user settings -->
-                    <div class='small-card'>
-                      <SmallCard data={item.node} type={item.relationType.replace(/_/g, ' ').toLowerCase()} />
-                    </div>
-                  {/if}
+                  <div class='small-card'>
+                    <SmallCard data={item.node} type={item.relationType.replace(/_/g, ' ').toLowerCase()} />
+                  </div>
                 {/if}
               {/await}
             </ToggleList>
             {#await recommendations then res}
               {@const media = res?.data?.Media}
               {#if media}
-                <ToggleList list={ media.recommendations?.edges?.filter(({ node }) => node.mediaRecommendation).sort((a, b) => b.node.rating - a.node.rating) } promise={searchIDS} let:item let:promise title='Recommendations'>
+                <ToggleList list={ media.recommendations?.edges?.filter(({ node }) => node.mediaRecommendation && !(settings.value.adult === 'none' && node.mediaRecommendation.isAdult) && !(settings.value.adult !== 'hentai' && node.mediaRecommendation.genres?.includes('Hentai'))).sort((a, b) => b.node.rating - a.node.rating) } promise={searchIDS} let:item let:promise title='Recommendations'>
                   {#await promise}
                     <div class='small-card'>
                       <SkeletonCard />
                     </div>
                   {:then res}
                     {#if res}
-                      {@const foundMedia = mediaCache.value[item.node.mediaRecommendation.id]}
-                      {#if foundMedia && !(settings.value.adult === 'none' && foundMedia.isAdult) && !(settings.value.adult !== 'hentai' && foundMedia.genres?.includes('Hentai'))} <!-- sometimes anilist query just doesn't return the requested ids, and sometimes includes adult media and hentai that should be filtered out based on user settings -->
-                        <div class='small-card'>
-                          <SmallCard data={item.node.mediaRecommendation} type={item.node.rating} />
-                        </div>
-                      {/if}
+                      <div class='small-card'>
+                        <SmallCard data={item.node.mediaRecommendation} type={item.node.rating} />
+                      </div>
                     {/if}
                   {/await}
                 </ToggleList>
