@@ -109,11 +109,9 @@
       "description": "BitTorrent streaming software with no paws in the way—watch anime in real-time, no waiting for downloads!",
       "maintainer": "RockinChaos <RockinChaos@users.noreply.github.com>",
       "desktop": {
-        "entry": {
-          "Comment": "BitTorrent streaming software with no paws in the way—watch anime in real-time, no waiting for downloads!",
-          "Keywords": "anime",
-          "MimeType": "x-scheme-handler/shiru;"
-        }
+        "Comment": "BitTorrent streaming software with no paws in the way—watch anime in real-time, no waiting for downloads!",
+        "Keywords": "anime",
+        "MimeType": "x-scheme-handler/shiru;"
       },
       "target": [
         {
