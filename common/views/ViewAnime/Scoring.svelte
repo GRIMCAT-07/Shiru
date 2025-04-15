@@ -225,7 +225,7 @@
         <input class='w-full p-2 bg-dark-light' type='range' id='score' min='0' max='10' bind:value={score} />
         <div class='d-flex justify-content-center'>
           {#if score !== 0}
-            <span class='text-center mt-2 text-decoration-underline font-weight-bold'>{score}</span>
+            <span class='text-center text-decoration-underline font-weight-bold'>{score}</span>
             <span class='ml-5'>/ 10</span>
           {/if}
           <span class='ml-5'>{scoreName[score]}</span>
