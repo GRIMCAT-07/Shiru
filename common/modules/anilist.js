@@ -496,10 +496,6 @@ class AnilistClient {
     return res
   }
 
-  alEntry (lists, variables) {
-    return this.entry(variables)
-  }
-
   async entry(variables) {
     debug(`Updating entry for ${variables.id}`)
     const query = /* js */`
@@ -525,6 +521,7 @@ class AnilistClient {
       }`
     const res = await this.alRequest(query, variables)
     if (!variables.token) await this.updateListEntry(variables.id, res?.data?.SaveMediaListEntry)
+    //TODO: need to implement "else" for anilist syncing functionality. #updateListEntry
     return res
   }
 
@@ -538,6 +535,7 @@ class AnilistClient {
       }`
     const res = await this.alRequest(query, variables)
     if (!variables.token) await this.deleteListEntry(variables.idAni)
+    //TODO: need to implement "else" for anilist syncing functionality. #updateListEntry
     return res
   }
 

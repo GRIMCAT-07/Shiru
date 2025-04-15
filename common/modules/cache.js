@@ -523,7 +523,7 @@ class Cache {
                 if (cache !== caches.RECOMMENDATIONS || this.#general.value.settings.queryComplexity === 'Complex') { // remap media ids to the medias in the cache.
                     if (data.data?.Page?.media) data.data.Page.media = data.data.Page.media.map(mediaId => mediaCache.value[mediaId])
                     if (data.data?.Media) data.data.Media = mediaCache.value[data.data.Media]
-                    if (data.data?.MediaListCollection) data.data.MediaListCollection.lists = (data.data.MediaListCollection.lists || []).map(list => ({ ...list, entries: list.entries.map(entry => ({ ...entry, media: mediaCache.value[entry.media] })) }))
+                    if (data.data?.MediaListCollection && !key?.includes('token')) data.data.MediaListCollection.lists = (data.data.MediaListCollection.lists || []).map(list => ({ ...list, entries: list.entries.map(entry => ({ ...entry, media: mediaCache.value[entry.media] })) }))
                 }
                 return Promise.resolve(data)
             }

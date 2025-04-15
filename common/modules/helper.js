@@ -196,7 +196,7 @@ export default class Helper {
         let res
         const description = `Title: ${anilistClient.title(cachedMedia)}\nStatus: ${this.statusName[variables.status]}\nEpisode: ${videoEpisode} / ${getMediaMaxEp(cachedMedia) ? getMediaMaxEp(cachedMedia) : '?'}${variables.score !== 0 ? `\nYour Score: ${this.isAniAuth() ? (variables.score / 10) : variables.score}` : ''}`
         if (this.isAniAuth()) {
-          res = await anilistClient.alEntry(lists, variables)
+          res = await anilistClient.entry(variables)
         } else if (this.isMalAuth()) {
           res = await malClient.malEntry(cachedMedia, variables)
         }
@@ -211,17 +211,13 @@ export default class Helper {
         this.listToast(res, description, false)
 
         if (sync.value.length > 0) { // handle profile entry syncing
-          const mediaId = cachedMedia.id
           for (const profile of profiles.value) {
             if (sync.value.includes(profile?.viewer?.data?.Viewer?.id)) {
               let res
               if (profile.viewer?.data?.Viewer?.avatar) {
                 variables.score = (cachedMedia.mediaListEntry?.score ? (cachedMedia.mediaListEntry?.score * 10) : 0)
-                const currentLists = (await anilistClient.getUserLists({
-                  userID: profile.viewer.data.Viewer.id,
-                  token: profile.token
-                }))?.data?.MediaListCollection?.lists?.flatMap(list => list.entries).find(({cachedMedia}) => cachedMedia.id === mediaId)?.media?.mediaListEntry?.customLists?.filter(list => list.enabled).map(list => list.name) || []
-                res = await anilistClient.alEntry(currentLists, {...variables, token: profile.token})
+                const lists = (await anilistClient.getUserLists({userID: profile.viewer.data.Viewer.id, token: profile.token}))?.data?.MediaListCollection?.lists?.flatMap(list => list.entries).find(({ media: listMedia }) => listMedia.id === cachedMedia.id)?.media?.mediaListEntry?.customLists?.filter(list => list.enabled).map(list => list.name) || []
+                res = await anilistClient.entry({...variables, lists, token: profile.token})
               } else {
                 variables.score = (cachedMedia.mediaListEntry?.score ? cachedMedia.mediaListEntry?.score : 0)
                 res = await malClient.malEntry(cachedMedia, {...variables, token: profile.token, refresh_in: profile.refresh_in})

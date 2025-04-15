@@ -67,7 +67,7 @@
         for (const profile of profiles.value) {
           if (sync.value.includes(profile?.viewer?.data?.Viewer?.id)) {
             const anilist = profile.viewer?.data?.Viewer?.avatar
-            const listId = (anilist ? {id: (await anilistClient.getUserLists({userID: profile.viewer.data.Viewer.id, token: profile.token}))?.data?.MediaListCollection?.lists?.flatMap(list => list.entries).find(({ media }) => media.id === media.id)?.media?.mediaListEntry?.id} : {idMal: media.idMal})
+            const listId = (anilist ? { id: (await anilistClient.getUserLists({userID: profile.viewer.data.Viewer.id, token: profile.token}))?.data?.MediaListCollection?.lists?.flatMap(list => list.entries).find(({ media: listMedia }) => listMedia.id === media.id)?.media?.mediaListEntry?.id } : { idMal: media.idMal })
             if (listId?.id || listId?.idMal) {
               const res = await Helper.delete(media, {...listId, token: profile.token, refresh_in: profile.refresh_in, anilist})
               printToast(res, description, false, profile)
@@ -99,9 +99,10 @@
           for (const profile of profiles.value) {
             if (sync.value.includes(profile?.viewer?.data?.Viewer?.id)) {
               const anilist = profile.viewer?.data?.Viewer?.avatar
+              const lists = anilist ? (await anilistClient.getUserLists({userID: profile.viewer.data.Viewer.id, token: profile.token}))?.data?.MediaListCollection?.lists?.flatMap(list => list.entries).find(({ media: listMedia }) => listMedia.id === media.id)?.media?.mediaListEntry?.customLists?.filter(list => list.enabled).map(list => list.name) : []
               const res = await Helper.entry(media, {
                 ...variables,
-                lists: media.mediaListEntry?.customLists?.filter(list => list.enabled).map(list => list.name) || [],
+                lists,
                 score: (anilist ? (score * 10) : score),
                 token: profile.token,
                 refresh_in: profile.refresh_in,
