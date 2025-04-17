@@ -5,8 +5,6 @@
 </p>
 <h1 align="center"><b>Shiru</b></h1>
 
----
-
 <h4 align="center"><b>BitTorrent streaming software with no paws in the way—watch anime in real-time, no waiting for downloads!</b></h4>
 <p align="center">
   <i>🐾 The ultimate torrent-based anime player — lightweight, powerful, and paws-itively fast 🐾</i>
@@ -43,8 +41,6 @@
 </p>
 
 ## 📃 **About**
-
----
 
 **Shiru** is a fork of [Miru](https://github.com/ThaUnknown/miru/) that enhances the anime streaming experience with a feature-rich environment and full mobile support. It blends the power of BitTorrent streaming with the convenience of traditional streaming platforms.
 
@@ -119,8 +115,6 @@ Shiru allows you to stream anime *in real-time* with no waiting for downloads, c
 
 ## ⚙️ **Installation**
 
----
-
 ### 🐧 **Linux Installation**:
 
 #### Arch:
@@ -157,8 +151,6 @@ winget install shiru
    - **Portable:** `win-Shiru-vx.x.x-portable.exe` *(No installation required, just run it)*
 
 ## 🔧 Building & Development
-
----
 
 Credit to [Migu](https://github.com/NoCrypt/migu) for doing the legwork on this.
 
@@ -229,7 +221,5 @@ Credit to [Migu](https://github.com/NoCrypt/migu) for doing the legwork on this.
    ```
 
 ## 📜 License
-
----
 
 This project follows the [GPLv3 License](https://github.com/RockinChaos/Shiru/blob/master/LICENSE).
