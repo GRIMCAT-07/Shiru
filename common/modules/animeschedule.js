@@ -30,8 +30,8 @@ class AnimeSchedule {
     hentaiAiredListsCache = writable({})
 
     constructor() {
-        this.subAiringLists.value = this.getFeed('sub-schedule')
-        this.dubAiringLists.value = this.getFeed('dub-schedule')
+        this.feedChanged('sub', true)
+        this.feedChanged('dub', true)
         setTimeout(() => {
             this.findNewNotifications()
             this.findNewDelayedEpisodes()
@@ -41,14 +41,12 @@ class AnimeSchedule {
         setInterval(async () => {
             debug(`Updating dub airing schedule`)
             try {
-                const updatedFeed = await this.getFeed('sub-schedule')
-                this.subAiringLists.value = Promise.resolve(updatedFeed)
+                this.feedChanged('sub', true)
             } catch (error) {
                 debug(`Failed to update Sub schedule at the scheduled interval, this is likely a temporary connection issue: ${JSON.stringify(error)}`)
             }
             try {
-                const updatedFeed = await this.getFeed('dub-schedule')
-                this.dubAiringLists.value = Promise.resolve(updatedFeed)
+                this.feedChanged('dub', true)
             } catch (error) {
                 debug(`Failed to update Dub schedule at the scheduled interval, this is likely a temporary connection issue: ${JSON.stringify(error)}`)
             }
@@ -190,49 +188,52 @@ class AnimeSchedule {
     }
 
     async getFeed(feed) {
+        let res = {}
         try {
-            let res = {}
-            try {
-                res = await fetch(`https://raw.githubusercontent.com/RockinChaos/AniSchedule/master/raw/${feed}.json?timestamp=${new Date().getTime()}`, {
-                    method: 'GET'
-                })
-            } catch (e) {
-                if (!res || res.status !== 404) throw e
-            }
-            if (!res.ok && (res.status === 429 || res.status === 500)) {
-                throw res
-            }
-            let json = null
-            try {
-                json = await res.json()
-            } catch (error) {
-                if (res.ok) this.printError(error)
-            }
-            if (!res.ok) {
-                if (json) {
-                    for (const error of json?.errors || []) {
-                        this.printError(error)
-                    }
-                } else {
-                    this.printError(res)
-                }
-            }
-            return cache.cacheEntry(caches.RSS, `${feed}`, { mappings: true }, json, Date.now() + getRandomInt(10, 15) * 60 * 1000)
+            res = await fetch(`https://raw.githubusercontent.com/RockinChaos/AniSchedule/master/raw/${feed}.json?timestamp=${new Date().getTime()}`, {
+                method: 'GET'
+            })
         } catch (e) {
-            const cachedEntry = cache.cachedEntry(caches.RSS, `${feed}`, true)
+            if (!res || res.status !== 404) throw e
+        }
+        if (!res.ok && (res.status === 429 || res.status === 500)) {
+            throw res
+        }
+        let json = null
+        try {
+            json = await res.json()
+        } catch (error) {
+            if (res.ok) this.printError(error)
+        }
+        if (!res.ok) {
+            if (json) {
+                for (const error of json?.errors || []) {
+                    this.printError(error)
+                }
+            } else {
+                this.printError(res)
+            }
+        }
+        return json
+    }
+
+    async feedChanged(type, schedule = false) {
+        const feed = `${type.toLowerCase()}${!schedule ? '-episode-feed' : '-schedule'}`
+        let content
+        try {
+            content = await this.getFeed(`${feed}`)
+        } catch (e) {
+            const cachedEntry = await cache.cachedEntry(caches.RSS, `${feed}`, true)
             if (cachedEntry) {
                 debug(`Failed to request RSS schedule for ${feed}, this is likely due to an outage... falling back to cached data.`)
-                return cachedEntry
+                content = cachedEntry
             }
             else throw e
         }
-    }
-
-    async feedChanged(type) {
-        const content = this.getFeed(`${type.toLowerCase()}-episode-feed`)
-        const res = await this[`${type.toLowerCase()}AiredLists`].value
-        if (JSON.stringify(await content) !== JSON.stringify(res)) {
-            this[`${type.toLowerCase()}AiredLists`].value = await content
+        const res = await this[`${type.toLowerCase()}${!schedule ? 'Aired' : 'Airing'}Lists`].value
+        if (JSON.stringify(content) !== JSON.stringify(res)) {
+            this[`${type.toLowerCase()}${!schedule ? 'Aired' : 'Airing'}Lists`].value = !schedule ? content : Promise.resolve(content)
+            cache.cacheEntry(caches.RSS, `${feed}`, { mappings: true }, content, Date.now() + getRandomInt(10, 15) * 60 * 1000)
             return true
         }
         return false

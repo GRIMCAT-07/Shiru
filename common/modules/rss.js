@@ -42,26 +42,17 @@ export function getReleasesRSSurl (val) {
 
 export async function getRSSContent (url) {
   if (!url) return null
+  let res = {}
   try {
-    let res = {}
-    try {
-      res = await fetch(url)
-    } catch (e) {
-      if (!res || res.status !== 404) throw e
-    }
-    if (!res.ok) {
-      debug(`Failed to fetch RSS feed: ${res.statusText}`)
-      throw new Error(res.statusText)
-    }
-    return DOMPARSER((await cache.cacheEntry(caches.RSS, `${btoa(url)}`, { mappings: true }, (await res)?.text(), Date.now() + getRandomInt(10, 15) * 60 * 1000)), 'text/xml')
+    res = await fetch(url)
   } catch (e) {
-    const cachedEntry = cache.cachedEntry(caches.RSS, `${btoa(url)}`, true)
-    if (cachedEntry) {
-      debug(`Failed to request RSS feed for ${url}, this is likely due to an outage... falling back to cached data.`)
-      return DOMPARSER(cachedEntry, 'text/xml')
-    }
-    else throw e
+    if (!res || res.status !== 404) throw e
   }
+  if (!res.ok) {
+    debug(`Failed to fetch RSS feed: ${res.statusText}`)
+    throw new Error(res.statusText)
+  }
+  return DOMPARSER(await res.text(), 'text/xml')
 }
 
 class RSSMediaManager {
@@ -90,12 +81,24 @@ class RSSMediaManager {
   }
 
   async getContentChanged (page, perPage, url) {
-    const content = await getRSSContent(getReleasesRSSurl(url))
+    let content
+    try {
+      content = await getRSSContent(getReleasesRSSurl(url))
+    } catch (e) {
+      const cachedEntry = await cache.cachedEntry(caches.RSS, `${btoa(url)}`, true)
+      if (cachedEntry) {
+        debug(`Failed to request RSS feed for ${url}, this is likely due to an outage... falling back to cached data.`)
+        content = DOMPARSER(cachedEntry, 'text/xml')
+      }
+      else throw e
+    }
     if (!content) return false
 
     const pubDate = +(new Date(content.querySelector('pubDate').textContent)) * page * perPage
     const pullDate = +(new Date(content.querySelector('pubDate').textContent))
     if (this.resultMap[url]?.date === pubDate) return false
+
+    cache.cacheEntry(caches.RSS, `${btoa(url)}`, { mappings: true }, new XMLSerializer().serializeToString(content), Date.now() + getRandomInt(10, 15) * 60 * 1000)
     return { content, pubDate, pullDate }
   }
 
