@@ -1,7 +1,6 @@
-import { debounce, generalDefaults, historyDefaults, queryDefaults, notifyDefaults } from './util.js'
+import { debounce, deepEqual, generalDefaults, historyDefaults, queryDefaults, notifyDefaults } from './util.js'
 import { writable } from 'simple-store-svelte'
 import Debug from 'debug'
-
 const debug = Debug('ui:cache')
 
 const version = 1
@@ -269,7 +268,7 @@ function createDebouncers(userID, delay = 2000) {
                 debug(`Detected a potential change for the ${cache.key} cache, attempting to save...`)
                 for (const [key, keyValue] of Object.entries(value)) {
                     const prevValue = await get(userID, cache, key)
-                    if (JSON.stringify(keyValue) !== JSON.stringify(prevValue)) {
+                    if (!deepEqual(keyValue, prevValue)) {
                         changed.push(key)
                         set(userID, cache, key, keyValue)
                     }

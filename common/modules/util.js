@@ -236,6 +236,30 @@ export function matchPhrase(search, phrase, threshold, strict = false) {
   return false
 }
 
+/**
+ * Performs a deep equality check between two values.
+ *
+ * This function recursively compares two values to determine if they are equivalent in structure and content.
+ * This only handles plain objects and primitive values.
+ *
+ * @param {*} a - The first value to compare.
+ * @param {*} b - The second value to compare.
+ * @returns {boolean} `true` if the values are deeply equal, otherwise `false`.
+ *
+ */
+export function deepEqual(a, b) {
+  if (a === b) return true
+  if (typeof a !== typeof b) return false
+  if (typeof a !== 'object' || a === null || b === null) return false
+  const keysA = Object.keys(a)
+  if (keysA.length !== Object.keys(b).length) return false
+  for (const key of keysA) {
+    if (!Object.prototype.hasOwnProperty.call(b, key)) return false
+    if (!deepEqual(a[key], b[key])) return false
+  }
+  return true
+}
+
 export function throttle (fn, time) {
   let wait = false
   return (...args) => {
