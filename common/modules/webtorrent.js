@@ -351,6 +351,15 @@ export default class TorrentClient extends WebTorrent {
             if (this.player) {
               this.playerProcess = spawn(this.player, ['' + new URL('http://localhost:' + this.server.address().port + found.streamURL)])
               this.playerProcess.stdout.on('data', () => {})
+              this.playerProcess.on('error', e => {
+                if (e.code?.match(/EPIPE/i)) {
+                  debug('EPIPE: Player process closed early or broken pipe', e)
+                  this.dispatchError('Network Issue Detected. Playback Performance May Be Affected.')
+                } else {
+                  debug('Player process error: ', e)
+                  this.dispatchError(e)
+                }
+              })
               const startTime = Date.now()
               this.playerProcess.once('close', () => {
                 if (this.hault) return
