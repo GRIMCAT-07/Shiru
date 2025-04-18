@@ -61,7 +61,7 @@
         else return !(existing.id === notification.id && existing.episode === notification.episode && existing.delayed === true) // If the new notification is not delayed, remove any existing delayed notifications
       })
 
-      if (filterDelayed.findIndex((existing) => existing.id === notification.id && ((existing.episode === notification.episode && !(existing.season !== notification.season)) || (existing.format === 'MOVIE' && notification.format === 'MOVIE')) && existing.dub === notification.dub && (existing.click_action === 'TORRENT')) !== -1) return filterDelayed
+      if ((filterDelayed.findIndex((existing) => existing.id === notification.id && ((existing.episode === notification.episode && ((existing.season || 0) === (notification.season || 0))) || (existing.format === 'MOVIE' && notification.format === 'MOVIE')) && (existing.dub === notification.dub) && (existing.click_action === 'TORRENT'))) !== -1) return filterDelayed // Don't add notifications for an episode if a torrent notification already exists (prevents duplicate notifications)
       const filtered = filterDelayed.filter((existing) => (existing.id !== notification.id || existing.episode !== notification.episode || existing.dub !== notification.dub || existing.click_action === 'TORRENT'))
       if (notification.episode && (mediaCache.value[notification?.id]?.mediaListEntry?.status === 'COMPLETED' || (mediaCache.value[notification?.id]?.mediaListEntry?.progress >= (!notification.season ? notification.episode : mediaCache.value[notification?.id].episodes)))) notification.read = true
       return sort([notification, ...filtered])
