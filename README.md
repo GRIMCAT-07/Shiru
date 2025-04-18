@@ -14,30 +14,18 @@
   <a href="https://github.com/RockinChaos/Shiru/wiki/">📚 Wiki</a> •
   <a href="https://github.com/RockinChaos/Shiru/wiki/features/">✨ Features</a> •
   <a href="https://github.com/RockinChaos/Shiru/wiki/faq/">❓ FAQ</a> •
-  <a href="#building-and-development">🔧 Building & Development</a> •
+  <a href="#-building--development">🔧 Building & Development</a> •
   <a href="https://github.com/RockinChaos/Shiru/releases/latest/">⬇️ Download</a>
 </p>
 
 <p align="center">
   <img src="./docs/out.gif" alt="Shiru Showcase"><br>
-  <a href="https://discord.gg/D5FnJ7C">
-    <img src="https://img.shields.io/discord/291764091239006208?style=flat-square" alt="Join Chat">
-  </a>
-  <a href="https://github.com/RockinChaos/Shiru/releases/latest/">
-    <img alt="Downloads" src="https://img.shields.io/github/downloads/RockinChaos/Shiru/total?style=flat-square">
-  </a>
-  <a href="https://github.com/RockinChaos/Shiru/releases/latest/">
-    <img alt="Latest Release" src="https://img.shields.io/github/v/release/RockinChaos/Shiru?style=flat-square">
-  </a>
-  <a href="https://github.com/RockinChaos/Shiru/commits">
-    <img alt="Last Commit" src="https://img.shields.io/github/last-commit/RockinChaos/Shiru?style=flat-square">
-  </a>
-  <a href="https://github.com/RockinChaos/Shiru/stargazers">
-    <img alt="Stargazers" src="https://img.shields.io/github/stars/RockinChaos/Shiru?style=flat-square">
-  </a>
-  <a href="https://github.com/RockinChaos/Shiru/blob/master/LICENSE">
-    <img alt="License: GPLv3" src="https://img.shields.io/github/license/RockinChaos/Shiru?style=flat-square">
-  </a>
+  <a href="https://discord.gg/D5FnJ7C"><img src="https://img.shields.io/discord/291764091239006208?style=flat-square" alt="Join Chat"></a>
+  <a href="https://github.com/RockinChaos/Shiru/releases/latest/"><img alt="Downloads" src="https://img.shields.io/github/downloads/RockinChaos/Shiru/total?style=flat-square"></a>
+  <a href="https://github.com/RockinChaos/Shiru/releases/latest/"><img alt="Latest Release" src="https://img.shields.io/github/v/release/RockinChaos/Shiru?style=flat-square"></a>
+  <a href="https://github.com/RockinChaos/Shiru/commits"><img alt="Last Commit" src="https://img.shields.io/github/last-commit/RockinChaos/Shiru?style=flat-square"></a>
+  <a href="https://github.com/RockinChaos/Shiru/stargazers"><img alt="Stargazers" src="https://img.shields.io/github/stars/RockinChaos/Shiru?style=flat-square"></a>
+  <a href="https://github.com/RockinChaos/Shiru/blob/master/LICENSE"><img alt="License: GPLv3" src="https://img.shields.io/github/license/RockinChaos/Shiru?style=flat-square"></a>
 </p>
 
 ## 📃 **About**
