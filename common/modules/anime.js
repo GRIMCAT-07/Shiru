@@ -166,7 +166,7 @@ export async function getChaptersAniSkip (file, duration) {
 
 export function getMediaMaxEp (media, playable) {
   if (!media) return 0
-  else if (playable) return media.nextAiringEpisode?.episode - 1 || nextAiring(media.airingSchedule?.nodes)?.episode - 1 || media.episodes
+  else if (playable) return media.nextAiringEpisode?.episode - 1 || nextAiring(media.airingSchedule?.nodes)?.episode - 1 || (media.status === 'NOT_YET_RELEASED' ? 0 : media.episodes)
   else return Math.max(media.airingSchedule?.nodes?.[media.airingSchedule?.nodes?.length - 1]?.episode || 0, media.airingSchedule?.nodes?.length || 0, (!media.streamingEpisodes || (media.status === 'FINISHED' && media.episodes) ? 0 : media.streamingEpisodes?.filter((ep) => { const match = (/Episode (\d+(\.\d+)?) - /).exec(ep.title); return match ? Number.isInteger(parseFloat(match[1])) : false}).length), media.episodes || 0, media.nextAiringEpisode?.episode || 0)
 }
 
