@@ -7,14 +7,15 @@ let lastHoverElement = null
 const noop = _ => {}
 
 document.addEventListener('pointerup', (e) => {
-    setTimeout(() => {
-      if (lastTapTarget !== e.target) {
-        lastTapElement?.(false)
-        lastTapElement = null
-        lastHoverElement?.(false)
-        lastHoverElement = null
-      }
-    }, 10)
+  if (!e.target?.closest('.select-all')) window.getSelection()?.removeAllRanges()
+  setTimeout(() => {
+    if (lastTapTarget !== e.target) {
+      lastTapElement?.(false)
+      lastTapElement = null
+      lastHoverElement?.(false)
+      lastHoverElement = null
+    }
+  }, 10)
 })
 
 document.addEventListener('pointercancel', (e) => {
@@ -23,6 +24,8 @@ document.addEventListener('pointercancel', (e) => {
   lastHoverElement?.(false)
   lastHoverElement = null
 })
+
+document.addEventListener('selectionchange', () => { if (window.getSelection()?.toString()?.trim() === '') window.getSelection()?.removeAllRanges() })
 
 if (SUPPORTS.isAndroid) {
   document.addEventListener('touchstart', (e) => window.Capacitor.Plugins.StatusBar.hide())

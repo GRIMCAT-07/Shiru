@@ -281,8 +281,8 @@
             <Details media={staticMedia} alt={recommendations} />
             <div bind:this={scrollTags} class='m-0 px-20 pb-0 pt-10 d-flex flex-row text-nowrap overflow-x-scroll text-capitalize align-items-start'>
               {#each staticMedia.tags as tag}
-                <div class='bg-dark px-20 py-10 mr-10 rounded text-nowrap d-flex align-items-center select-all'>
-                  <Hash class='mr-5' size='1.8rem' /><span class='font-weight-bolder'>{tag.name}</span><span class='font-weight-light'>: {tag.rank}%</span>
+                <div class='bg-dark px-20 py-10 mr-10 rounded text-nowrap d-flex align-items-center'>
+                  <Hash class='mr-5' size='1.8rem' /><span class='font-weight-bolder select-all'>{tag.name}</span><span class='font-weight-light'>: {tag.rank}%</span>
                 </div>
               {/each}
             </div>
