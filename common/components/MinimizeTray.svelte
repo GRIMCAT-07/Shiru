@@ -30,8 +30,11 @@
     close()
     IPC.emit('window-hide')
   }
-  function closeWindow() {
-    if (rememberChoice) $settings.closeAction = 'Close'
+  async function closeWindow() {
+    if (rememberChoice) {
+      $settings.closeAction = 'Close'
+      await new Promise(res => setTimeout(res, 2050))
+    }
     IPC.emit('close')
   }
   IPC.on('window-close', () => {
