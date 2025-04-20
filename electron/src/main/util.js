@@ -28,8 +28,6 @@ for (const [flag, value] of flags) {
 
 app.commandLine.appendSwitch('use-angle', store.get('angle') || 'default')
 
-if (!app.requestSingleInstanceLock()) app.quit()
-
 ipcMain.on('open', (event, url) => {
   shell.openExternal(url)
 })

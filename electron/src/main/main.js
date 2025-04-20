@@ -9,9 +9,11 @@ function createWindow () {
   main = new App()
 }
 
-// Menu.setApplicationMenu(null) // performance, but no keyboard shortcuts, sucks
-app.on('ready', createWindow)
+if (!app.requestSingleInstanceLock()) app.quit()
+else {
+  app.on('ready', createWindow)
 
-app.on('activate', () => {
-  if (main === null) createWindow()
-})
+  app.on('activate', () => {
+    if (main === null) createWindow()
+  })
+}
