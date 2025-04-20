@@ -60,12 +60,9 @@ export default class Protocol {
       })
     }
 
-    app.on('second-instance', (event, commandLine, workingDirectory) => {
+    app.on('second-instance', (event, commandLine) => {
       // Someone tried to run a second instance, we should focus our window.
-      if (this.window) {
-        if (this.window.isMinimized()) this.window.restore()
-        this.window.focus()
-      }
+      ipcMain.emit('window-show')
       // There's probably a better way to do this instead of a for loop and split[1][0]
       // but for now it works as a way to fix multiple OS's commandLine differences
       for (const line of commandLine) {
@@ -125,7 +122,7 @@ export default class Protocol {
    */
   play(id) {
     this.window.webContents.send('play-anime', id)
-    this.window.webContents.send('window-show')
+    ipcMain.emit('window-show')
   }
 
   /**
@@ -133,7 +130,7 @@ export default class Protocol {
    */
   add(magnet) {
     this.window.webContents.send('play-torrent', magnet)
-    this.window.webContents.send('window-show')
+    ipcMain.emit('window-show')
   }
 
   /**
