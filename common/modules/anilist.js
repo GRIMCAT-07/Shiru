@@ -39,7 +39,8 @@ export const codes = {
   507: 'Insufficient Storage',
   509: 'Bandwidth Limit Exceeded',
   510: 'Not Extended',
-  511: 'Network Authentication Required'
+  511: 'Network Authentication Required',
+  521: 'Web Server Is Down'
 }
 
 function printError(error) {

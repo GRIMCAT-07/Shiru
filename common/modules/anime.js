@@ -639,15 +639,15 @@ export async function getKitsuMappings(anilistID) {
       try {
         json = await res.json()
       } catch (error) {
-        if (res.ok) printError(error)
+        if (res.ok) printError(error, 'kitsu')
       }
       if (!res.ok) {
         if (json) {
           for (const error of json?.errors || []) {
-            printError(error)
+            printError(error, 'kitsu')
           }
         } else {
-          printError(res)
+          printError(res, 'kitsu')
         }
       }
       return cache.cacheEntry(caches.MAPPINGS, `kitsu-${anilistID}`, {}, json, Date.now() + getRandomInt(480, 1440) * 60 * 1000)
@@ -686,15 +686,15 @@ export async function getAniMappings(anilistID) {
       try {
         json = await res.json()
       } catch (error) {
-        if (res.ok) printError(error)
+        if (res.ok) printError(error, 'ani')
       }
       if (!res.ok) {
         if (json) {
           for (const error of json?.errors || []) {
-            printError(error)
+            printError(error, 'ani')
           }
         } else {
-          printError(res)
+          printError(res, 'ani')
         }
       }
       return cache.cacheEntry(caches.MAPPINGS, `ani-${anilistID}`, {}, json, Date.now() + getRandomInt(480, 1440) * 60 * 1000)
@@ -713,11 +713,13 @@ export async function getAniMappings(anilistID) {
   return requestPromise
 }
 
-function printError(error) {
-  debug(`Error: ${error.status || 429} - ${error.message || codes[error.status || 429]}`)
+function printError(error, type) {
+  const apiDown = !error || error.status === 404 || error.status === 521
+  debug(`Error${apiDown ? ' (API Down)' : ''}: ${error.status || 429} - ${error.message || codes[error.status || 429]}`)
+  if (apiDown) return // api is likely down, we don't need to spam the user with toasts.
   if (settings.value.toasts.includes('All') || settings.value.toasts.includes('Errors')) {
     toast.error('Search Failed', {
-      description: `Failed to fetch the anime mappings!\n${error.status || 429} - ${error.message || codes[error.status || 429]}`,
+      description: `Failed to fetch the ${type} anime mappings!\n${error.status || 429} - ${error.message || codes[error.status || 429]}`,
       duration: 3000
     })
   }

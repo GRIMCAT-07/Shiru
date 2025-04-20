@@ -109,15 +109,15 @@ class Episodes {
             try {
                 json = await res.json()
             } catch (error) {
-                if (res.ok) this.printError(error)
+                if (res.ok) this.printError(error, `${jikan ? 'jikan' : 'kitsu'}`)
             }
             if (!res.ok) {
                 if (json) {
                     for (const error of json?.errors || []) {
-                        this.printError(error, true)
+                        this.printError(error, `${jikan ? 'jikan' : 'kitsu'}`, true)
                     }
                 } else {
-                    this.printError(res)
+                    this.printError(res, `${jikan ? 'jikan' : 'kitsu'}`)
                 }
             }
             return cache.cacheEntry(caches.EPISODES, `${id}:${page}:${root}`, {}, json, Date.now() + getRandomInt(1, 3) * 24 * 60 * 60 * 1000)
@@ -128,11 +128,13 @@ class Episodes {
         return requestPromise
     }
 
-    printError(error, silent) {
-        debug(`Error: ${error.status || 429} - ${error.message || codes[error.status || 429]}`)
+    printError(error, type, silent) {
+        const apiDown = !error || error.status === 404 || error.status === 521
+        debug(`Error${apiDown ? ' (API Down)' : ''}: ${error.status || 429} - ${error.message || codes[error.status || 429]}`)
+        if (apiDown) return // api is likely down, we don't need to spam the user with toasts.
         if (!silent && (settings.value.toasts.includes('All') || settings.value.toasts.includes('Errors'))) {
             toast.error('Episode Fetching Failed', {
-                description: `Failed to fetch anime episodes!\n${error.status || 429} - ${error.message || error.detail || codes[error.status || 429]}`,
+                description: `Failed to fetch ${type} anime episodes!\n${error.status || 429} - ${error.message || error.detail || codes[error.status || 429]}`,
                 duration: 3000
             })
         }
