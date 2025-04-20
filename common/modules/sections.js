@@ -175,8 +175,9 @@ function createSections () {
                 const media = watchMedia?.media || watchMedia?.node
                 const matchingAiring = airing?.find(item => (watchMedia?.media ? item?.media?.media?.id : item?.media?.media?.idMal) === media?.id)
                 if (matchingAiring && (media?.mediaListEntry || media?.my_list_status)) {
-                  const episodeNumber = new Date(matchingAiring?.media?.media?.airingSchedule?.nodes?.[0]?.airingAt) > new Date() ? (matchingAiring?.media?.media?.airingSchedule?.nodes?.[0]?.episode - 1) : matchingAiring?.media?.media?.airingSchedule?.nodes?.[0]?.episode
-                  if (((media?.mediaListEntry?.progress || media?.my_list_status?.num_episodes_watched) >= episodeNumber) && ((media?.status === 'RELEASING' || media?.status === 'currently_airing') || !((media?.mediaListEntry?.progress || media?.my_list_status?.num_episodes_watched) >= media?.num_episodes))) ids.push(media?.id)
+                  const episodes = matchingAiring?.media?.media?.airingSchedule?.nodes
+                  const episodeNumber = episodes?.[episodes.length > 1 ? episodes.length - 1 : 0]?.episode - (new Date(episodes?.[episodes.length > 1 ? episodes.length - 1 : 0]?.airingAt) > new Date() ? 1 : 0)
+                  if (((media?.mediaListEntry?.progress || media?.my_list_status?.num_episodes_watched) >= (episodeNumber + (media.episodes && (episodeNumber === media.episodes) ? 1 : 0))) && ((media?.status === 'RELEASING' || media?.status === 'currently_airing') || !((media?.mediaListEntry?.progress || media?.my_list_status?.num_episodes_watched) >= media?.num_episodes))) ids.push(media?.id)
                 }
               })
               mediaList = mediaList.filter(media => {
@@ -188,10 +189,11 @@ function createSections () {
                 const ids = []
                 mediaList.forEach(watchMedia => {
                   const media = watchMedia?.node
-                  if (media?.my_list_status) {
-                    const matchingAiring = airing?.find(item => item?.idMal === media?.id)
-                    const episodeNumber = new Date(matchingAiring?.airingSchedule?.nodes?.[0]?.airingAt * 1000) > new Date() ? (matchingAiring?.airingSchedule?.nodes?.[0]?.episode - 1) : matchingAiring?.airingSchedule?.nodes?.[0]?.episode
-                    if (media?.my_list_status?.num_episodes_watched >= (episodeNumber || media?.num_episodes)) ids.push(media?.id)
+                  const matchingAiring = airing?.find(item => item?.idMal === media?.id)
+                  if (matchingAiring && media?.my_list_status) {
+                    const episodes = matchingAiring?.media?.media?.airingSchedule?.nodes
+                    const episodeNumber = episodes?.[episodes.length > 1 ? episodes.length - 1 : 0]?.episode - (new Date(episodes?.[episodes.length > 1 ? episodes.length - 1 : 0]?.airingAt * 1000) > new Date() ? 1 : 0)
+                    if (media?.my_list_status?.num_episodes_watched >= ((episodeNumber || media?.num_episodes) + (media.episodes && ((episodeNumber || media?.num_episodes) === media.episodes) ? 1 : 0))) ids.push(media?.id)
                   }
                 })
                 mediaList = mediaList.filter(media => {
