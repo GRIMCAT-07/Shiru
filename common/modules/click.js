@@ -7,7 +7,9 @@ let lastHoverElement = null
 const noop = _ => {}
 
 document.addEventListener('pointerup', (e) => {
-  if (!e.target?.closest('.select-all')) window.getSelection()?.removeAllRanges()
+  const activeEl = document.activeElement
+  const isTextInput = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable)
+  if (!isTextInput && !e.target?.closest('.select-all')) window.getSelection()?.removeAllRanges()
   setTimeout(() => {
     if (lastTapTarget !== e.target) {
       lastTapElement?.(false)
@@ -25,7 +27,11 @@ document.addEventListener('pointercancel', (e) => {
   lastHoverElement = null
 })
 
-document.addEventListener('selectionchange', () => { if (window.getSelection()?.toString()?.trim() === '') window.getSelection()?.removeAllRanges() })
+document.addEventListener('selectionchange', () => {
+  const activeEl = document.activeElement
+  const isTextInput = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable)
+  if (!isTextInput && (window.getSelection()?.toString()?.trim() === '')) window.getSelection()?.removeAllRanges()
+})
 
 if (SUPPORTS.isAndroid) {
   document.addEventListener('touchstart', (e) => window.Capacitor.Plugins.StatusBar.hide())
