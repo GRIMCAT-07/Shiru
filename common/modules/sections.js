@@ -180,9 +180,7 @@ function createSections () {
                   if (((media?.mediaListEntry?.progress || media?.my_list_status?.num_episodes_watched) >= (episodeNumber + (media.episodes && (episodeNumber === media.episodes) ? 1 : 0))) && ((media?.status === 'RELEASING' || media?.status === 'currently_airing') || !((media?.mediaListEntry?.progress || media?.my_list_status?.num_episodes_watched) >= media?.num_episodes))) ids.push(media?.id)
                 }
               })
-              mediaList = mediaList.filter(media => {
-                return !ids.includes(media?.media?.id || media?.node?.id)
-              })
+              mediaList = mediaList.filter(media => !ids.includes(media?.media?.id || media?.node?.id))
             }
             return animeSchedule.subAiringLists.value.then(airing => {
               if (Helper.isMalAuth()) {
@@ -191,14 +189,15 @@ function createSections () {
                   const media = watchMedia?.node
                   const matchingAiring = airing?.find(item => item?.idMal === media?.id)
                   if (matchingAiring && media?.my_list_status) {
-                    const episodes = matchingAiring?.media?.media?.airingSchedule?.nodes
-                    const episodeNumber = episodes?.[episodes.length > 1 ? episodes.length - 1 : 0]?.episode - (new Date(episodes?.[episodes.length > 1 ? episodes.length - 1 : 0]?.airingAt * 1000) > new Date() ? 1 : 0)
-                    if (media?.my_list_status?.num_episodes_watched >= ((episodeNumber || media?.num_episodes) + (media.episodes && ((episodeNumber || media?.num_episodes) === media.episodes) ? 1 : 0))) ids.push(media?.id)
+                    const now = Date.now() / 1000
+                    const episodes = matchingAiring?.airingSchedule?.nodes || []
+                    const closest = episodes.sort((a, b) => Math.abs(a.airingAt - now) - Math.abs(b.airingAt - now))[0]
+                    const highestEpisode = Math.max(...episodes.filter(ep => ep.airingAt === closest?.airingAt)?.map(ep => ep.episode))
+                    const episodeNumber = closest ? closest.airingAt > now ? highestEpisode - 1 : highestEpisode : null
+                    if (media?.my_list_status?.num_episodes_watched >= (episodeNumber || media?.num_episodes)) ids.push(media?.id)
                   }
                 })
-                mediaList = mediaList.filter(media => {
-                  return !ids.includes(media?.media?.id || media?.node?.id)
-                })
+                mediaList = mediaList.filter(media => !ids.includes(media?.media?.id || media?.node?.id))
               }
               return Helper.getPaginatedMediaList(page, perPage, variables, mediaList)
             })
