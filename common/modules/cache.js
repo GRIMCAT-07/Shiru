@@ -266,8 +266,9 @@ function createDebouncers(userID, delay = 2000) {
             if (Object.keys(value).length !== 0) {
                 const changed = []
                 debug(`Detected a potential change for the ${cache.key} cache, attempting to save...`)
+                const previousValues = await loadAll(userID, cache)
                 for (const [key, keyValue] of Object.entries(value)) {
-                    const prevValue = await get(userID, cache, key)
+                    const prevValue = previousValues[key]
                     if (!deepEqual(keyValue, prevValue)) {
                         changed.push(key)
                         set(userID, cache, key, keyValue)
