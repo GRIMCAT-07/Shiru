@@ -802,7 +802,7 @@ export async function getKitsuMappings(anilistID) {
     try {
       let res = {}
       try {
-        res = await fetch(`https://kitsu.io/api/edge/mappings?filter[externalSite]=anilist/anime&filter[externalId]=${anilistID}&include=item`)
+        res = await fetch(`https://kitsu.app/api/edge/mappings?filter[externalSite]=anilist/anime&filter[externalId]=${anilistID}&include=item`)
       } catch (e) {
         if (!res || res.status !== 404) throw e
       }

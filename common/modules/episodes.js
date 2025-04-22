@@ -98,7 +98,7 @@ class Episodes {
             debug(`Fetching Episode ${episode} for ${id} with Page ${page}`)
             let res = {}
             try {
-                res = await fetch(jikan ? `https://api.jikan.moe/v4/anime/${id}${!root ? `/episodes?page=${page}` : ``}` : `https://kitsu.io/api/edge/anime/${id}/episodes`)
+                res = await fetch(jikan ? `https://api.jikan.moe/v4/anime/${id}${!root ? `/episodes?page=${page}` : ``}` : `https://kitsu.app/api/edge/anime/${id}/episodes`)
             } catch (e) {
                 if (!res || res.status !== 404) throw e
             }
