@@ -3,6 +3,7 @@
   import AnimeResolver from '@/modules/animeresolver.js'
   import { videoRx, matchPhrase } from '@/modules/util.js'
   import { tick } from 'svelte'
+  import { toast } from 'svelte-sonner'
   import { anilistClient } from '@/modules/anilist.js'
   import { mediaCache } from '@/modules/cache.js'
   import { episodesList } from '@/modules/episodes.js'
@@ -55,7 +56,13 @@
     if (!targetFile) return false
     if (oldNowPlaying.media?.id !== obj.media.id) {
       handleMedia(obj, { media: obj.media, episode: obj.episode })
-      handleFiles(fileList, targetFile) // targetFile is defined to force the targetFile media to load instead of the lowestUnwatched, lowestPlanning, or lowestCurrent
+      handleFiles(fileList, targetFile).catch(e => {
+            toast.error('File Error', {
+                description: e?.message || String(e),
+                duration: 30000
+            })
+          debug(e)
+        }) // targetFile is defined to force the targetFile media to load instead of the lowestUnwatched, lowestPlanning, or lowestCurrent
     } else {
       playFile(targetFile)
     }
@@ -340,8 +347,9 @@
     processedFiles.set([...sortFiles(videoFiles, newPlaying)])
     await tick()
     const file = (newPlaying?.episode && (result.find(({ media }) => media.episode === newPlaying.episode) || result.find(({ media }) => media.episode === 1))) || result[0]
-    handleMedia(file?.media, newPlaying)
+    if (!file) throw new Error('No playable files were detected in this torrent. Choose another release.')
     playFile(file || 0)
+    await handleMedia(file?.media, newPlaying)
   }
 
   function sortFiles (result, newPlaying) {
@@ -389,8 +397,14 @@
       })
   }
 
-  files.subscribe((files = []) => {
-    handleFiles(files)
+  files.subscribe(async (files = []) => {
+      handleFiles(files).catch(e => {
+          toast.error('File Error', {
+              description: e?.message || String(e),
+              duration: 30000
+          })
+          debug(e)
+      })
     return noop
   })
 
