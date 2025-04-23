@@ -261,16 +261,22 @@ async function purge(userID) {
  */
 function createDebouncers(userID, delay = 2000) {
     const debouncers = {}
+    const previousMap = new Map()
     for (let i = 1; i <= Object.values(caches).filter(cache => cache.database).length; i++) {
         debouncers[`${i}`] = debounce(async (cache, value) => {
             if (Object.keys(value).length !== 0) {
                 const changed = []
                 debug(`Detected a potential change for the ${cache.key} cache, attempting to save...`)
-                const previousValues = await loadAll(userID, cache)
+                let previousValues = previousMap.get(cache.key)
+                if (!previousValues) {
+                    previousValues = await loadAll(userID, cache)
+                    previousMap.set(cache.key, previousValues)
+                }
                 for (const [key, keyValue] of Object.entries(value)) {
                     const prevValue = previousValues[key]
                     if (!deepEqual(keyValue, prevValue)) {
                         changed.push(key)
+                        previousValues[key] = keyValue
                         set(userID, cache, key, keyValue)
                     }
                 }
