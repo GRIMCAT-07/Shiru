@@ -1,8 +1,8 @@
 <script>
-  import { anilistClient, codes } from '@/modules/anilist.js'
+  import { anilistClient } from '@/modules/anilist.js'
   import { profiles, settings, sync } from '@/modules/settings.js'
   import { getMediaMaxEp } from '@/modules/anime.js'
-  import { createListener } from '@/modules/util.js'
+  import { codes, createListener } from '@/modules/util.js'
   import { click } from '@/modules/click.js'
   import { writable } from 'svelte/store'
   import { toast } from 'svelte-sonner'

@@ -82,11 +82,13 @@
   import Notifications from './components/Notifications.svelte'
   import MinimizeTray from './components/MinimizeTray.svelte'
   import Navbar from './components/Navbar.svelte'
+  import Status from './components/Status.svelte'
 
   setContext('view', view)
 </script>
 
 <div class='page-wrapper with-transitions bg-dark position-relative' data-sidebar-type='overlayed-all'>
+  <Status />
   <Menubar bind:page={$page} />
   <Sidebar bind:page={$page} bind:playPage={$playPage} />
   <Navbar bind:page={$page} bind:playPage={$playPage} />
@@ -102,18 +104,18 @@
 </div>
 
 <style>
+  .page-wrapper {
+    height: calc(100% - var(--navbar-height)) !important;
+  }
   .content-wrapper {
     will-change: width;
     white-space: pre-line;
     top: 0 !important;
   }
-
   .page-wrapper > .content-wrapper {
     margin-left: var(--sidebar-minimised) !important;
     width: calc(100% - var(--sidebar-minimised)) !important;
-    transition: none !important;
-  }
-  .page-wrapper {
-    height: calc(100% - var(--navbar-height)) !important;
+    height: calc(100% - var(--wrapper-offset, 0rem)) !important;
+    transition: height .3s ease 2s;
   }
 </style>

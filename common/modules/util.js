@@ -1,7 +1,51 @@
 import { SUPPORTS } from '@/modules/support.js'
+import { isOffline } from '@/modules/networking.js'
 import levenshtein from 'js-levenshtein'
 import { writable } from 'svelte/store'
 import Fuse from 'fuse.js'
+import Debug from 'debug'
+
+const debug = Debug('ui:util')
+
+export const codes = {
+  400: 'Bad Request',
+  401: 'Unauthorized',
+  402: 'Payment Required',
+  403: 'Forbidden',
+  404: 'Not Found',
+  406: 'Not Acceptable',
+  408: 'Request Time-out',
+  409: 'Conflict',
+  410: 'Gone',
+  412: 'Precondition Failed',
+  413: 'Request Entity Too Large',
+  422: 'Unprocessable Entity',
+  429: 'Too Many Requests',
+  500: 'Internal Server Error',
+  501: 'Not Implemented',
+  502: 'Bad Gateway',
+  503: 'Service Unavailable',
+  504: 'Gateway Time-out',
+  505: 'HTTP Version Not Supported',
+  506: 'Variant Also Negotiates',
+  507: 'Insufficient Storage',
+  509: 'Bandwidth Limit Exceeded',
+  510: 'Not Extended',
+  511: 'Network Authentication Required',
+  521: 'Web Server Is Down'
+}
+
+export const toastLevel = writable('All')
+export async function printError(title, description, error) {
+  if (await isOffline(error)) return
+  debug(`Error: ${error.status || 429} - ${error.message || codes[error.status || 429]}`)
+  if (toastLevel.value.toasts.includes('All') || toastLevel.value.toasts.includes('Errors')) {
+    toast.error(title, {
+      description: `${description}\n${error.status || 429} - ${error.message || codes[error.status || 429]}`,
+      duration: 3000
+    })
+  }
+}
 
 export function countdown (s) {
   const d = Math.floor(s / (3600 * 24))

@@ -4,8 +4,7 @@ import Bottleneck from 'bottleneck'
 
 import { alToken, settings } from '@/modules/settings.js'
 import { malDubs } from '@/modules/animedubs.js'
-import { toast } from 'svelte-sonner'
-import { getRandomInt, sleep, matchKeys } from '@/modules/util.js'
+import { printError, getRandomInt, sleep, matchKeys } from '@/modules/util.js'
 import { cache, caches, mediaCache } from '@/modules/cache.js'
 import { malClient } from '@/modules/myanimelist.js'
 import Helper from '@/modules/helper.js'
@@ -14,44 +13,6 @@ import Debug from 'debug'
 
 const debug = Debug('ui:anilist')
 const query = Debug('ui:alquery')
-
-export const codes = {
-  400: 'Bad Request',
-  401: 'Unauthorized',
-  402: 'Payment Required',
-  403: 'Forbidden',
-  404: 'Not Found',
-  406: 'Not Acceptable',
-  408: 'Request Time-out',
-  409: 'Conflict',
-  410: 'Gone',
-  412: 'Precondition Failed',
-  413: 'Request Entity Too Large',
-  422: 'Unprocessable Entity',
-  429: 'Too Many Requests',
-  500: 'Internal Server Error',
-  501: 'Not Implemented',
-  502: 'Bad Gateway',
-  503: 'Service Unavailable',
-  504: 'Gateway Time-out',
-  505: 'HTTP Version Not Supported',
-  506: 'Variant Also Negotiates',
-  507: 'Insufficient Storage',
-  509: 'Bandwidth Limit Exceeded',
-  510: 'Not Extended',
-  511: 'Network Authentication Required',
-  521: 'Web Server Is Down'
-}
-
-function printError(error) {
-  debug(`Error: ${error.status || 429} - ${error.message || codes[error.status || 429]}`)
-  if (settings.value.toasts.includes('All') || settings.value.toasts.includes('Errors')) {
-    toast.error('Search Failed', {
-      description: `Failed making request to anilist!\nTry again in a minute.\n${error.status || 429} - ${error.message || codes[error.status || 429]}`,
-      duration: 3000
-    })
-  }
-}
 
 const date = new Date()
 export const seasons = ['WINTER', 'SPRING', 'SUMMER', 'FALL']
@@ -200,7 +161,7 @@ class AnilistClient {
   constructor() {
     debug('Initializing Anilist Client for ID ' + this.userID?.viewer?.data?.Viewer?.id)
     this.limiter.on('failed', async (error) => {
-      printError(error)
+      printError('Search Failed', 'Failed making request to anilist!\nTry again in a minute.', error)
 
       if (error.status === 500) return 1
 
@@ -255,15 +216,15 @@ class AnilistClient {
     try {
       json = await res.json()
     } catch (error) {
-      if (res.ok) printError(error)
+      if (res.ok) printError('Search Failed', 'Failed making request to anilist!\nTry again in a minute.', error)
     }
     if (!res.ok && res.status !== 404) {
       if (json) {
         for (const error of json?.errors || []) {
-          printError(error)
+          printError('Search Failed', 'Failed making request to anilist!\nTry again in a minute.', error)
         }
       } else {
-        printError(res)
+        printError('Search Failed', 'Failed making request to anilist!\nTry again in a minute.', res)
       }
     }
     return json || res
@@ -536,7 +497,7 @@ class AnilistClient {
       }`
     const res = await this.alRequest(query, variables)
     if (!variables.token) await this.deleteListEntry(variables.idAni)
-    //TODO: need to implement "else" for anilist syncing functionality. #updateListEntry
+    //TODO: need to implement "else" for anilist syncing functionality. #deleteListEntry
     return res
   }
 

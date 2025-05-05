@@ -1,27 +1,15 @@
 import { writable } from 'simple-store-svelte'
 import Bottleneck from 'bottleneck'
 
-import { malToken, refreshMalToken, settings } from '@/modules/settings.js'
+import { malToken, refreshMalToken } from '@/modules/settings.js'
 import { mediaCache } from '@/modules/cache.js'
-import { codes } from "@/modules/anilist.js"
-import { toast } from 'svelte-sonner'
-import { sleep } from "@/modules/util.js";
+import { printError, sleep } from '@/modules/util.js'
 import Helper from '@/modules/helper.js'
 import Debug from 'debug'
 
 const debug = Debug('ui:myanimelist')
 
 export const clientID = 'bb7dce3881d803e656c45aa39bda9ccc' // app type MUST be set to other, do not generate a seed.
-
-function printError (error) {
-  debug(`Error: ${error.status || error || 429} - ${error.message || codes[error.status || error || 429]}`)
-  if (settings.value.toasts.includes('All') || settings.value.toasts.includes('Errors')) {
-    toast.error('Search Failed', {
-      description: `Failed making request to MyAnimeList!\nTry again in a minute.\n${error.status || error || 429} - ${error.message || codes[error.status || error || 429]}`,
-      duration: 3000
-    })
-  }
-}
 
 const queryFields =  [
   'synopsis',
@@ -67,7 +55,7 @@ class MALClient {
   constructor () {
     debug('Initializing MyAnimeList Client for ID ' + this.userID?.viewer?.data?.Viewer?.id)
     this.limiter.on('failed', async (error, jobInfo) => {
-      printError(error)
+      printError('Search Failed', 'Failed making request to MyAnimeList!\nTry again in a minute.\n', error)
 
       if (error.status === 500) return 1
 
@@ -142,7 +130,7 @@ class MALClient {
     try {
       json = await res.json()
     } catch (error) {
-      if (res?.ok) printError(error)
+      if (res?.ok) printError('Search Failed', 'Failed making request to MyAnimeList!\nTry again in a minute.\n', error)
     }
     if (!res?.ok && res?.status !== 404) {
       if (json) {
@@ -168,10 +156,10 @@ class MALClient {
             default:
               code = res?.status
           }
-          printError(code)
+          printError('Search Failed', 'Failed making request to MyAnimeList!\nTry again in a minute.\n', code)
         }
       } else {
-        printError(res)
+        printError('Search Failed', 'Failed making request to MyAnimeList!\nTry again in a minute.\n', res)
       }
     }
     return json

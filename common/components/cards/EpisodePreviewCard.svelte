@@ -196,9 +196,6 @@
     left: -100%;
     right: -100%;
   }
-  .mt-3 {
-    margin-top: 0.3rem;
-  }
   .title {
     display: -webkit-box;
     -webkit-line-clamp: 1;

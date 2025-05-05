@@ -1,12 +1,12 @@
 import { toast } from 'svelte-sonner'
 import { writable } from 'simple-store-svelte'
-import { anilistClient, codes } from '@/modules/anilist.js'
+import { anilistClient } from '@/modules/anilist.js'
 import { malDubs } from '@/modules/animedubs.js'
 import { settings } from '@/modules/settings.js'
 import { cache, caches, mediaCache } from '@/modules/cache.js'
 import { getEpisodeMetadataForMedia } from '@/modules/anime.js'
 import { hasNextPage } from '@/modules/sections.js'
-import { getRandomInt } from '@/modules/util.js'
+import { printError, getRandomInt } from '@/modules/util.js'
 import Helper from '@/modules/helper.js'
 import IPC from '@/modules/ipc.js'
 import Debug from 'debug'
@@ -203,15 +203,15 @@ class AnimeSchedule {
         try {
             json = await res.json()
         } catch (error) {
-            if (res.ok) this.printError(error)
+            if (res.ok) printError('Search Failed', 'Failed to fetch the anime schedule(s)!', error)
         }
         if (!res.ok) {
             if (json) {
                 for (const error of json?.errors || []) {
-                    this.printError(error)
+                    printError('Search Failed', 'Failed to fetch the anime schedule(s)!', error)
                 }
             } else {
-                this.printError(res)
+                printError('Search Failed', 'Failed to fetch the anime schedule(s)!', res)
             }
         }
         return json
@@ -401,16 +401,6 @@ class AnimeSchedule {
     async fromPending (result, i) {
         const array = await result
         return array[i]
-    }
-
-    printError(error) {
-        debug(`Error: ${error.status || 429} - ${error.message || codes[error.status || 429]}`)
-        if (settings.value.toasts.includes('All') || settings.value.toasts.includes('Errors')) {
-            toast.error('Search Failed', {
-                description: `Failed to fetch the anime schedule(s)!\n${error.status || 429} - ${error.message || codes[error.status || 429]}`,
-                duration: 3000
-            })
-        }
     }
 }
 

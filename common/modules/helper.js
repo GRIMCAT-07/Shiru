@@ -1,11 +1,11 @@
 import { alToken, malToken, settings, sync, isAuthorized } from '@/modules/settings.js'
-import { codes, anilistClient } from '@/modules/anilist.js'
+import { anilistClient } from '@/modules/anilist.js'
 import { malClient } from '@/modules/myanimelist.js'
 import { malDubs } from '@/modules/animedubs.js'
 import { profiles } from '@/modules/settings.js'
 import { mediaCache, mapStatus } from '@/modules/cache.js'
 import { getMediaMaxEp, hasZeroEpisode } from '@/modules/anime.js'
-import { matchKeys } from '@/modules/util.js'
+import { codes, matchKeys } from '@/modules/util.js'
 import { toast } from 'svelte-sonner'
 import Debug from 'debug'
 

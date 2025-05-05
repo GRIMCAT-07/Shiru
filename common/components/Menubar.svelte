@@ -22,32 +22,32 @@
   IPC.on('isMaximized', (isMaximized) => maximized = isMaximized)
 </script>
 
-<div class='w-full z-101 navbar bg-transparent border-0 p-0 d-flex'>
-  <div class='d-flex h-full draggable align-items-center text-center'>
-    <img src='./logo_filled.png' class='position-absolute w-50 h-50 m-10 pointer d-md-block d-none p-5' class:mt-20={window.version?.platform === 'darwin'} alt='ico' use:click={close} />
-  </div>
-  {#if window.version?.platform !== 'darwin'}
-    <div class='window-controls d-flex position-absolute top-0 right-0 height-full'>
-      <button class='button max-button d-flex border-0 color-white align-items-center justify-content-center' on:click={() => IPC.emit('minimize')}><svg class='svg-controls' height='12' role='img' viewBox='0 0 12 12' width='12'><rect fill='currentColor' height='1' width='10' x='1' y='6' /></svg></button>
-      <button class='button restore-button d-flex border-0 color-white align-items-center justify-content-center' on:click={async () => IPC.emit('maximize')}>
-        {#if maximized}
-          <svg class='svg-controls' height='12' role='img' viewBox='0 0 12 12' width='12'>
-            <rect fill='none' height='7' stroke='currentColor' width='7' x='3.5' y='1.1' />
-            <rect fill='none' height='7' stroke='currentColor' width='7' x='1.5' y='3.5' />
-          </svg>
-        {:else}
-          <svg class='svg-controls' height='12' role='img' viewBox='0 0 12 12' width='12'>
-            <rect fill='none' height='9' stroke='currentColor' width='9' x='1.5' y='1.5' />
-          </svg>
-        {/if}
-      </button>
-      <button class='button close-button d-flex border-0 color-white align-items-center justify-content-center' on:click={() => IPC.emit('close-prompt')}><svg class='svg-controls' height='12' role='img' viewBox='0 0 12 12' width='12'><polygon fill='currentColor' fill-rule='evenodd' points='11 1.576 6.583 6 11 10.424 10.424 11 6 6.583 1.576 11 1 10.424 5.417 6 1 1.576 1.576 1 6 5.417 10.424 1' /></svg></button>
-    </div>
+<div class='w-full z-101 navbar bg-transparent border-0 p-0 d-flex draggable'>
+    {#if window.version?.platform !== 'darwin'}
+      <div class='window-controls d-flex position-absolute top-0 right-0 h-full'>
+        <button class='button max-button d-flex border-0 color-white align-items-center justify-content-center' on:click={() => IPC.emit('minimize')}><svg class='svg-controls' height='12' role='img' viewBox='0 0 12 12' width='12'><rect fill='currentColor' height='1' width='10' x='1' y='6' /></svg></button>
+        <button class='button restore-button d-flex border-0 color-white align-items-center justify-content-center' on:click={async () => IPC.emit('maximize')}>
+          {#if maximized}
+            <svg class='svg-controls' height='12' role='img' viewBox='0 0 12 12' width='12'>
+              <rect fill='none' height='7' stroke='currentColor' width='7' x='3.5' y='1.1' />
+              <rect fill='none' height='7' stroke='currentColor' width='7' x='1.5' y='3.5' />
+            </svg>
+          {:else}
+            <svg class='svg-controls' height='12' role='img' viewBox='0 0 12 12' width='12'>
+              <rect fill='none' height='9' stroke='currentColor' width='9' x='1.5' y='1.5' />
+            </svg>
+          {/if}
+        </button>
+        <button class='button close-button d-flex border-0 color-white align-items-center justify-content-center' on:click={() => IPC.emit('close-prompt')}><svg class='svg-controls' height='12' role='img' viewBox='0 0 12 12' width='12'><polygon fill='currentColor' fill-rule='evenodd' points='11 1.576 6.583 6 11 10.424 10.424 11 6 6.583 1.576 11 1 10.424 5.417 6 1 1.576 1.576 1 6 5.417 10.424 1' /></svg></button>
+      </div>
+    {/if}
+</div>
+<div class='position-absolute'>
+  <img src='./logo_filled.png' class='z-102 position-absolute w-50 h-50 m-10 pointer d-md-block d-none p-5' class:mt-20={window.version?.platform === 'darwin'} alt='ico' use:click={close} />
+  {#if $debug}
+    <div class='z-100 ribbon right text-center position-absolute font-size-16 font-weight-bold'>Debug Mode</div>
   {/if}
 </div>
-{#if $debug}
-  <div class='ribbon right z-101 text-center position-fixed font-size-16 font-weight-bold'>Debug Mode!</div>
-{/if}
 
 <style>
   .ribbon {
@@ -55,16 +55,13 @@
     box-shadow: 0 0 0 999px #f63220;
     clip-path: inset(0 -100%);
     pointer-events: none;
-    min-width: 120px;
+    min-width: 16rem;
     inset: 0 auto auto 0;
     transform-origin: 100% 0;
     transform: translate(-29.3%) rotate(-45deg);
   }
   .navbar {
     --navbar-height: 32px !important;
-  }
-  .z-101 {
-    z-index: 101 !important
   }
   .draggable {
     -webkit-app-region: drag;

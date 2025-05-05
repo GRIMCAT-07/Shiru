@@ -1,9 +1,6 @@
-import { toast } from 'svelte-sonner'
-import { codes } from '@/modules/anilist.js'
-import { settings } from '@/modules/settings.js'
 import { cache, caches } from '@/modules/cache.js'
 import { getKitsuMappings } from '@/modules/anime.js'
-import { getRandomInt, sleep } from '@/modules/util.js'
+import { codes, printError, getRandomInt, sleep } from '@/modules/util.js'
 import Bottleneck from 'bottleneck'
 import Debug from 'debug'
 
@@ -109,15 +106,15 @@ class Episodes {
             try {
                 json = await res.json()
             } catch (error) {
-                if (res.ok) this.printError(error, `${jikan ? 'jikan' : 'kitsu'}`)
+                if (res.ok) this.checkError(error, `${jikan ? 'jikan' : 'kitsu'}`)
             }
             if (!res.ok) {
                 if (json) {
                     for (const error of json?.errors || []) {
-                        this.printError(error, `${jikan ? 'jikan' : 'kitsu'}`, true)
+                        this.checkError(error, `${jikan ? 'jikan' : 'kitsu'}`, true)
                     }
                 } else {
-                    this.printError(res, `${jikan ? 'jikan' : 'kitsu'}`)
+                    this.checkError(res, `${jikan ? 'jikan' : 'kitsu'}`)
                 }
             }
             return cache.cacheEntry(caches.EPISODES, `${id}:${page}:${root}`, {}, json, Date.now() + getRandomInt(1, 3) * 24 * 60 * 60 * 1000)
@@ -128,16 +125,12 @@ class Episodes {
         return requestPromise
     }
 
-    printError(error, type, silent) {
-        const apiDown = !error || error.status === 404 || error.status === 521
-        debug(`Error${apiDown ? ' (API Down)' : ''}: ${error.status || 429} - ${error.message || codes[error.status || 429]}`)
-        if (apiDown) return // api is likely down, we don't need to spam the user with toasts.
-        if (!silent && (settings.value.toasts.includes('All') || settings.value.toasts.includes('Errors'))) {
-            toast.error('Episode Fetching Failed', {
-                description: `Failed to fetch ${type} anime episodes!\n${error.status || 429} - ${error.message || error.detail || codes[error.status || 429]}`,
-                duration: 3000
-            })
+    checkError(error, type, silent) {
+        if (!error || error.status === 404 || error.status === 521) {  // api is likely down, we don't need to spam the user with toasts.
+            debug(`Error (API Down): ${error.status || 429} - ${error.message || codes[error.status || 429]}`)
+            return
         }
+        if (!silent) printError('Episode Fetching Failed', `Failed to fetch ${type} anime episodes!`, error)
     }
 }
 

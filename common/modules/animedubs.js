@@ -1,9 +1,6 @@
-import { toast } from 'svelte-sonner'
-import { getRandomInt, matchPhrase } from '@/modules/util.js'
+import { printError, getRandomInt, matchPhrase } from '@/modules/util.js'
 import { cache, caches } from '@/modules/cache.js'
 import { writable } from 'simple-store-svelte'
-import { codes } from '@/modules/anilist.js'
-import { settings } from '@/modules/settings.js'
 import Debug from 'debug'
 
 const debug = Debug('ui:animedubs')
@@ -54,15 +51,15 @@ class MALDubs {
             try {
                 json = await res.json()
             } catch (error) {
-                if (res.ok) this.printError(error)
+                if (res.ok) printError('Dub Caching Failed', 'Failed to load dub information!', error)
             }
             if (!res.ok) {
                 if (json) {
                     for (const error of json?.errors || []) {
-                        this.printError(error)
+                        printError('Dub Caching Failed', 'Failed to load dub information!', error)
                     }
                 } else {
-                    this.printError(res)
+                    printError('Dub Caching Failed', 'Failed to load dub information!', res)
                 }
             }
             const result = cache.cacheEntry(caches.RSS, 'MALDubs', { mappings: true }, json, Date.now() + getRandomInt(100, 200) * 60 * 1000)
@@ -75,16 +72,6 @@ class MALDubs {
                 return cachedEntry
             }
             else throw e
-        }
-    }
-
-    printError(error) {
-        debug(`Error: ${error.status || 429} - ${error.message || codes[error.status || 429]}`)
-        if (settings.value.toasts.includes('All') || settings.value.toasts.includes('Errors')) {
-            toast.error('Dub Caching Failed', {
-                description: `Failed to load dub information!\n${error.status || 429} - ${error.message || codes[error.status || 429]}`,
-                duration: 3000
-            })
         }
     }
 }

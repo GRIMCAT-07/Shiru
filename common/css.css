@@ -12,6 +12,7 @@
   --sidebar-minimised: 0px;
   --sidebar-width: 0px;
   --navbar-height: 7rem;
+  --statusbar-height: 3.2rem;
   --tertiary-color: #2e74e4 !important;
   --dark-color-base-hue: 220deg !important;
   --dark-color-base-saturation: 10% !important;
@@ -33,6 +34,7 @@
   --episode-preview-card-gradient: linear-gradient(180deg, #0000 0%, #25292f00 80%, #25292f 100%);
   --preview-card-gradient: linear-gradient(180deg, #0000 0%, #25292f00 80%, #25292fe3 95%, #25292f 100%);
   --section-end-gradient: linear-gradient(270deg, #17191cff 0%, #17191c00 100%);
+  --error-color: rgb(71, 4, 4);
   --adult-color: rgb(215, 6, 10);
   --dubbed-color: rgb(255, 214, 0);
   --subbed-color: rgb(137, 39, 255);
@@ -40,6 +42,7 @@
   --delayed-color: rgb(188, 32, 35);
   --episode-color: rgb(204, 204, 255);
   --announcement-color: rgb(255, 255, 240);
+  --bg-success-subtle: rgb(36, 138, 0);
   color-scheme: dark;
 }
 
@@ -66,6 +69,10 @@
 
 .dark-mode {
   background-color: var(--dark-color) !important;
+}
+
+.h-0 {
+  height: 0;
 }
 
 .h-30 {
@@ -136,13 +143,14 @@ a[href]:active, button:not([disabled]):active, fieldset:not([disabled]):active, 
 .z-55 {
   z-index: 55;
 }
-
 .z-100 {
   z-index: 100;
 }
-
 .z-101 {
-  z-index: 101;
+  z-index: 101 !important;
+}
+.z-102 {
+  z-index: 102;
 }
 
 .text-dark-light {
@@ -155,6 +163,10 @@ a[href]:active, button:not([disabled]):active, fieldset:not([disabled]):active, 
 
 .mt-2 {
   margin-top: .2rem;
+}
+
+.mt-3 {
+  margin-top: 0.3rem;
 }
 
 .h-10 {
@@ -177,6 +189,11 @@ body {
 
 .bg-black {
   background: #000;
+}
+
+.bg-error {
+  border-color: hsl(0, 100%, 25%) !important;
+  background-color: var(--error-color) !important;
 }
 
 .bg-adult {
@@ -212,6 +229,11 @@ body {
 .bg-announcement {
   border-color: var(--announcement-color) !important;
   background-color: var(--announcement-color) !important;
+}
+
+.bg-success-subtle {
+  border-color: var(--bg-success-subtle) !important;
+  background-color: var(--bg-success-subtle) !important;
 }
 
 .btn:disabled {
