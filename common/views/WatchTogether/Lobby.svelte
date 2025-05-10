@@ -1,7 +1,7 @@
 <script>
   import { click } from '@/modules/click.js'
-  import User from './User.svelte'
-  import Message from './Message.svelte'
+  import User from '@/views/WatchTogether/User.svelte'
+  import Message from '@/views/WatchTogether/Message.svelte'
   import { SendHorizontal, DoorOpen, UserPlus } from 'lucide-svelte'
   export let invite
 

@@ -9,8 +9,8 @@
 </script>
 
 <script>
-  import Search, { searchCleanup } from '../components/Search.svelte'
-  import Card from '../components/cards/Card.svelte'
+  import Search, { searchCleanup } from '@/components/Search.svelte'
+  import Card from '@/components/cards/Card.svelte'
   import { hasNextPage } from '@/modules/sections.js'
   import smoothScroll from '@/modules/scroll.js'
   import { debounce } from '@/modules/util.js'

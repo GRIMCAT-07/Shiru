@@ -2,7 +2,7 @@ import { EventEmitter } from 'events'
 
 import P2PT from 'p2pt'
 
-import Event, { EventTypes } from './events.js'
+import Event, { EventTypes } from '@/views/WatchTogether/events.js'
 import Helper from '@/modules/helper.js'
 import { add } from '@/modules/torrent.js'
 import { generateRandomHexCode } from '@/modules/util.js'
@@ -57,7 +57,7 @@ export class W2GClient extends EventEmitter {
 
   /**
    * Should be called when player state changed locally
-   * @param {import('./events.js').default} state
+   * @param {import('@/views/WatchTogether/events.js').default} state
    */
   localPlayerStateChanged ({ payload }) {
     debug(`localPlayerStateChanged: ${JSON.stringify(payload)}`)

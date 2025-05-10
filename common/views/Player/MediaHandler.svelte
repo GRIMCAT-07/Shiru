@@ -428,7 +428,7 @@
 </script>
 
 <script>
-  import Player from './Player.svelte'
+  import Player from '@/views/Player/Player.svelte'
 
   export let miniplayer = false
   export let page = 'home'

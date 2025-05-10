@@ -145,8 +145,8 @@ export default class App {
     this.mainWindow.loadURL(development ? 'http://localhost:5000/app.html' : `file://${join(__dirname, '/app.html')}`)
 
     if (development) {
-      this.webtorrentWindow.webContents.openDevTools()
-      this.mainWindow.webContents.openDevTools()
+      this.webtorrentWindow.webContents.openDevTools({ mode: 'bottom' })
+      this.mainWindow.webContents.openDevTools({ mode: 'detach' })
     }
 
     let crashcount = 0

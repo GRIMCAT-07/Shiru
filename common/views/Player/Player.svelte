@@ -17,7 +17,7 @@
   import VideoDeband from 'video-deband'
   import Helper from '@/modules/helper.js'
 
-  import { w2gEmitter, state } from '../WatchTogether/WatchTogether.svelte'
+  import { w2gEmitter, state } from '@/views/WatchTogether/WatchTogether.svelte'
   import Keybinds, { loadWithDefaults, condition } from 'svelte-keybinds'
   import { SUPPORTS } from '@/modules/support.js'
   import 'rvfc-polyfill'

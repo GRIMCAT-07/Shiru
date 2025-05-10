@@ -1,5 +1,5 @@
 <script context='module'>
-  import { findInCurrent } from '../Player/MediaHandler.svelte'
+  import { findInCurrent } from '@/views/Player/MediaHandler.svelte'
   import { writable } from 'simple-store-svelte'
 
   export const rss = writable(null)
@@ -17,7 +17,7 @@
 </script>
 
 <script>
-  import TorrentMenu from './TorrentMenu.svelte'
+  import TorrentMenu from '@/views/TorrentSearch/TorrentMenu.svelte'
 
   export let overlay
 

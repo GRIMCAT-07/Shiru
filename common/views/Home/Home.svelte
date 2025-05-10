@@ -51,7 +51,7 @@
 </script>
 
 <script>
-  import Section from './Section.svelte'
+  import Section from '@/views/Home/Section.svelte'
   import Banner from '@/components/banner/Banner.svelte'
   import smoothScroll from '@/modules/scroll.js'
 </script>

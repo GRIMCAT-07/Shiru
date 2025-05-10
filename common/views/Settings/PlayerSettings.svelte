@@ -1,7 +1,7 @@
 <script>
   import { toast } from 'svelte-sonner'
   import FontSelect from 'simple-font-select'
-  import SettingCard from './SettingCard.svelte'
+  import SettingCard from '@/views/Settings/SettingCard.svelte'
   import { SUPPORTS } from '@/modules/support.js'
   import { click } from '@/modules/click.js'
   import IPC from '@/modules/ipc.js'

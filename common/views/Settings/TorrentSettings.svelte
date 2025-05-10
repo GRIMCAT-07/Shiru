@@ -33,7 +33,7 @@
   import { click } from '@/modules/click.js'
   import { defaults } from '@/modules/util.js'
   import IPC from '@/modules/ipc.js'
-  import SettingCard from './SettingCard.svelte'
+  import SettingCard from '@/views/Settings/SettingCard.svelte'
   import { SUPPORTS } from '@/modules/support.js'
   import { Trash2 } from 'lucide-svelte'
   export let settings

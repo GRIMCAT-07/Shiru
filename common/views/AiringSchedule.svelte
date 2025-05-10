@@ -1,6 +1,6 @@
 <script context='module'>
   import SectionsManager from '@/modules/sections.js'
-  import Search, { search } from './Search.svelte'
+  import Search, { search } from '@/components/Search.svelte'
   import { anilistClient } from '@/modules/anilist.js'
   import { nextAiring } from '@/modules/anime.js'
   import { animeSchedule } from '@/modules/animeschedule.js'

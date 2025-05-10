@@ -1,9 +1,9 @@
 <script>
   import { variables } from '@/modules/themes.js'
   import { click } from '@/modules/click.js'
-  import HomeSections from './HomeSectionsSettings.svelte'
+  import HomeSections from '@/views/Settings/HomeSectionsSettings.svelte'
   import IPC from '@/modules/ipc.js'
-  import SettingCard from './SettingCard.svelte'
+  import SettingCard from '@/views/Settings/SettingCard.svelte'
   import { SUPPORTS } from '@/modules/support.js'
   import { Trash2 } from 'lucide-svelte'
   import { genreList, tagList } from '@/modules/anime.js'

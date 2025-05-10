@@ -2,7 +2,7 @@
   import { persisted } from 'svelte-persisted-store'
   import { client } from '@/modules/torrent.js'
   import { onDestroy } from 'svelte'
-  import SettingCard from './SettingCard.svelte'
+  import SettingCard from '@/views/Settings/SettingCard.svelte'
   import Debug from 'debug'
 
   const debug = persisted('debug', '', {

@@ -45,9 +45,9 @@
 </script>
 
 <script>
-  import Lobby from './Lobby.svelte'
+  import Lobby from '@/views/WatchTogether/Lobby.svelte'
   import { Plus, UserPlus } from 'lucide-svelte'
-  import { W2GClient } from './w2g.js'
+  import { W2GClient } from '@/views/WatchTogether/w2g.js'
   import { click } from '@/modules/click.js'
 
   let joinText
