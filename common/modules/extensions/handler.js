@@ -3,18 +3,20 @@ import { sleep } from '@/modules/util.js'
 import { anilistClient } from '@/modules/anilist.js'
 import { anitomyscript, getAniMappings } from '@/modules/anime.js'
 import { client } from '@/modules/torrent.js'
-import { extensionsWorker } from '@/views/Settings/TorrentSettings.svelte'
-import { toast } from 'svelte-sonner'
+import { status } from '@/modules/networking.js'
+import { extensionManager } from '@/modules/extensions/manager.js'
 import AnimeResolver from '@/modules/animeresolver.js'
 import Debug from 'debug'
 
 const debug = Debug('ui:extensions')
 
+/** @typedef {import('extensions/index.d.ts').TorrentQuery} Options */
+/** @typedef {import('extensions/index.d.ts').TorrentResult} Result */
+
 const exclusions = ['DTS', 'TrueHD', '[EMBER]']
 const isDev = location.hostname === 'localhost'
 
 const video = document.createElement('video')
-
 if (!isDev && !video.canPlayType('video/mp4; codecs="hev1.1.6.L93.B0"')) {
   exclusions.push('HEVC', 'x265', 'H.265')
 }
@@ -26,22 +28,28 @@ if (!('audioTracks' in HTMLVideoElement.prototype)) {
 }
 video.remove()
 
-/** @typedef {import('@thaunknown/ani-resourced/sources/types.d.ts').Options} Options */
-/** @typedef {import('@thaunknown/ani-resourced/sources/types.d.ts').Result} Result */
-
 /**
  * @param {{media: import('@/modules/al.js').Media, episode?: number, batch: boolean, movie: boolean, resolution: string}} opts
- * @returns {Promise<(Result & { parseObject: import('anitomyscript').AnitomyResult })[]>}
- * **/
-export default async function getResultsFromExtensions ({ media, episode, batch, movie, resolution }) {
-  const worker = await /** @type {ReturnType<import('@/modules/extensions/worker.js').loadExtensions>} */(extensionsWorker)
-  if (!(await worker.metadata)?.length) {
-    debug('No torrent sources configured')
-    throw new Error('No torrent sources configured. Add extensions in settings.')
+ * @returns {Promise<Map<string, { name: string, icon?: string, promise: Promise<any> }>>}
+ * Returns a Map of extension results keyed by extension id, each containing metadata and a result promise.
+ */
+export async function getResultsFromExtensions({ media, episode, batch, movie, resolution }) {
+  await extensionManager.whenReady
+  if (!Object.values(extensionManager.activeWorkers)?.length) {
+    const offline = Object.values(extensionManager.inactiveWorkers)?.length && (status.value === 'offline')
+    debug(!offline ? 'No torrent sources configured' : 'Torrent sources detected but are inactive')
+    return new Map([
+      ['NaN', {
+        name: 'no-sources',
+        promise: Promise.resolve({
+          results: [],
+          errors: [{ message: !offline ? 'No torrent sources configured. Add sources in settings.' : 'Sources are inactive.. found no results.' }]
+        })
+      }]
+    ])
   }
 
   debug(`Fetching sources for ${media?.id}:${media?.title?.userPreferred} ${episode} ${batch} ${movie} ${resolution}`)
-
   const aniDBMeta = await ALToAniDB(media)
   const anidbAid = aniDBMeta?.mappings?.anidb_id
   const anidbEid = anidbAid && (await ALtoAniDBEpisode({ media, episode }, aniDBMeta))?.anidbEid
@@ -59,32 +67,40 @@ export default async function getResultsFromExtensions ({ media, episode, batch,
     exclusions: settings.value.enableExternal ? [] : exclusions
   }
 
-  const { results, errors } = await worker.query(options, { movie, batch }, settings.value.sources)
-
-  debug(`Found ${results?.length} results`)
-
-  for (const error of errors) {
-    if (!JSON.stringify(error).toLowerCase().includes('no anidbaid provided') && !JSON.stringify(error).toLowerCase().includes('no anidbeid provided')) {
-      debug(`Source Fetch Failed: ${error}`)
-      toast.error('Source Fetch Failed!', {
-        description: error
-      })
+  const promises = new Map()
+  for (const [key, worker] of Object.entries(extensionManager.activeWorkers)) {
+    const source = Object.values(settings.value.sourcesNew).find(entry => key === `${entry.locale || (entry.update + '/')}${entry.id}`)
+    if (!source?.nsfw || settings.value.adult !== 'none') {
+      const promise = worker.query(options, { movie, batch }, status.value !== 'offline', settings.value.extensionsNew?.[key]).then(async ({ results, errors }) => {
+            if (errors?.length && !JSON.stringify(errors)?.match(/no anidb[ae]id provided/i)) throw new Error(errors?.map(error => (error?.message || JSON.stringify(error)).replace(/\\n/g, ' ').replace(/"/g, '')).join('\n') || 'Unknown error')
+            else if (errors?.length) throw new Error('Source ' + source.id + ' found no results.')
+            debug(`Extension ${key} found ${results?.length} results with ${errors?.length} errors`)
+            const deduped = dedupe(results)
+            if (!deduped.length) return []
+            const parseObjects = await anitomyscript(deduped.map(r => r.title))
+            deduped.forEach((r, i) => r.parseObject = parseObjects[i])
+            return await updatePeerCounts(deduped)
+          }).catch(error => {
+            debug(`Extension ${key} failed: ${error}`)
+            return { results: [], errors: [{ message: error?.[0]?.message || error?.message }] }
+          })
+      promises.set(key, { name: source?.name || source?.id, icon: source?.icon, promise })
     }
   }
-
-  const deduped = dedupe(results)
-  if (!deduped?.length) throw new Error('No results found. Try specifying a torrent manually.')
-  const parseObjects = await anitomyscript(deduped.map(({ title }) => title))
-  // @ts-ignore
-  for (const i in parseObjects) deduped[i].parseObject = parseObjects[i]
-
-  return updatePeerCounts(deduped)
+  return promises
 }
 
+const peerCache = new Map()
 async function updatePeerCounts (entries) {
+  const cacheKey = JSON.stringify(entries)
+  const cached = peerCache.get(cacheKey)
+  if (cached && (((Date.now() - cached.timestamp) <= 90000) || !online)) {
+    debug(`The previously cached peer counts are less than two minutes old, returning cached entries...`, entries)
+    return cached.scrape
+  }
+
   const id = Math.trunc(Math.random() * Number.MAX_SAFE_INTEGER).toString()
   debug(`Updating peer counts for ${entries?.length} entries`)
-
   const updated = await Promise.race([
     new Promise(resolve => {
       function check ({ detail }) {
@@ -108,7 +124,8 @@ async function updatePeerCounts (entries) {
   }
 
   debug(`Found ${(updated || []).length} entries: ${JSON.stringify(updated)}`)
-  return entries
+  peerCache.set(cacheKey, { scrape: entries, timestamp: Date.now() })
+  return peerCache.get(cacheKey)?.scrape
 }
 
 /** @param {import('@/modules/al.js').Media} media */
@@ -214,20 +231,20 @@ function createTitles (media) {
 }
 
 /** @param {Result[]} entries */
-function dedupe (entries) {
+export function dedupe (entries) {
   /** @type {Record<string, Result>} */
   const deduped = {}
   for (const entry of entries) {
     if (deduped[entry.hash]) {
       const dupe = deduped[entry.hash]
-      dupe.title ??= AnimeResolver.cleanFileName(entry.title)
-      dupe.link ??= entry.link
-      dupe.id ||= entry.id
+      dupe.title = AnimeResolver.cleanFileName(entry.title)
+      dupe.link = entry.link
+      dupe.id ??= entry.id
       dupe.seeders ||= entry.seeders >= 30000 ? 0 : entry.seeders
       dupe.leechers ||= entry.leechers >= 30000 ? 0 : entry.leechers
       dupe.downloads ||= entry.downloads
+      dupe.accuracy ??= entry.accuracy
       dupe.size ||= entry.size
-      dupe.verified ||= entry.verified
       dupe.date ||= entry.date
       dupe.type ??= entry.type
     } else {
