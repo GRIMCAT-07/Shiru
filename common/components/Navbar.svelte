@@ -7,9 +7,8 @@
   import { actionPrompt } from './MinimizeTray.svelte'
   import { SUPPORTS } from '@/modules/support.js'
   import NavbarLink from './NavbarLink.svelte'
-  import { MagnifyingGlass } from 'svelte-radix'
   import { onDestroy, onMount } from 'svelte'
-  import { Home, Users, Clock, Settings, Bell, BellDot, ListVideo, TvMinimalPlay } from 'lucide-svelte'
+  import { Home, Search, Users, Clock, Settings, Bell, BellDot, ListVideo, TvMinimalPlay } from 'lucide-svelte'
   const view = getContext('view')
   export let page
   export let playPage
@@ -37,7 +36,7 @@
       <Home size='3.4rem' class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
     </NavbarLink>
     <NavbarLink click={() => { page = 'search'; if ($view) $view = null }} _page='search' icon='search' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
-      <MagnifyingGlass size='3.4rem' class='flex-shrink-0 m-5 rounded' stroke-width='0.5' stroke='currentColor' style='padding: 0.3rem !important; color: {page===`search` && !($view || $profileView || $notifyView || $actionPrompt || $rss) ? `currentColor`:`#5e6061`}' />
+      <Search size='3.4rem' class='flex-shrink-0 p-5 m-5 rounded' stroke-width='2.5' stroke='currentColor' color={active ? 'currentColor' : '#5e6061'} />
     </NavbarLink>
     <NavbarLink click={() => { page = 'schedule' }} _page='schedule' icon='schedule' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
       <Clock size='3.4rem' class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />

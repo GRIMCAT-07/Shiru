@@ -18,8 +18,7 @@
   import { toast } from 'svelte-sonner'
   import Helper from '@/modules/helper.js'
   import CustomDropdown from '@/components/CustomDropdown.svelte'
-  import { MagnifyingGlass, Image } from 'svelte-radix'
-  import { BookUser, Type, Drama, Leaf, CalendarRange, MonitorPlay, MonitorUp, MonitorX, Tv, ArrowDownWideNarrow, Filter, FilterX, Tags, Hash, SlidersHorizontal, Mic, Grid3X3, Grid2X2 } from 'lucide-svelte'
+  import { BookUser, Type, Drama, Leaf, CalendarRange, MonitorPlay, MonitorUp, MonitorX, Tv, ArrowDownWideNarrow, Filter, FilterX, Tags, Hash, SlidersHorizontal, Mic, ImageUp, Search, Grid3X3, Grid2X2 } from 'lucide-svelte'
 
   export let search
   let searchTextInput = {
@@ -178,13 +177,11 @@
         <div>Title</div>
       </div>
       <div class='input-group'>
-        <div class='input-group-prepend'>
-          <MagnifyingGlass size='2.75rem' class='input-group-text bg-dark-light pr-0' />
-        </div>
+        <Search size='2.6rem' strokeWidth='2.5' class='position-absolute z-10 text-dark-light h-full pl-10 pointer-events-none'/>
         <input
           bind:this={searchTextInput.title}
           type='search'
-          class='form-control bg-dark-light border-left-0 text-capitalize'
+          class='form-control bg-dark-light text-capitalize pl-35 rounded-1'
           autocomplete='off'
           bind:value={search.search}
           data-option='search'
@@ -356,7 +353,7 @@
         <div class='align-self-end'>
           <button class='btn btn-square bg-dark-light px-5 align-self-end border-0' type='button' title='Image Search'>
             <label for='search-image' class='pointer mb-0 d-flex align-items-center justify-content-center'>
-              <Image size='1.625rem' />
+              <ImageUp size='1.625rem' />
             </label>
           </button>
         </div>
@@ -412,6 +409,9 @@
   }
   .z-5 {
     z-index: 5;
+  }
+  .pl-35 {
+    padding-left: 3.5rem;
   }
 
   .input-group,

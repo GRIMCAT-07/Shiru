@@ -11,8 +11,7 @@
   import Helper from '@/modules/helper.js'
   import IPC from '@/modules/ipc.js'
   import SidebarLink from './SidebarLink.svelte'
-  import { Clock, Download, Heart, Home, ListVideo, TvMinimalPlay, LogIn, Settings, Users, Bell, BellDot } from 'lucide-svelte'
-  import { MagnifyingGlass } from 'svelte-radix'
+  import { Clock, Download, Heart, Home, Search, ListVideo, TvMinimalPlay, LogIn, Settings, Users, Bell, BellDot } from 'lucide-svelte'
 
   let updateState = ''
 
@@ -42,7 +41,7 @@
       <Home size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
     </SidebarLink>
     <SidebarLink click={() => { page = 'search'; if ($view) $view = null }} _page='search' text='Search' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
-      <MagnifyingGlass size={btnSize} class='flex-shrink-0 m-5 rounded' stroke-width='0.5' stroke='currentColor' style='padding: 0.3rem !important; color: {page===`search` && !($view || $profileView || $notifyView || $actionPrompt || $rss) ? `currentColor`:`#5e6061`}' />
+      <Search size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' stroke-width='2.5' stroke='currentColor' color={active ? 'currentColor' : '#5e6061'} />
     </SidebarLink>
     <SidebarLink click={() => { page = 'schedule' }} _page='schedule' icon='schedule' text='Schedule' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
       <Clock size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
