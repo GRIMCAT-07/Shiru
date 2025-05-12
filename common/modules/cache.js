@@ -21,6 +21,7 @@ export const caches = Object.freeze({
     HISTORY: { key: 'history', database: true},
     NOTIFICATIONS: { key: 'notifications', database: true},
     COMPOUND: { key: 'compound'},
+    EXTENSIONS: { key: 'extensions'},
     EPISODES: { key: 'episodes'},
     FOLLOWING: { key: 'following'},
     RECOMMENDATIONS: { key: 'recommendations' },

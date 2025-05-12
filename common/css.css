@@ -14,6 +14,8 @@
   --navbar-height: 7rem;
   --statusbar-height: 3.2rem;
   --tertiary-color: #2e74e4 !important;
+  --quaternary-color: #98c379 !important;
+  --highlight-color: rgb(255, 255, 255);
   --dark-color-base-hue: 220deg !important;
   --dark-color-base-saturation: 10% !important;
   --dark-color-hsl: var(--dark-color-base-hue), var(--dark-color-base-saturation), 10% !important;
@@ -29,11 +31,13 @@
   --banner-gradient-bottom: linear-gradient(0deg, #17191D 0%, #0000 15%, #0000 100%);
   --banner-gradient-left: linear-gradient(90deg, #17191D 0%, rgba(23, 25, 29, 0.5) 75%, rgba(25, 28, 32, 0) 100%);
   --torrent-card-gradient: linear-gradient(90deg, #17191C 32%, rgba(23, 25, 28, 0.90) 100%);
+  --torrent-banner-gradient: linear-gradient(0, #131416 15%, rgba(23,25,28,0.64) 85%), linear-gradient(to left, #131416 0, transparent 1%);
   --notification-card-gradient: linear-gradient(90deg, rgba(23, 25, 28, 0.98) 32%, rgba(23, 25, 28, 0.85) 100%);
   --episode-card-gradient: linear-gradient(180deg, rgba(0, 0, 0, 0) 77.08%, rgba(0, 0, 0, 0.7) 100%);
   --episode-preview-card-gradient: linear-gradient(180deg, #0000 0%, #25292f00 80%, #25292f 100%);
   --preview-card-gradient: linear-gradient(180deg, #0000 0%, #25292f00 80%, #25292fe3 95%, #25292f 100%);
   --section-end-gradient: linear-gradient(270deg, #17191cff 0%, #17191c00 100%);
+  --warning-color: rgb(211 175 24);
   --error-color: rgb(71, 4, 4);
   --adult-color: rgb(215, 6, 10);
   --dubbed-color: rgb(255, 214, 0);
@@ -42,7 +46,7 @@
   --delayed-color: rgb(188, 32, 35);
   --episode-color: rgb(204, 204, 255);
   --announcement-color: rgb(255, 255, 240);
-  --bg-success-subtle: rgb(36, 138, 0);
+  --success-color-subtle: rgb(36, 138, 0);
   color-scheme: dark;
 }
 
@@ -67,6 +71,12 @@
       U+FFFC-FFFD, U+1F16A-1F16B;
 }
 
+@font-face {
+  font-family: "Twemoji";
+  src: /* webpackIgnore: true */ url(Twemoji.ttf) format("truetype");
+  unicode-range: U+1F1E6-1F1FF;
+}
+
 .dark-mode {
   background-color: var(--dark-color) !important;
 }
@@ -81,6 +91,19 @@
 
 .w-30 {
   width: 3rem;
+}
+
+.wh-25 {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.wm-1200 {
+  max-width: 120rem;
+}
+
+.hm-400 {
+  max-height: 40rem;
 }
 
 @media (min-width: 769px) {
@@ -140,6 +163,9 @@ a[href]:active, button:not([disabled]):active, fieldset:not([disabled]):active, 
   white-space: pre-wrap;
 }
 
+.z--1 {
+  z-index: -1 !important;
+}
 .z-55 {
   z-index: 55;
 }
@@ -187,8 +213,18 @@ body {
   font-weight: 900;
 }
 
+.font-twemoji {
+  font-family: 'Twemoji';
+}
+
 .bg-black {
   background: #000;
+}
+
+.bg-warn {
+  color: hsl(45, 100%, 19%) !important;
+  border-color: hsl(44, 100%, 31%) !important;
+  background-color: var(--warning-color) !important;
 }
 
 .bg-error {
@@ -232,8 +268,8 @@ body {
 }
 
 .bg-success-subtle {
-  border-color: var(--bg-success-subtle) !important;
-  background-color: var(--bg-success-subtle) !important;
+  border-color: var(--success-color-subtle) !important;
+  background-color: var(--success-color-subtle) !important;
 }
 
 .btn:disabled {

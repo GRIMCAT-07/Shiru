@@ -40,7 +40,7 @@
       <li>downloads: number</li>
       <li>hash: string - info hash REQUIRED</li>
       <li>size: number - size in bytes</li>
-      <li>verified: boolean - if it's a verified release, e.g. it's 100% certain it's the correct episode, manually verified by the provider e.g. anidb</li>
+      <li>accuracy?: boolean</li>
       <li>date: Date - date the torrent was uploaded</li>
       <li>type?: 'batch' | 'best' | 'alt' - type of the result best/alt means it's the best known release</li>
     </ul>

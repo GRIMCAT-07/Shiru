@@ -44,7 +44,19 @@ export async function printError(title, description, error) {
       description: `${description}\n${error.status || 429} - ${error.message || codes[error.status || 429]}`,
       duration: 3000
     })
+/**
+ * Gets the Hex Color of the String input.
+ * @param {string} str
+ * @returns {string} The full hex color of the string input.
+ */
+export function stringToHex(str) {
+  if (!str) return '#ffffff'
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash)
+    hash = hash & hash
   }
+  return `#${[(hash >> 16) & 0xff, (hash >> 8) & 0xff, hash & 0xff].map(x => x.toString(16).padStart(2, '0')).join('')}`
 }
 
 export function countdown (s) {
@@ -257,9 +269,10 @@ export function matchKeys(nest, phrase, keys, threshold = 0.4) {
  * @param {string | string[]} phrase - The phrase or array of phrases to match against.
  * @param {number} threshold - The maximum Levenshtein distance allowed for a match.
  * @param {boolean} [strict=false] - If true, only considers whole phrase similarity instead of checking individual words or inclusion.
+ * @param {boolean} [soft=false] - If true, and initial match fails, it will do a final check using a Fuse search ignoring word location.
  * @returns {boolean} - Returns true if a match is found, otherwise false.
  */
-export function matchPhrase(search, phrase, threshold, strict = false) {
+export function matchPhrase(search, phrase, threshold, strict = false, soft = false) {
   if (!search || !phrase) return false
   const normalizedSearch = search.toString().toLowerCase().replace(/[^\w\s]/g, '')
   phrase = Array.isArray(phrase) ? phrase : [phrase]
@@ -270,10 +283,12 @@ export function matchPhrase(search, phrase, threshold, strict = false) {
         if (levenshtein(normalizedSearch, normalizedPhrase) <= threshold) return true
       } else {
         if (normalizedSearch.includes(normalizedPhrase)) return true
-        const wordsInFileName = normalizedSearch.split(/\s+/)
-        for (let word of wordsInFileName) {
-          if (levenshtein(word, normalizedPhrase) <= threshold) return true
-        }
+        const searchWords = normalizedSearch.split(/\s+/)
+        if (!soft) {
+          for (let word of searchWords) {
+            if (levenshtein(word, normalizedPhrase) <= threshold) return true
+          }
+        } else return new Fuse([normalizedPhrase], { includeScore: true, threshold, ignoreLocation: true, useExtendedSearch: true, isCaseSensitive: false }).search(normalizedSearch)?.length > 0
       }
     }
   }
@@ -302,6 +317,14 @@ export function deepEqual(a, b) {
     if (!deepEqual(a[key], b[key])) return false
   }
   return true
+}
+
+export function capitalize(str) {
+  return str.replace(/\b\w/g, char => char.toUpperCase())
+}
+
+export function toFlags(code) {
+  return code.toUpperCase().split('').map(letter => String.fromCodePoint(0x1F1E6 + letter.charCodeAt(0) - 'A'.charCodeAt(0))).join('')
 }
 
 export function throttle (fn, time) {
@@ -442,8 +465,8 @@ export const defaults = {
   font: undefined,
   angle: 'default',
   toshoURL: SUPPORTS.extensions ? decodeURIComponent(atob('aHR0cHM6Ly9mZWVkLmFuaW1ldG9zaG8ub3JnLw==')) : '',
-  extensions: SUPPORTS.extensions ? ['anisearch'] : [],
-  sources: {},
+  sourcesNew: {},
+  extensionsNew: {},
   disableMiniplayer: false,
   enableExternal: false,
   playerPath: '',
@@ -496,6 +519,7 @@ export const historyDefaults = {
  * @property {Record<string, any>} search
  * @property {Record<string, any>} searchIDS
  * @property {Record<string, any>} compound
+ * @property {Record<string, any>} extensions
  * @property {Record<string, any>} rss
  */
 export const queryDefaults = {
@@ -506,6 +530,7 @@ export const queryDefaults = {
   search: {},
   searchIDS: {},
   compound: {},
+  extensions: {},
   rss: {}
 }
 

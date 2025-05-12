@@ -165,9 +165,6 @@ importers:
       '@fontsource-variable/nunito':
         specifier: ^5.0.18
         version: 5.0.18
-      '@thaunknown/ani-resourced':
-        specifier: ^1.0.3
-        version: 1.0.3
       anitomyscript:
         specifier: github:ThaUnknown/anitomyscript#42290c4b3f256893be08a4e89051f448ff5e9d00
         version: https://codeload.github.com/ThaUnknown/anitomyscript/tar.gz/42290c4b3f256893be08a4e89051f448ff5e9d00
@@ -1074,9 +1071,6 @@ packages:
   '@szmarczak/http-timer@4.0.6':
     resolution: {integrity: sha512-4BAffykYOgO+5nzBWYwE3W90sBgLJoUPRWWcL8wlyiM8IB8ipJz3UMJ9KXQd1RKQXpKp8Tutn80HZtWsu2u76w==}
     engines: {node: '>=10'}
-
-  '@thaunknown/ani-resourced@1.0.3':
-    resolution: {integrity: sha512-flrfEMbSwwdhu+5wVsMgX0tGG+njCtAQ4jnA7ywjLNhSil/KirlzN34q3l0lKCnitFJgp1vOoHNCgkkkMWQ85Q==}
 
   '@thaunknown/simple-peer@10.0.11':
     resolution: {integrity: sha512-A5MdmtZ6HUzRa4gwPOS4jG+09HvpTv2rFo4kk7Vwveo2ELm+WmbO124ZrJrQnZc2D7z2Q3AWKSitjl9OKXO88g==}
@@ -7068,8 +7062,6 @@ snapshots:
   '@szmarczak/http-timer@4.0.6':
     dependencies:
       defer-to-connect: 2.0.1
-
-  '@thaunknown/ani-resourced@1.0.3': {}
 
   '@thaunknown/simple-peer@10.0.11':
     dependencies:

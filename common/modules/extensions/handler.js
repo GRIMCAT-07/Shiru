@@ -1,7 +1,7 @@
 import { settings } from '@/modules/settings.js'
 import { sleep } from '@/modules/util.js'
 import { anilistClient } from '@/modules/anilist.js'
-import { anitomyscript, getAniMappings } from '@/modules/anime.js'
+import { anitomyscript, getAniMappings, getMediaMaxEp } from '@/modules/anime.js'
 import { client } from '@/modules/torrent.js'
 import { status } from '@/modules/networking.js'
 import { extensionManager } from '@/modules/extensions/manager.js'
@@ -58,7 +58,7 @@ export async function getResultsFromExtensions({ media, episode, batch, movie, r
   /** @type {Options} */
   const options = {
     anilistId: media.id,
-    episodeCount: media.episodes,
+    episodeCount: getMediaMaxEp(media),
     episode,
     anidbAid,
     anidbEid,
@@ -94,7 +94,7 @@ const peerCache = new Map()
 async function updatePeerCounts (entries) {
   const cacheKey = JSON.stringify(entries)
   const cached = peerCache.get(cacheKey)
-  if (cached && (((Date.now() - cached.timestamp) <= 90000) || !online)) {
+  if (cached && (((Date.now() - cached.timestamp) <= 90000) || status.value === 'offline')) {
     debug(`The previously cached peer counts are less than two minutes old, returning cached entries...`, entries)
     return cached.scrape
   }
@@ -224,8 +224,9 @@ function createTitles (media) {
     }
   }
   for (const t of grouped) {
-    appendTitle(t)
-    if (t.includes('-')) appendTitle(t.replaceAll('-', ''))
+    if (t.includes('-')) appendTitle(t.replaceAll('-', ' '))
+    if (t.includes("'")) appendTitle(t.replaceAll("'", ''))
+    appendTitle(t.replaceAll('-', '').replaceAll('"', ''))
   }
   return titles
 }

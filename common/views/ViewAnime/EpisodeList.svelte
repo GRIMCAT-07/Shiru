@@ -34,7 +34,7 @@
   import { since, matchPhrase } from '@/modules/util.js'
   import { click } from '@/modules/click.js'
   import { onMount, onDestroy } from 'svelte'
-  import { episodeByAirDate } from '@/modules/extensions/index.js'
+  import { episodeByAirDate } from '@/modules/extensions/handler.js'
   import { liveAnimeProgress } from '@/modules/animeprogress.js'
   import { episodesList } from '@/modules/episodes.js'
   import { getAniMappings, hasZeroEpisode, durationMap } from '@/modules/anime.js'

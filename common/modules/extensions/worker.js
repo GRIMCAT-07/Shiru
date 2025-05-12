@@ -1,30 +1,55 @@
 import { expose, proxy } from 'comlink'
 
-/** @typedef {import('@thaunknown/ani-resourced/sources/types.d.ts').Options} Options */
-/** @typedef {import('@thaunknown/ani-resourced/sources/types.d.ts').Result} Result */
-/** @typedef {import('@thaunknown/ani-resourced/sources/abstract.js').default} AbstractSource */
+/** @typedef {import('extensions/index.d.ts').TorrentQuery} Options */
+/** @typedef {import('extensions/index.d.ts').TorrentResult} Result */
+/** @typedef {import('/extensions/example.js').default} AbstractSource */
 
-class Extensions {
-  sources
-  metadata
-  /** @param {AbstractSource[]} sources */
-  constructor (sources) {
-    this.sources = sources
-    this.metadata = sources.map(({ accuracy, name, description, config }) => ({ accuracy, name, description, config }))
+class Worker {
+  id
+  source
+  cache = new Map()
+
+  /**
+   * Load and validate the source from code
+   * @returns {Promise<{ validated: true } | { validated: false, error: string }>}
+   */
+  async initialize(id, module) {
+    try {
+      let source
+      if (id.startsWith('file:')) source = (await import(/* webpackIgnore: true */ module)).default
+      else {
+        const blob = new Blob([module], { type: 'application/javascript' })
+        const blobUrl = URL.createObjectURL(blob)
+        source = (await import(/* webpackIgnore: true */ blobUrl)).default
+      }
+      this.id = id
+      this.source = source
+      if (!(await source.validate())) return { validated: false, error: 'Source #validate() failed' }
+      return { validated: true }
+    } catch (err) {
+      return { validated: false, error: err.message }
+    }
   }
 
   /**
    * @param {Options} options
    * @param {{ movie: boolean, batch: boolean }} types
-   * @param {Record<string, boolean>} sourcesToQuery
+   * @param {boolean} online
+   * @param {{enabled: boolean}} sourceOptions
    */
-  async query (options, types, sourcesToQuery) {
+  async query (options, types, online, sourceOptions) {
     /** @type {Promise<{ results: Result[], errors: string[] }>[]} */
     const promises = []
-    for (const source of Object.values(this.sources)) {
-      if (!sourcesToQuery[source.name]) continue
-      promises.push(this._querySource(source, options, types))
+    if (!sourceOptions?.enabled) return { results: [], errors: [{ message: 'Extension is not enabled.. skipping...' }] }
+
+    const cacheKey = JSON.stringify({ options, types })
+    const cached = this.cache.get(cacheKey)
+    if (cached && (((Date.now() - cached.timestamp) <= 90000) || !online)) {
+      console.debug(`worker:${this.id} The previously cached extension results are less than two minutes old, returning cached results...`)
+      return cached.query
     }
+
+    promises.push(this._querySource(this.source, options, types))
     /** @type {Result[]} */
     const results = []
     const errors = []
@@ -32,8 +57,9 @@ class Extensions {
       results.push(...res.results)
       errors.push(...res.errors)
     }
-
-    return { results, errors }
+    const noResults = (!online || (!results?.length && !errors?.length)) ? [{ message: 'Source ' + this.id + ' found no results.' }] : null
+    if (online && !errors?.length) this.cache.set(cacheKey, { query: { results, errors: noResults || errors }, timestamp: Date.now() })
+    return { results, errors: noResults || errors }
   }
 
   /**
@@ -55,29 +81,20 @@ class Extensions {
         results.push(...result.value)
       } else {
         console.error(result)
-        errors.push('Source ' + source.name + ' failed to load results:\n' + result.reason.message)
+        errors.push('Source ' + this.id + ' failed to load results:\n' + result.reason.message)
       }
     }
 
     return { results, errors }
   }
+
+  async validate() {
+    return !!(await this.source.validate())
+  }
+
+  terminate() {
+    self.close()
+  }
 }
 
-/** @param {string[]} extensions */
-export async function loadExtensions (extensions) {
-  const sources = (await Promise.all(extensions.map(async extension => {
-    try {
-        if (/^[GFCA]:/.test(extension)) {
-          extension = `file:///${extension.replace(/\\/g, '/')}`;
-        } else if (!extension.startsWith('http')) {
-          extension = `https://esm.sh/${extension}`;
-        }
-      return Object.values(await import(/* webpackIgnore: true */extension))
-    } catch (error) {
-      return []
-    }
-  }))).flat()
-  return proxy(new Extensions(sources))
-}
-
-expose(loadExtensions)
+expose(proxy(new Worker()))

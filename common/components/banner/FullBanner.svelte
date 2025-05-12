@@ -54,7 +54,7 @@
 </script>
 
 {#key currentStatic}
-  <div class="position-absolute h-full w-full overflow-hidden" style='z-index: -1 !important;'>
+  <div class='position-absolute h-full w-full overflow-hidden z--1'>
     <object class='img-cover position-absolute h-full w-full' data={currentStatic.bannerImage || (currentStatic.trailer?.id && `https://i.ytimg.com/vi/${currentStatic.trailer?.id}/maxresdefault.jpg`) || currentStatic.coverImage?.extraLarge || ' '} class:banner-rotated={!(currentStatic.bannerImage || currentStatic.trailer?.id) && settings.value.adult === 'hentai' && settings.value.hentaiBanner}>
       <object class='img-cover position-absolute h-full w-full' data={(currentStatic.trailer?.id && `https://i.ytimg.com/vi/${currentStatic.trailer?.id}/hqdefault.jpg`) || currentStatic.coverImage?.extraLarge || ' '}>
         <img class='img-cover position-absolute h-full w-full' src={currentStatic.coverImage?.extraLarge || ' '} alt='banner'> <!-- trailer no longer exists... fallback to cover image. -->
@@ -62,10 +62,10 @@
     </object>
   </div>
 {/key}
-<div class='gradient-bottom h-full position-absolute top-0 w-full' />
-<div class='gradient-left h-full position-absolute top-0 w-800' />
+<div class='gradient-bottom z--1 h-full position-absolute top-0 w-full' />
+<div class='gradient-left z--1 h-full position-absolute top-0 w-800' />
 {#if SUPPORTS.isAndroid}
-  <img src='./logo_filled.png' class='right-0 mr-20 m-10 position-absolute' style='width: 8rem; height: 8rem' alt='ico' />
+  <img src='./logo_filled.png' class='right-0 mr-20 m-10 position-absolute z--1' style='width: 8rem; height: 8rem' alt='ico' />
 {/if}
 <div class='pl-20 pb-20 justify-content-end d-flex flex-column h-full banner mw-full grab' use:drag={swipeMedia}>
   <div class='text-white font-weight-bold font-size-40' class:font-size-40={!SUPPORTS.isAndroid} class:font-size-24={SUPPORTS.isAndroid}>
@@ -187,9 +187,6 @@
     text-overflow: ellipsis;
     max-width: 100%;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 1);
-  }
-  img, .gradient-bottom, .gradient-left {
-    z-index: -1;
   }
   .font-size-40 {
     font-size: 4rem;

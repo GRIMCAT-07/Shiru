@@ -30,7 +30,7 @@
 </script>
 
 <div class='sidebar z-30 d-md-block' class:animated={$settings.expandingSidebar}>
-  <div class='sidebar-overlay pointer-events-none h-full position-absolute' />
+  <div class='sidebar-overlay z--1 pointer-events-none h-full position-absolute' />
   <div class='sidebar-menu h-full d-flex flex-column justify-content-center align-items-center m-0 pb-5 animate' class:br-10={!$settings.expandingSidebar} class:pt-100={!SUPPORTS.isAndroid}>
     {#if !SUPPORTS.isAndroid}
       <SidebarLink click={() => { $profileView = !$profileView }} icon='login' text={Helper.getUser() ? 'Profiles' : 'Login'} css='{!SUPPORTS.isAndroid ? `mt-auto` : ``}' {page} overlay={!$notifyView && !$actionPrompt && $profileView && 'profile'} nowPlaying={$view} image={Helper.getUserAvatar()}>
@@ -175,7 +175,6 @@
     transition: width .8s cubic-bezier(0.25, 0.8, 0.25, 1), left .8s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
     background: var(--sidebar-gradient);
     backdrop-filter: blur(2px);
-    z-index: -1;
   }
   .sidebar.animated:hover .sidebar-overlay {
     width: 63rem

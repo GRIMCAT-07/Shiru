@@ -2,10 +2,11 @@
   import { click } from '@/modules/click.js'
   import { matchPhrase } from '@/modules/util.js'
   import { fastPrettyBytes, since } from '@/modules/util.js'
-  import { Database, BadgeCheck } from 'lucide-svelte'
+  import { getEpisodeMetadataForMedia } from '@/modules/anime.js'
+  import { Database, BadgeCheck, FileQuestion } from 'lucide-svelte'
   import { toast } from 'svelte-sonner'
 
-  /** @typedef {import('@thaunknown/ani-resourced/sources/types.d.ts').Result} Result */
+  /** @typedef {import('extensions/index.d.ts').TorrentResult} Result */
   /** @typedef {import('anitomyscript').AnitomyResult} AnitomyResult */
 
   const termMapping = {}
@@ -100,29 +101,70 @@
   /** @type {import('@/modules/al.d.ts').Media} */
   export let media
 
+  export let episode
+
   /** @type {Function} */
   export let play
+
+  export let type = 'default'
+  export let countdown = -1
+
+  let card
+  $: updateGlowColor(countdown)
+  function updateGlowColor(value) {
+    if (!card) return
+    if (countdown < 0 || countdown > 4) {
+      card.style.borderColor = ''
+      card.style.removeProperty('color')
+      return
+    }
+    let color = '#f5a623'
+    if (value < 3) color = '#e92c2c'
+    card.style.borderColor = color
+    card.style.setProperty('color', color)
+  }
 </script>
 
-<div class='card bg-dark p-15 d-flex mx-0 overflow-hidden pointer mb-10 mt-0 position-relative scale' role='button' tabindex='0' use:click={() => play(result)} on:contextmenu|preventDefault={() => copyToClipboard(result.link)} title={result.parseObject.file_name}>
+<div bind:this={card} class='card bg-dark p-15 d-flex mx-0 overflow-hidden pointer mb-10 mt-0 position-relative scale rounded-3' class:border-best={type === 'best'} class:border-magnet={type === 'magnet'} class:glow={countdown > -1} role='button' tabindex='0' use:click={() => play(result)} on:contextmenu|preventDefault={() => copyToClipboard(result.link)} title={result.parseObject.file_name}>
   {#if media.bannerImage || media.trailer?.id}
     <div class='position-absolute top-0 left-0 w-full h-full'>
-      <object class='img-cover w-full h-full' data={media.bannerImage || (media.trailer?.id && `https://i.ytimg.com/vi/${media.trailer?.id}/maxresdefault.jpg`) || ' '}>
-        <object class='img-cover w-full h-full' data={(media.trailer?.id && `https://i.ytimg.com/vi/${media.trailer?.id}/hqdefault.jpg`) || ' '}>
-          <img class='img-cover w-full h-full' src={' '} alt='bannerImage'> <!-- trailer no longer exists... hide all images. -->
-        </object>
-      </object>
-      <div class='position-absolute top-0 left-0 w-full h-full' style='background: var(--torrent-card-gradient)' />
+      <div class='position-absolute w-full h-full overflow-hidden' class:image-border={type === 'default'} >
+        {#await getEpisodeMetadataForMedia(media) then metadata}
+          <object class='img-cover w-full h-full' data={metadata?.[episode]?.image || ' '}>
+            <object class='img-cover w-full h-full' data={media.bannerImage || (media.trailer?.id && `https://i.ytimg.com/vi/${media.trailer?.id}/maxresdefault.jpg`) || ' '}>
+              <object class='img-cover w-full h-full' data={(media.trailer?.id && `https://i.ytimg.com/vi/${media.trailer?.id}/hqdefault.jpg`) || ' '}>
+                <img class='img-cover w-full h-full' src={' '} alt='bannerImage'> <!-- trailer no longer exists... hide all images. -->
+              </object>
+            </object>
+          </object>
+        {/await}
+      </div>
+      <div class='position-absolute top-0 left-0 w-full h-full' style='background: var(--torrent-card-gradient);' />
     </div>
   {/if}
   <div class='d-flex pl-10 flex-column justify-content-between w-full h-auto position-relative' style='min-height: 10rem; min-width: 0;'>
     <div class='d-flex w-full'>
-      <div class='font-size-22 font-weight-bold text-nowrap'>{result.parseObject?.release_group && result.parseObject.release_group.length < 20 ? result.parseObject.release_group : 'No Group'}</div>
-      {#if result.type === 'batch'}
-        <Database size='2.6rem' class='ml-auto' />
-      {:else if result.verified}
-        <BadgeCheck size='2.8rem' class='ml-auto' style='color: #53da33' />
+      {#if result.accuracy === 'high'}
+        <div class='d-flex align-items-center justify-content-center mr-10' title='High Accuracy'>
+          <BadgeCheck size='2.5rem' style='color: #53da33' />
+        </div>
       {/if}
+      <div class='font-size-22 font-weight-bold text-nowrap d-flex align-items-center'>
+        {result.parseObject?.release_group && result.parseObject.release_group.length < 20 ? result.parseObject.release_group : 'No Group'}
+        {#if countdown > -1}
+          <div class='ml-10'>[{countdown}]</div>
+        {/if}
+      </div>
+      {#if result.type === 'batch'}
+        <div class='d-flex ml-auto mr-10' title='Batch'><Database size='2.5rem'/></div>
+      {/if}
+      <div class='d-flex' class:ml-auto={result.type !== 'batch'} >
+        {#if result.source.icon}
+          <img class='wh-25' src={(!result.source.icon.startsWith('http') ? 'data:image/png;base64,' : '') + result.source.icon} alt={result.source.name} title={result.source.name}>
+        {:else}
+          <FileQuestion size='2.5rem' />
+        {/if}
+      </div>
     </div>
     <div class='py-5 font-size-14 text-muted text-truncate overflow-hidden'>{simplifyFilename(result.parseObject)}</div>
     <div class='metadata-container d-flex w-full align-items-start text-dark font-size-14' style='line-height: 1;'>
@@ -156,9 +198,34 @@
 <style>
   .scale {
     transition: transform 0.2s ease;
+    border: .1rem solid transparent;
   }
   .scale:hover{
     transform: scale(1.04);
+    border: .1rem solid var(--highlight-color);
+  }
+  .border-best {
+    border: .1rem solid var(--tertiary-color);
+  }
+  .border-magnet {
+    border: .1rem solid var(--quaternary-color);
+  }
+  .image-border {
+    border-radius: 1.1rem;
+  }
+
+  .glow {
+    border: .1rem solid;
+    animation: glowPulse 1s ease-in-out infinite alternate;
+    transition: border-color 0.5s, drop-shadow 0.5s, transform 0.2s ease;
+  }
+  @keyframes glowPulse {
+    from {
+      filter: drop-shadow(0 0 .5rem currentColor);
+    }
+    to {
+      filter: drop-shadow(0 0 .1rem currentColor);
+    }
   }
 
   /* Behavior for narrow screens (mobile) */

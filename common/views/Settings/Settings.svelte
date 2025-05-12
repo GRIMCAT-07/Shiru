@@ -34,10 +34,11 @@
   import TorrentSettings from '@/views/Settings/TorrentSettings.svelte'
   import InterfaceSettings from '@/views/Settings/InterfaceSettings.svelte'
   import AppSettings from '@/views/Settings/AppSettings.svelte'
+  import ExtensionSettings from '@/views/Settings/ExtensionSettings.svelte'
   import { profileView } from '@/components/Profiles.svelte'
   import smoothScroll from '@/modules/scroll.js'
   import Helper from '@/modules/helper.js'
-  import { AppWindow, Heart, LogIn, Logs, Play, Rss, Settings } from 'lucide-svelte'
+  import { AppWindow, Puzzle, User, Heart, LogIn, Logs, Play, Rss, Settings } from 'lucide-svelte'
 
   export let playPage = false
 
@@ -53,6 +54,10 @@
     interface: {
       name: 'Interface',
       icon: AppWindow
+    },
+    extensions: {
+      name: 'Extensions',
+      icon: Puzzle
     },
     app: {
       name: 'App',
@@ -134,6 +139,12 @@
     <Tab>
       <div class='root h-full w-full overflow-y-md-auto p-20' use:smoothScroll>
         <InterfaceSettings bind:settings={$settings} />
+        <div class='h-250' />
+      </div>
+    </Tab>
+    <Tab>
+      <div class='root h-full w-full overflow-y-md-auto p-20' use:smoothScroll>
+        <ExtensionSettings bind:settings={$settings} />
         <div class='h-250' />
       </div>
     </Tab>

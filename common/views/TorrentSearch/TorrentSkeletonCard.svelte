@@ -1,7 +1,20 @@
-<div class='card bg-dark p-15 d-flex mx-0 overflow-hidden mb-10 mt-0'>
+<script>
+  import { FileQuestion } from 'lucide-svelte'
+  export let name = null
+  export let icon = null
+</script>
+
+<div class='card bg-dark p-15 d-flex mx-0 overflow-hidden mb-10 mt-0 rounded-3' title={name ? `Processing ${name} results..` : ''}>
   <div class='d-flex pl-10 flex-column justify-content-between w-full h-100' style='min-width: 0;'>
     <div class='d-flex w-full'>
       <div class='skeloader h-25 w-250 mw-full rounded bg-dark-light'><div class='skeleloader-swipe' /></div>
+      <div class='d-flex ml-auto'>
+        {#if icon && icon !== 'none'}
+          <img class='wh-25' src={(!icon.startsWith('http') ? 'data:image/png;base64,' : '') + icon} alt={name} title={name}>
+        {:else if icon === 'none'}
+          <FileQuestion size='2.5rem' />
+        {/if}
+      </div>
     </div>
     <div class='skeloader h-10 w-150 mw-full rounded bg-dark-light'><div class='skeleloader-swipe' /></div>
     <div class='metadata-container d-flex flex-row w-full'>

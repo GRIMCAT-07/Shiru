@@ -1,6 +1,6 @@
 <script>
-  import PreviewCard from './PreviewCard.svelte'
-  import { formatMap, statusColorMap } from './anime.js'
+  import PreviewCard from '@/components/cards/PreviewCard.svelte'
+  import { formatMap, statusColorMap } from '@/modules/anime.js'
   import { hoverClick } from '@/modules/click.js'
 
   export let media

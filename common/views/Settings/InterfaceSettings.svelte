@@ -7,6 +7,7 @@
   import { SUPPORTS } from '@/modules/support.js'
   import { Trash2 } from 'lucide-svelte'
   import { genreList, tagList } from '@/modules/anime.js'
+  import { defaults } from '@/modules/util.js'
   import CustomDropdown from '@/components/CustomDropdown.svelte'
   import Helper from '@/modules/helper.js'
   function updateAngle () {
@@ -153,6 +154,9 @@
     {/each}
     <button type='button' disabled={listStatus.every(option => settings.releasesNotify.includes(option[1]))} use:click={() => { settings.releasesNotify = [...settings.releasesNotify, ''] }} class='btn btn-primary mb-10 mr-10 d-flex align-items-center justify-content-center'><span>Add Status</span></button>
   </div>
+</SettingCard>
+<SettingCard title='RSS Default URL' description='URL of the API used to query data for torrents. Useful for proxies if your ISP blocks some domains. Needs to be CORS enabled.'>
+  <input type='url' class='form-control bg-dark w-300 mw-full' bind:value={settings.toshoURL} placeholder={defaults.toshoURL} />
 </SettingCard>
 <SettingCard title='RSS Feed' description={'When each RSS feed updates with new entries, notifications will be sent depending on your list status.\n\nThese notifications will combine with Anilist and Releases notifications for the in-app notification tray.'}>
   <div>

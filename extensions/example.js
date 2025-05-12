@@ -1,32 +1,40 @@
-export default class AbstractSource {
-  name = 'Missing name'
-  description = 'No description provided'
-  /** @type {import('./type-definitions').Accuracy} */
-  accuracy = 'Low'
-  /** @type {import('./type-definitions').Config} */
-  config = {}
+/**
+ * @typedef {import('./').TorrentSource} TorrentSource
+ */
 
+/**
+ * @implements {TorrentSource}
+ */
+export default class AbstractSource {
   /**
-   * Gets results for single episode
-   * @type {import('./type-definitions').SearchFunction}
+   * Query results for a single episode.
+   * @type {import('./').SearchFunction}
    */
   single (options) {
-    throw new Error('Source doesn\'t implement single')
+    throw new Error('Source does not implement method #single()')
   }
 
   /**
-   * Gets results for batch of episodes
-   * @type {import('./type-definitions').SearchFunction}
+   * Query results for a batch of episodes.
+   * @type {import('./').SearchFunction}
    */
   batch (options) {
-    throw new Error('Source doesn\'t implement batch')
+    throw new Error('Source does not implement method #batch()')
   }
 
   /**
-   * Gets results for a movie
-   * @type {import('./type-definitions').SearchFunction}
+   * Query results for a movie.
+   * @type {import('./').SearchFunction}
    */
   movie (options) {
-    throw new Error('Source doesn\'t implement movie')
+    throw new Error('Source does not implement method #movie()')
+  }
+
+  /**
+   * Validates the source url.
+   * @type {() => Promise<boolean>}
+   */
+  validate () {
+    throw new Error('Source does not implement method #validate()')
   }
 }

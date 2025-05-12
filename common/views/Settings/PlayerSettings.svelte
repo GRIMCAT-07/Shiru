@@ -104,33 +104,6 @@
     <option value='idn'>Indonesian</option>
   </select>
 </SettingCard>
-<SettingCard title='Preferred Audio Language' description="What audio language to automatically select when a video is loaded if it exists. This won't find torrents with this language automatically. If not found defaults to Japanese.">
-  <select class='form-control bg-dark w-300 mw-full' bind:value={settings.audioLanguage}>
-    <option value='eng'>English</option>
-    <option value='jpn' selected>Japanese</option>
-    <option value='chi'>Chinese</option>
-    <option value='por'>Portuguese</option>
-    <option value='spa'>Spanish</option>
-    <option value='ger'>German</option>
-    <option value='pol'>Polish</option>
-    <option value='cze'>Czech</option>
-    <option value='dan'>Danish</option>
-    <option value='gre'>Greek</option>
-    <option value='fin'>Finnish</option>
-    <option value='fre'>French</option>
-    <option value='hun'>Hungarian</option>
-    <option value='ita'>Italian</option>
-    <option value='kor'>Korean</option>
-    <option value='dut'>Dutch</option>
-    <option value='nor'>Norwegian</option>
-    <option value='rum'>Romanian</option>
-    <option value='rus'>Russian</option>
-    <option value='slo'>Slovak</option>
-    <option value='swe'>Swedish</option>
-    <option value='ara'>Arabic</option>
-    <option value='idn'>Indonesian</option>
-  </select>
-</SettingCard>
 
 <h4 class='mb-10 font-weight-bold'>Playback Settings</h4>
 <SettingCard title='Autoplay Next Episode' description='Automatically starts playing next episode when a video ends.'>

@@ -1571,7 +1571,7 @@
           <span class='icon ctrl d-flex align-items-center h-full' title='More'>
             <EllipsisVertical size='2.5rem' strokeWidth={2.5} />
           </span>
-          <div class='dropdown-menu dropdown-menu-left ctrl pt-5 pb-5 ml-10 text-capitalize mh-40 text-nowrap'>
+          <div class='dropdown-menu dropdown-menu-left ctrl pt-5 pb-5 ml-10 text-capitalize hm-400 text-nowrap'>
             <div role='button' aria-label='Add External Subtitles' class='pointer d-flex align-items-center justify-content-center font-size-16' title='Add External Subtitles' use:click={(target) => { fileInput.click(); toggleDropdown(target) }}>
               <FilePlus2 size='2rem' strokeWidth={2.5} /> <div class='ml-10'>Add Subtitles</div>
             </div>
@@ -1592,7 +1592,7 @@
             <ListMusic size='2.5rem' strokeWidth={2.5} />
           </span>
           <div class='dropdown-menu dropdown-menu-right ctrl p-10 pb-0 mr-15 text-capitalize text-nowrap'>
-            <div class='custom-radio overflow-y-auto overflow-x-hidden mh-40'>
+            <div class='custom-radio overflow-y-auto overflow-x-hidden hm-400'>
               {#each video.audioTracks as track}
                 <input name='audio-radio-set' type='radio' id='audio-{track.id}-radio' value={track.id} checked={track.enabled} />
                 <label for='audio-{track.id}-radio' use:click={() => selectAudio(track.id)} class='pb-5'>
@@ -1610,7 +1610,7 @@
             <ListVideo size='2.5rem' strokeWidth={2.5} />
           </span>
           <div class='dropdown-menu dropdown-menu-right ctrl p-10 pb-0 mr-15 text-capitalize text-nowrap'>
-            <div class='custom-radio overflow-y-auto overflow-x-hidden mh-40'>
+            <div class='custom-radio overflow-y-auto overflow-x-hidden hm-400'>
               {#each video.videoTracks as track}
                 <input name='video-radio-set' type='radio' id='video-{track.id}-radio' value={track.id} checked={track.selected} />
                 <label for='video-{track.id}-radio' use:click={() => selectVideo(track.id)} class='pb-5'>
@@ -1628,7 +1628,7 @@
             <Captions size='2.5rem' strokeWidth={2.5} />
           </span>
           <div class='dropdown-menu dropdown-menu-right ctrl p-10 pb-5 mr-15 text-capitalize text-nowrap'>
-            <div class='custom-radio overflow-y-auto overflow-x-hidden mh-40'>
+            <div class='custom-radio overflow-y-auto overflow-x-hidden hm-400'>
               <input name='subtitle-radio-set' type='radio' id='subtitle-off-radio' value='off' checked={subHeaders && subs?.current === -1} />
               <label for='subtitle-off-radio' use:click={() => { subs.selectCaptions(-1); setTimeout(() => subs?.renderer?.resize(), 200); cache.setEntry(caches.HISTORY, 'lastSubtitle', { ...(cache.getEntry(caches.HISTORY, 'lastSubtitle') || {}), [media?.media?.id || media?.title || media?.parseObject?.title || media?.parseObject?.file_name]: 'OFF' }) }} class='pb-5'> OFF </label> <!-- stupid fix (resize) because video metadata doesn't update for multiple frames -->
               {#each subHeaders as track}
@@ -1946,9 +1946,6 @@
   .top {
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.4) 25%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0.1) 75%, transparent);
     transition: 0.5s opacity ease 0.2s;
-  }
-  .mh-40 {
-    max-height: 40rem;
   }
   .mr-40 {
     margin-right: 4rem !important;
