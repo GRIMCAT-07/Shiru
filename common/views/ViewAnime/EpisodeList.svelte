@@ -38,7 +38,6 @@
   import { liveAnimeProgress } from '@/modules/animeprogress.js'
   import { episodesList } from '@/modules/episodes.js'
   import { getAniMappings, hasZeroEpisode, durationMap } from '@/modules/anime.js'
-  import smoothScroll from '@/modules/scroll.js'
   import EpisodeSkeletonCard from '@/views/ViewAnime/EpisodeListSkeleton.svelte'
   import AudioLabel from '@/views/ViewAnime/AudioLabel.svelte'
 
@@ -197,6 +196,7 @@
   }
 
   let container
+  $: if (id && container) container.scrollTo({top: 0, behavior: 'smooth'})
   function renderVisible() {
     if (!container || container.scrollHeight === 0 || container.clientHeight === 0) return
     if (currentEpisodes.length !== episodeList.length && !(container.scrollHeight > container.clientHeight)) {
@@ -233,7 +233,7 @@
   })
 </script>
 
-<div bind:this={container} class='episode-list overflow-y-auto overflow-x-hidden' use:smoothScroll on:scroll={handleScroll}>
+<div bind:this={container} class='episode-list overflow-y-auto overflow-x-hidden' on:scroll={handleScroll}>
   {#await (episodeLoad || mobileWait(() => episodeList?.length > 0 || !episodeList)?.then(() => episodeList))}
     {#each Array.from({ length: Math.max(Math.min(episodeCount || 0, maxEpisodes), 1) }) as _}
       <div class='w-full px-20 my-20 content-visibility-auto scale h-150'>

@@ -306,9 +306,12 @@ img[src=''], img[src=' '] {
   box-shadow: none !important;
 }
 
+/*
+This is pretty god awful causing noticeable visual stuttering, creating the impression of lag.
 .root {
   animation: 0.3s ease 0s 1 load-in;
 }
+*/
 
 .content-visibility-auto {
   content-visibility: auto;

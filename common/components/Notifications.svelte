@@ -6,7 +6,6 @@
   import IPC from '@/modules/ipc.js'
   import { cache, caches, mediaCache } from '@/modules/cache.js'
   import { SUPPORTS } from '@/modules/support.js'
-  import smoothScroll from '@/modules/scroll.js'
 
   export const notifyView = writable(false)
   export const notifications = writable(cache.getEntry(caches.NOTIFICATIONS, 'notifications') || [])
@@ -136,7 +135,7 @@
           <div class='d-flex justify-content-end align-items-start w-auto'>
             <button type='button' class='btn btn-square d-flex align-items-center justify-content-center' use:click={close}><X size='1.7rem' strokeWidth='3'/></button>
           </div>
-          <div class='notification-list mt-10 overflow-y-auto h-auto' class:mh-350={currentNotifications.length > 0} use:smoothScroll on:scroll={handleScroll}>
+          <div class='notification-list mt-10 overflow-y-auto h-auto' class:mh-350={currentNotifications.length > 0} on:scroll={handleScroll}>
             {#each currentNotifications as notification, index}
               {@const delayed = notification.delayed}
               {@const announcement = notification.click_action === 'VIEW' && !delayed}

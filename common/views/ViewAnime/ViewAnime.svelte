@@ -15,7 +15,6 @@
   import Scoring from '@/views/ViewAnime/Scoring.svelte'
   import AudioLabel from '@/views/ViewAnime/AudioLabel.svelte'
   import Following from '@/views/ViewAnime/Following.svelte'
-  import smoothScroll from '@/modules/scroll.js'
   import IPC from '@/modules/ipc.js'
   import SmallCard from '@/components/cards/SmallCard.svelte'
   import SkeletonCard from '@/components/cards/SkeletonCard.svelte'
@@ -68,7 +67,7 @@
     const searchIDS = [...(staticMedia.relations?.edges?.filter(({ node }) => node.type === 'ANIME').map(({ node }) => node.id) || []), ...((await recommendations)?.data?.Media?.recommendations?.edges?.map(({ node }) => node.mediaRecommendation?.id) || [])]
     return searchIDS.length > 0 ? anilistClient.searchAllIDS({ page: 1, perPage: 50, id: searchIDS }) : Promise.resolve([])
   })()
-  $: staticMedia && (modal?.focus(), setOverlay(), saveMedia(), (container && scrollTop()))
+  $: staticMedia && (modal?.focus(), setOverlay(), saveMedia(), (container && container.scrollTo({top: 0, behavior: 'smooth'})))
   $: !staticMedia && close()
   $: {
     if (staticMedia) {
@@ -78,10 +77,6 @@
   }
   function setOverlay() {
     if (!overlay.includes('viewanime')) overlay = [...overlay, 'viewanime']
-  }
-  function scrollTop() {
-    container.dispatchEvent(new Event('scrolltop'))
-    if (!settings.value.smoothScroll) container.scrollTo({top: 0, behavior: 'smooth'})
   }
   function checkClose ({ keyCode }) {
     if (keyCode === 27) close()
@@ -181,7 +176,7 @@
 </script>
 
 <div class='modal modal-full z-50' class:show={staticMedia} on:keydown={checkClose} tabindex='-1' role='button' bind:this={modal}>
-  <div class='h-full modal-content bg-very-dark p-0 overflow-y-auto position-relative' bind:this={container} use:smoothScroll={{ prevent: 'episode-list' }}>
+  <div class='h-full modal-content bg-very-dark p-0 overflow-y-auto position-relative' bind:this={container}>
     {#if staticMedia}
       {#if (mediaList.length > 1) && !SUPPORTS.isAndroid}
         <button class='close back pointer z-30 bg-dark top-20 left-0 position-fixed' use:click={back}>

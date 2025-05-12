@@ -30,28 +30,22 @@
 {/if}
 
 <h4 class='mb-10 font-weight-bold'>Interface Settings</h4>
+<SettingCard title='CSS Variables' description='Used for custom themes. Can change colors, sizes, spacing and more. Supports only variables. Best way to discover variables is to use the built-in devtools via Ctrl+Shift+I or F12.'>
+  <textarea class='form-control w-500 mw-full bg-dark' placeholder='--accent-color: #e5204c;' bind:value={$variables} />
+</SettingCard>
 {#if !SUPPORTS.isAndroid}
-  <SettingCard title='Enable Donate Button' description='Enables the "Support This App" button on the menu bar.'>
+  <SettingCard title='Donate Button' description='Enables the "Support This App" button on the side bar.'>
     <div class='custom-switch'>
       <input type='checkbox' id='donate' bind:checked={settings.donate} />
       <label for='donate'>{settings.donate ? 'On' : 'Off'}</label>
     </div>
   </SettingCard>
 {/if}
-<SettingCard title='Enable Smooth Scrolling' description='Enables smooth scrolling for vertical containers. Turning this off might remove jitter when scrolling on devices without a GPU.'>
-  <div class='custom-switch'>
-    <input type='checkbox' id='smooth-scroll' bind:checked={settings.smoothScroll} />
-    <label for='smooth-scroll'>{settings.smoothScroll ? 'On' : 'Off'}</label>
-  </div>
-</SettingCard>
-<SettingCard title='Enable Sidebar Animation' description='Enables the sidebar expand hover animation.'>
+<SettingCard title='Expandable Sidebar' description='Enables the sidebar to expand revealing detailed text for the navigation buttons.'>
   <div class='custom-switch'>
     <input type='checkbox' id='disable-sidebar' bind:checked={settings.expandingSidebar} />
     <label for='disable-sidebar'>{settings.expandingSidebar ? 'On' : 'Off'}</label>
   </div>
-</SettingCard>
-<SettingCard title='CSS Variables' description='Used for custom themes. Can change colors, sizes, spacing and more. Supports only variables. Best way to discover variables is to use the built-in devtools via Ctrl+Shift+I or F12.'>
-  <textarea class='form-control w-500 mw-full bg-dark' placeholder='--accent-color: #e5204c;' bind:value={$variables} />
 </SettingCard>
 {#if !Helper.isAniAuth()}
   <SettingCard title='Preferred Title Language' description='What title language to automatically select when displaying the title of an anime.'>

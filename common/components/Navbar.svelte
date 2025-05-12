@@ -32,7 +32,7 @@
 
 <nav class='navbar navbar-fixed-bottom d-block d-md-none border-0 bg-dark bt-10'>
   <div class='navbar-menu h-full d-flex flex-row justify-content-center align-items-center m-0 pb-5 animate'>
-    <NavbarLink click={() => { page = 'home'; if ($view) $view = null }} _page='home' text='Home' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
+    <NavbarLink click={() => { page = 'home'; if ($view) $view = null }} _page='home' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
       <Home size='3.4rem' class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
     </NavbarLink>
     <NavbarLink click={() => { page = 'search'; if ($view) $view = null }} _page='search' icon='search' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>

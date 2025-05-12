@@ -12,7 +12,6 @@
   import Search, { searchCleanup } from '@/components/Search.svelte'
   import Card from '@/components/cards/Card.svelte'
   import { hasNextPage } from '@/modules/sections.js'
-  import smoothScroll from '@/modules/scroll.js'
   import { debounce } from '@/modules/util.js'
   import { onDestroy, onMount } from 'svelte'
   import ErrorCard from '@/components/cards/ErrorCard.svelte'
@@ -66,7 +65,7 @@
   onMount(loadTillFull)
 </script>
 
-<div class='bg-dark h-full w-full overflow-y-scroll d-flex flex-wrap flex-row root overflow-x-hidden justify-content-center align-content-start' use:smoothScroll bind:this={container} on:scroll={infiniteScroll}>
+<div class='bg-dark h-full w-full overflow-y-scroll d-flex flex-wrap flex-row root overflow-x-hidden justify-content-center align-content-start' bind:this={container} on:scroll={infiniteScroll}>
   <Search bind:search={$search} on:input={update} />
   <div class='w-full d-grid d-md-flex flex-wrap flex-row px-md-50 justify-content-center align-content-start'>
     {#key $key}

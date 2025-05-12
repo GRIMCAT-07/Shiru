@@ -213,7 +213,7 @@
               <div class='d-flex align-items-center ml-10'>
                 <Github size='2.2rem' />
               </div>
-              <span class='font-weight-semi-bold ml-10' class:font-size-18={!SUPPORTS.isAndroid} class:font-size-16={SUPPORTS.isAndroid}>{source}</span>
+              <span class='font-weight-semi-bold ml-10' class:font-size-18={!SUPPORTS.isAndroid} class:font-size-16={SUPPORTS.isAndroid}>{source.startsWith('gh:') ? source.slice(3) : source}</span>
               <button type='button' use:click={() => addSource(source)} class='btn btn-square d-flex align-items-center justify-content-center ml-10 bg-transparent shadow-none border-0 ml-auto' title='Add Source' style='color: var(--success-color-subtle)' class:disabled={pendingSource} class:cursor-wait={pendingSource}><SquarePlus size='1.8rem' /></button>
             </div>
           {/each}
