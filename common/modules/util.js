@@ -441,6 +441,7 @@ export const defaults = {
   torrentPort: 0,
   torrentStreamedDownload: true,
   torrentVerify: false,
+  torrentSort: 'seeders',
   dhtPort: 0,
   missingFont: true,
   maxConns: 50,
