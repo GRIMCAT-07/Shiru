@@ -18,7 +18,7 @@
   import { toast } from 'svelte-sonner'
   import Helper from '@/modules/helper.js'
   import CustomDropdown from '@/components/CustomDropdown.svelte'
-  import { BookUser, Type, Drama, Leaf, CalendarRange, MonitorPlay, MonitorUp, MonitorX, Tv, ArrowDownWideNarrow, Filter, FilterX, Tags, Hash, SlidersHorizontal, Mic, ImageUp, Search, Grid3X3, Grid2X2 } from 'lucide-svelte'
+  import { BookUser, Type, Drama, Leaf, CalendarRange, MonitorPlay, MonitorUp, MonitorX, Tv, ArrowDownWideNarrow, Filter, FilterX, X, Tags, Hash, SlidersHorizontal, Mic, ImageUp, Search, Grid3X3, Grid2X2 } from 'lucide-svelte'
 
   export let search
   let searchTextInput = {
@@ -386,8 +386,8 @@
               {#if badge.key === key && (badge.key !== 'hideStatus' && (search.userList || badge.key !== 'title')) }
                 <div class='badge border-0 py-5 px-10 text-capitalize mr-10 text-white text-nowrap d-flex align-items-center mb-5' class:bg-light={!badge.key.includes('_not')} class:bg-danger-dark={badge.key.includes('_not')}>
                   <svelte:component this={badge.key === 'genre' ? genreIcons[badge.value] || badgeDisplayNames[badge.key] : badgeDisplayNames[badge.key]} class='mr-5' size='1.8rem' />
-                  <div class='font-size-12 mr-5'>{badge.key === 'sort' ? getSortDisplayName(badge.value) : (badge.key === 'format' || badge.key === 'format_not') ? getFormatDisplayName(badge.value) : (badge.key === 'hideMyAnime' ? 'Hide My Anime' : badge.key === 'hideSubs' ? 'Dubbed' : ('' + badge.value).replace(/_/g, ' ').toLowerCase())}</div>
-                  <button on:click={() => removeBadge(badge)} class='pointer bg-transparent border-0 text-white font-size-12 position-relative ml-5 pr-0 pt-0 x-filter' title='Remove Filter' type='button'>x</button>
+                  <div class='font-size-12'>{badge.key === 'sort' ? getSortDisplayName(badge.value) : (badge.key === 'format' || badge.key === 'format_not') ? getFormatDisplayName(badge.value) : (badge.key === 'hideMyAnime' ? 'Hide My Anime' : badge.key === 'hideSubs' ? 'Dubbed' : ('' + badge.value).replace(/_/g, ' ').toLowerCase())}</div>
+                  <button on:click={() => removeBadge(badge)} class='pointer bg-transparent border-0 text-white font-size-12 position-relative pl-0 pr-0 pt-0 x-filter d-flex align-items-center' title='Remove Filter' type='button'><X size='1.3rem' strokeWidth='3'/></button>
                 </div>
               {/if}
             {/each}
@@ -412,6 +412,18 @@
   }
   .pl-35 {
     padding-left: 3.5rem;
+  }
+
+  .badge .x-filter {
+    opacity: 0;
+    max-width: 0;
+    transition: opacity 0.2s ease-in-out, max-width 0.2s, margin-left 0.2s ease-in-out;
+    overflow: hidden;
+  }
+  .badge:hover .x-filter {
+    opacity: 1;
+    max-width: 2rem;
+    margin-left: 1.5rem;
   }
 
   .input-group,
