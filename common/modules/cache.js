@@ -257,28 +257,25 @@ async function purge(userID) {
  * functions is based on the length of the provided `caches`.
  *
  * @param {string} userID - The unique ID of the user (database name).
+ * @param {Map} cacheMap - The preloaded data to be used as a comparison before saving to the cache.
  * @param {number} [delay=4500] - The debounce delay in milliseconds. Default is 4500ms.
  * @returns {Object} An object containing debounced functions for each cache, accessible via the number of caches created like `[1]`, `[2]`, etc.
  */
-function createDebouncers(userID, delay = 2000) {
+function createDebouncers(userID, cacheMap, delay = 2000) {
     const debouncers = {}
-    const previousMap = new Map()
     for (let i = 1; i <= Object.values(caches).filter(cache => cache.database).length; i++) {
         debouncers[`${i}`] = debounce(async (cache, value) => {
             if (Object.keys(value).length !== 0) {
                 const changed = []
                 debug(`Detected a potential change for the ${cache.key} cache, attempting to save...`)
-                let previousValues = previousMap.get(cache.key)
-                if (!previousValues) {
-                    previousValues = await loadAll(userID, cache)
-                    previousMap.set(cache.key, previousValues)
-                }
+                let cachedValues = cacheMap.get(cache.key)
                 for (const [key, keyValue] of Object.entries(value)) {
-                    const prevValue = previousValues[key]
-                    if (!deepEqual(keyValue, prevValue)) {
+                    const cachedValue = cachedValues[key]
+                    if (!deepEqual(keyValue, cachedValue)) {
                         changed.push(key)
-                        previousValues[key] = keyValue
-                        set(userID, cache, key, keyValue)
+                        const newValue = structuredClone(keyValue)
+                        cachedValues[key] = newValue
+                        set(userID, cache, key, newValue)
                     }
                 }
                 if (changed?.length > 0) debug(`Found differences in ${cache.key} for ${JSON.stringify(changed)} and saved!`)
@@ -295,56 +292,53 @@ class Cache {
     /** @type {string} */
     cacheID = (JSON.parse(localStorage.getItem('ALviewer')) || JSON.parse(localStorage.getItem('MALviewer')))?.viewer?.data?.Viewer?.id || 'default'
     /** @type {import('svelte/store').Writable<GeneralDefaults>} */
-    #general
+    general
     /** @type {import('svelte/store').Writable<QueryDefaults>} */
-    #queries
+    queries
     /** @type {import('simple-store-svelte').Writable<any>} */
-    #userLists
+    user_lists
     /** @type {import('simple-store-svelte').Writable<any>} */
-    #mappings
+    mappings
     /** @type {import('svelte/store').Writable<NotifyDefaults>} */
-    #notify
+    notifications
     /** @type {import('svelte/store').Writable<any>} */
-    #history
+    history
     /** @type {Map<string, any>} */
     #pending = new Map()
+
+    isReady
+    subscribers = []
+    isCurrent = false
 
     /**
      * @type {Promise<void>}
      * A promise that resolves when the cache has been fully initialized.
      * Use this to ensure all required data is loaded and ready for use.
      */
-    isReady
-    isCurrent = false
     constructor(subscribe) {
         this.isReady = this.#initialize(subscribe)
     }
 
-    subscribers = []
     /**
      * Initializes the cache by loading necessary data into memory.
      * @returns {Promise<void>}
      */
     async #initialize(subscribe = true) {
         debug(`Loading caches with id: ${this.cacheID}...`)
-        mediaCache = writable({ ...(await loadAll(this.cacheID, caches.MEDIA_CACHE)) })
-        this.#general = writable({ ...generalDefaults, ...(await loadAll(this.cacheID, caches.GENERAL)) })
-        this.#queries = writable({ ...queryDefaults, ...(await loadAll(this.cacheID, caches.QUERIES)) })
-        this.#mappings = writable({ ...(await loadAll(this.cacheID, caches.MAPPINGS)) })
-        this.#userLists = writable({ ...(await loadAll(this.cacheID, caches.USER_LISTS)) })
-        this.#notify = writable({ ...notifyDefaults, ...(await loadAll(this.cacheID, caches.NOTIFICATIONS)) })
-        this.#history = writable({ ...historyDefaults, ...(await loadAll(this.cacheID, caches.HISTORY)) })
+        const cacheTypes = [
+            { key: caches.MEDIA_CACHE, writable: (data) => mediaCache = writable(structuredClone(data)) },
+            { key: caches.GENERAL, writable: (data) => this.general = writable({ ...generalDefaults, ...structuredClone(data) }) },
+            { key: caches.QUERIES, writable: (data) => this.queries = writable({ ...queryDefaults, ...structuredClone(data) }) },
+            { key: caches.MAPPINGS, writable: (data) => this.mappings = writable(structuredClone(data)) },
+            { key: caches.USER_LISTS, writable: (data) => this.user_lists = writable(structuredClone(data)) },
+            { key: caches.NOTIFICATIONS, writable: (data) => this.notifications = writable({ ...notifyDefaults, ...structuredClone(data) }) },
+            { key: caches.HISTORY, writable: (data) => this.history = writable({ ...historyDefaults, ...structuredClone(data) }) }
+        ]
+        const cacheMap = new Map(await Promise.all(cacheTypes.map(async ({ key }) => [key.key, await loadAll(this.cacheID, key)])))
+        cacheTypes.forEach(({ key, writable }) => writable(cacheMap.get(key.key)))
         if (subscribe) {
-            const debouncers = createDebouncers(this.cacheID)
-            this.subscribers.push(
-                mediaCache.subscribe(value => debouncers[1](caches.MEDIA_CACHE, value)),
-                this.#general.subscribe(value => debouncers[2](caches.GENERAL, value)),
-                this.#queries.subscribe(value => debouncers[3](caches.QUERIES, value)),
-                this.#mappings.subscribe(value => debouncers[4](caches.MAPPINGS, value)),
-                this.#userLists.subscribe(value => debouncers[5](caches.USER_LISTS, value)),
-                this.#notify.subscribe(value => debouncers[6](caches.NOTIFICATIONS, value)),
-                this.#history.subscribe(value => debouncers[7](caches.HISTORY, value))
-            )
+            const debouncers = createDebouncers(this.cacheID, cacheMap)
+            this.subscribers = cacheTypes.map(({ key }, index) => (key.key === caches.MEDIA_CACHE.key ? mediaCache : this[key.key]).subscribe(value => debouncers[index + 1](key, value)))
         }
         this.isCurrent = true
         debug('Caches have successfully been loaded!')
@@ -354,13 +348,13 @@ class Cache {
         this.subscribers.forEach((unsubscribe) => unsubscribe())
         this.#pending.clear()
         mediaCache = null
-        this.#general = null
-        this.#queries = null
-        this.#mappings = null
-        this.#userLists = null
-        this.#notify = null
-        this.#history = null
-        this.#pending = null
+        this.general = null
+        this.queries = null
+        this.mappings = null
+        this.user_lists = null
+        this.notifications = null
+        this.history = null
+        this.#pending = new Map()
         this.isCurrent = false
         debug(`Cache with ID ${this.cacheID} has been destroyed.`)
     }
@@ -374,12 +368,12 @@ class Cache {
      */
     #update(cache, key, data) {
         if (cache === caches.USER_LISTS || cache === caches.MAPPINGS) {
-            (cache === caches.USER_LISTS ? this.#userLists : this.#mappings).update((query) => {
+            (cache === caches.USER_LISTS ? this.user_lists : this.mappings).update((query) => {
                 query[key] = typeof data === 'function' ? data(current) : data
                 return query
             })
         } else {
-            this.#queries.update((query) => {
+            this.queries.update((query) => {
                 if (!query[cache.key]) query[cache.key] = {}
                 const current = query[cache.key][key]
                 query[cache.key][key] = typeof data === 'function' ? data(current) : data
@@ -395,7 +389,7 @@ class Cache {
      * @returns {Promise<void>} Resolves when the data has been successfully transferred and the old cache purged.
      */
     async abandon(newCacheID){
-        for (const value of [[caches.GENERAL, this.#general.value], [caches.NOTIFICATIONS, this.#notify.value], [caches.HISTORY, this.#history.value]]) {
+        for (const value of [[caches.GENERAL, this.general.value], [caches.NOTIFICATIONS, this.notifications.value], [caches.HISTORY, this.history.value]]) {
             for (const [key, keyValue] of Object.entries(value[1])) {
                 await set(newCacheID, value[0], key, keyValue)
             }
@@ -418,7 +412,7 @@ class Cache {
      */
     async resetHistory() {
         await reset(this.cacheID, caches.HISTORY)
-        this.#history.value = { ...historyDefaults }
+        this.history.value = { ...historyDefaults }
     }
 
     /**
@@ -440,7 +434,7 @@ class Cache {
      * See {@link notifyDefaults} for all values that will be reset.
      */
     resetNotifications() {
-        this.#notify.value = { ...notifyDefaults }
+        this.notifications.value = { ...notifyDefaults }
         window.dispatchEvent(new Event('notification-reset'))
     }
 
@@ -474,7 +468,7 @@ class Cache {
      * @returns {any} The cached data for the specified key, or `undefined` if it does not exist.
      */
     getEntry(cache, key) {
-        return (cache === caches.GENERAL ? this.#general : cache === caches.NOTIFICATIONS ? this.#notify : this.#history).value[key]
+        return (cache === caches.GENERAL ? this.general : cache === caches.NOTIFICATIONS ? this.notifications : this.history).value[key]
     }
 
     /**
@@ -484,7 +478,7 @@ class Cache {
      * @param {Object} data The cache object to store.
      */
     setEntry(cache, key, data) {
-        (cache === caches.GENERAL ? this.#general : cache === caches.NOTIFICATIONS ? this.#notify : this.#history).update((query) => {
+        (cache === caches.GENERAL ? this.general : cache === caches.NOTIFICATIONS ? this.notifications : this.history).update((query) => {
             const current = query[key]
             query[key] = typeof data === 'function' ? data(current) : data
             return query
@@ -523,11 +517,11 @@ class Cache {
             debug(`Found pending query ${cache.key} for ${key}`)
             return this.#pending.get(`${cache.key}:${key}`)
         } else if (cache !== caches.MAPPINGS) {
-            const cachedEntry = cache === caches.USER_LISTS ? this.#userLists.value[key] : this.#queries.value[cache.key][key]
+            const cachedEntry = cache === caches.USER_LISTS ? this.user_lists.value[key] : this.queries.value[cache.key][key]
             if (cachedEntry && cachedEntry.data && ((Date.now() < cachedEntry.expiry) || ignoreExpiry)) {
                 debug(`Found cached ${cache.key} for ${key}`)
                 const data = structuredClone(cachedEntry.data)
-                if (cache !== caches.RECOMMENDATIONS || this.#general.value.settings.queryComplexity === 'Complex') { // remap media ids to the medias in the cache.
+                if (cache !== caches.RECOMMENDATIONS || this.general.value.settings.queryComplexity === 'Complex') { // remap media ids to the medias in the cache.
                     if (data.data?.Page?.media) data.data.Page.media = data.data.Page.media.map(mediaId => mediaCache.value[mediaId])
                     if (data.data?.Media) data.data.Media = mediaCache.value[data.data.Media]
                     if (data.data?.MediaListCollection && !key?.includes('token')) data.data.MediaListCollection.lists = (data.data.MediaListCollection.lists || []).map(list => ({ ...list, entries: list.entries.map(entry => ({ ...entry, media: mediaCache.value[entry.media] })) }))
@@ -536,7 +530,7 @@ class Cache {
             }
             return null
         } else { // its mappings...
-            const cachedEntry = this.#mappings.value[key]
+            const cachedEntry = this.mappings.value[key]
             if (cachedEntry && cachedEntry.data && ((Date.now() < cachedEntry.expiry) || ignoreExpiry)) {
                 const data = structuredClone(cachedEntry.data)
                 return Promise.resolve(data)
@@ -567,7 +561,7 @@ class Cache {
             const res = await data
             const cacheRes = structuredClone(res)
             if (!variables?.mappings && (!res || ((res.errors?.length > 0) && !res.errors?.[0]?.title?.match(/record not found/i)))) return this.cachedEntry(cache, key, true) || res // best to return something rather than nothing...
-            if (cache !== caches.RECOMMENDATIONS || this.#general.value.settings.queryComplexity === 'Complex') {
+            if (cache !== caches.RECOMMENDATIONS || this.general.value.settings.queryComplexity === 'Complex') {
                 if (res?.data?.Page?.media) {
                     cacheRes.data.Page.media = cacheRes.data.Page.media.map(media => media.id)
                     await this.updateMedia(res.data.Page.media, await fillLists)
