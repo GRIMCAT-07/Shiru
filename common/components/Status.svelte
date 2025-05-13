@@ -9,7 +9,7 @@
 </script>
 
 <div class='overflow-hidden status-bar h-0' class:offline={$status === 'offline'}>
-  <div class='z-101 position-absolute w-full d-flex align-items-center justify-content-center overflow-hidden status-bar h-0' class:offline={$status === 'offline'} class:bg-dark={$status === 'offline'} class:bg-success-subtle={$status !== 'offline'}>
+  <div class='z-101 position-absolute w-full d-flex align-items-center justify-content-center overflow-hidden status-bar h-0' class:offline={$status === 'offline'} class:bg-very-dark={$status === 'offline'} class:bg-success-subtle={$status !== 'offline'}>
     {#if $status === 'online'}
       <Earth size='1.8rem' strokeWidth='2.5' />
       <span class='ml-10 font-weight-semi-bold font-size-16'>Connection Restored</span>

@@ -3,7 +3,8 @@ import Bottleneck from 'bottleneck'
 
 import { malToken, refreshMalToken } from '@/modules/settings.js'
 import { mediaCache } from '@/modules/cache.js'
-import { printError, sleep } from '@/modules/util.js'
+import { sleep } from '@/modules/util.js'
+import { printError } from '@/modules/networking.js'
 import Helper from '@/modules/helper.js'
 import Debug from 'debug'
 

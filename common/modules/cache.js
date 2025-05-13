@@ -510,7 +510,7 @@ class Cache {
      * @param {keyof typeof caches} cache - The name of the cache (object store).
      * @param {string} key - The unique key identifying the cached entry.
      * @param {boolean} [ignoreExpiry=false] - If true, the entry will be returned even if it has expired, defaults to `false`; meaning expired entries will not be returned.
-     * @returns {Object|null} The cached entry if found and valid; otherwise, `null`.
+     * @returns {Promise<Object|null>} The cached entry if found and valid; otherwise, `null`.
      */
     cachedEntry(cache, key, ignoreExpiry) {
         if (this.#pending.has(`${cache.key}:${key}`) && !ignoreExpiry) {
@@ -558,7 +558,13 @@ class Cache {
         }
         const { fillLists, ...variables } = vars
         const promiseData = (async () => {
-            const res = await data
+            let res
+            try {
+                res = await data
+            } catch (error) {
+                debug(`Detected an error in the promised data, returning cached data if available.`, error)
+                return this.cachedEntry(cache, key, true)
+            }
             const cacheRes = structuredClone(res)
             if (!variables?.mappings && (!res || ((res.errors?.length > 0) && !res.errors?.[0]?.title?.match(/record not found/i)))) return this.cachedEntry(cache, key, true) || res // best to return something rather than nothing...
             if (cache !== caches.RECOMMENDATIONS || this.general.value.settings.queryComplexity === 'Complex') {

@@ -1,6 +1,7 @@
 import { cache, caches } from '@/modules/cache.js'
 import { getKitsuMappings } from '@/modules/anime.js'
-import { codes, printError, getRandomInt, sleep } from '@/modules/util.js'
+import { codes, getRandomInt, sleep } from '@/modules/util.js'
+import { printError, status, isOffline } from '@/modules/networking.js'
 import Bottleneck from 'bottleneck'
 import Debug from 'debug'
 
@@ -25,6 +26,7 @@ class Episodes {
     constructor() {
         this.limiter.on('failed', async (error) => {
             let info = (await error.json()) || error
+            if (await isOffline(info)) throw new Error('Failed making episode request, network is offline... not retrying.')
             if (info.status === 500) return 1
 
             const time = ((error.headers.get('retry-after') || 2) + 1) * 1000
@@ -39,7 +41,7 @@ class Episodes {
         const res = await this.requestEpisodes(true, idMal, page)
         if (res && res.pagination?.has_next_page && res.pagination?.last_visible_page) {
             const lastRes = await this.requestEpisodes(true, idMal, res.pagination.last_visible_page * 100)
-            const arr = lastRes.data.map(e => ({
+            const arr = lastRes?.data?.map(e => ({
                 filler: e.filler,
                 recap: e.recap,
                 episode_id: e.mal_id, // mal_id is the episode_id in the v4 API very stupid
@@ -61,7 +63,7 @@ class Episodes {
     async getSingleEpisode(idMal, episode) {
         if (!idMal) return []
         const res = await this.requestEpisodes(true, idMal, Number(episode || 1) !== 0 ? (episode || 1) : 1)
-        const singleEpisode = res.data.find(e => (e.mal_id === episode) || (e.mal_id === Number(episode || 1)))
+        const singleEpisode = res?.data?.find(e => (e.mal_id === episode) || (e.mal_id === Number(episode || 1)))
         return singleEpisode ? {
             filler: singleEpisode.filler,
             recap: singleEpisode.recap,
@@ -87,8 +89,9 @@ class Episodes {
 
     async requestEpisodes(jikan, id, episode, root) {
         const page = Math.ceil(episode / 100)
-        const cachedEntry = cache.cachedEntry(caches.EPISODES, `${id}:${page}:${root}`)
+        const cachedEntry = cache.cachedEntry(caches.EPISODES, `${id}:${page}:${root}`, status.value === 'offline')
         if (cachedEntry) return cachedEntry
+        else if (status.value === 'offline') return
         if (this.concurrentRequests.has(`${id}:${page}:${root}`)) return this.concurrentRequests.get(`${id}:${page}:${root}`)
         const requestPromise = this.limiter.wrap(async () => {
             await this.rateLimitPromise
@@ -118,7 +121,13 @@ class Episodes {
                 }
             }
             return cache.cacheEntry(caches.EPISODES, `${id}:${page}:${root}`, {}, json, Date.now() + getRandomInt(1, 3) * 24 * 60 * 60 * 1000)
-        })().finally(() => {
+        })().catch((error) => {
+            if (status.value === 'offline') {
+                debug(`Network offline, returning cached episode data if available`, error)
+                const cachedEntry = cache.cachedEntry(caches.EPISODES, `${id}:${page}:${root}`, true)
+                if (cachedEntry) return cachedEntry
+            } else throw new Error(error)
+        }).finally(() => {
             this.concurrentRequests.delete(`${id}:${page}:${root}`)
         })
         this.concurrentRequests.set(`${id}:${page}:${root}`, requestPromise)

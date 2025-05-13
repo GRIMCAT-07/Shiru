@@ -1,11 +1,7 @@
 import { SUPPORTS } from '@/modules/support.js'
-import { isOffline } from '@/modules/networking.js'
 import levenshtein from 'js-levenshtein'
 import { writable } from 'svelte/store'
 import Fuse from 'fuse.js'
-import Debug from 'debug'
-
-const debug = Debug('ui:util')
 
 export const codes = {
   400: 'Bad Request',
@@ -35,15 +31,6 @@ export const codes = {
   521: 'Web Server Is Down'
 }
 
-export const toastLevel = writable('All')
-export async function printError(title, description, error) {
-  if (await isOffline(error)) return
-  debug(`Error: ${error.status || 429} - ${error.message || codes[error.status || 429]}`)
-  if (toastLevel.value.toasts.includes('All') || toastLevel.value.toasts.includes('Errors')) {
-    toast.error(title, {
-      description: `${description}\n${error.status || 429} - ${error.message || codes[error.status || 429]}`,
-      duration: 3000
-    })
 /**
  * Gets the Hex Color of the String input.
  * @param {string} str

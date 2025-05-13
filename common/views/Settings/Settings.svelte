@@ -2,6 +2,8 @@
   import { click } from '@/modules/click.js'
   import { settings } from '@/modules/settings.js'
   import IPC from '@/modules/ipc.js'
+  import Debug from 'debug'
+  const debug = Debug('ui:settings-view')
 
   if (settings.value.enableDoH) IPC.emit('doh', settings.value.doHURL)
   export const platformMap = {
@@ -19,11 +21,18 @@
   IPC.on('version', data => (version = data))
   IPC.emit('version')
 
-  const changeLog = (async () => {
-    const res = await fetch('https://api.github.com/repos/RockinChaos/Shiru/releases')
-    const json = await res.json()
-    return json.map(({ body, tag_name: version, published_at: date, assets }) => ({ body, version, date, assets }))
-  })()
+  let changeLog = getChanges()
+  window.addEventListener('online', () => changeLog = getChanges())
+  async function getChanges() {
+    try {
+      const json = await (await fetch('https://api.github.com/repos/RockinChaos/Shiru/releases')).json()
+      return json.map(({body, tag_name: version, published_at: date, assets}) => ({body, version, date, assets}))
+    } catch (error) {
+      debug('Failed to changelog', error)
+      return {}
+    }
+  }
+
   IPC.emit('discord-rpc', settings.value.enableRPC)
 </script>
 
@@ -36,7 +45,6 @@
   import AppSettings from '@/views/Settings/AppSettings.svelte'
   import ExtensionSettings from '@/views/Settings/ExtensionSettings.svelte'
   import { profileView } from '@/components/Profiles.svelte'
-  import smoothScroll from '@/modules/scroll.js'
   import Helper from '@/modules/helper.js'
   import { AppWindow, Puzzle, User, Heart, LogIn, Logs, Play, Rss, Settings } from 'lucide-svelte'
 
@@ -89,7 +97,7 @@
 </script>
 
 <Tabs>
-  <div class='d-flex w-full h-full position-relative settings root flex-md-row flex-column overflow-y-auto overflow-y-md-hidden' style='padding-top: var(--safe-area-top)' use:smoothScroll>
+  <div class='d-flex w-full h-full position-relative settings root flex-md-row flex-column overflow-y-auto overflow-y-md-hidden' style='padding-top: var(--safe-area-top)'>
     <div class='d-flex flex-column flex-row h-full w-md-300 bg-dark position-relative px-20 px-md-0 flex-basis-0-md-custom'>
       <div class='px-20 py-15 font-size-24 font-weight-semi-bold'>Settings</div>
       {#each Object.values(groups) as group}
@@ -124,38 +132,38 @@
       <p class='text-muted px-20 m-0 mb-md-20'>v{version} {platformMap[window.version.platform] || 'dev'} {window.version.arch || 'dev'}</p>
     </div>
     <Tab>
-      <div class='root h-full w-full overflow-y-md-auto p-20' use:smoothScroll>
+      <div class='root h-full w-full overflow-y-md-auto p-20'>
         <PlayerSettings bind:settings={$settings} bind:playPage />
         <!-- spacing element to make space for miniplayer on mobile -->
         <div class='h-250' />
       </div>
     </Tab>
     <Tab>
-      <div class='root h-full w-full overflow-y-md-auto p-20' use:smoothScroll>
+      <div class='root h-full w-full overflow-y-md-auto p-20'>
         <TorrentSettings bind:settings={$settings} />
         <div class='h-250' />
       </div>
     </Tab>
     <Tab>
-      <div class='root h-full w-full overflow-y-md-auto p-20' use:smoothScroll>
+      <div class='root h-full w-full overflow-y-md-auto p-20'>
         <InterfaceSettings bind:settings={$settings} />
         <div class='h-250' />
       </div>
     </Tab>
     <Tab>
-      <div class='root h-full w-full overflow-y-md-auto p-20' use:smoothScroll>
+      <div class='root h-full w-full overflow-y-md-auto p-20'>
         <ExtensionSettings bind:settings={$settings} />
         <div class='h-250' />
       </div>
     </Tab>
     <Tab>
-      <div class='root h-full w-full overflow-y-md-auto p-20' use:smoothScroll>
+      <div class='root h-full w-full overflow-y-md-auto p-20'>
         <AppSettings {version} bind:settings={$settings} />
         <div class='h-250' />
       </div>
     </Tab>
     <Tab>
-      <div class='root my-20 px-20 overflow-y-md-auto w-full' use:smoothScroll>
+      <div class='root my-20 px-20 overflow-y-md-auto w-full'>
         <div class='h-300 row px-20 px-sm-0'>
           <div class='col-sm-3 d-none d-sm-flex' />
           <div class='col-sm-6 d-flex justify-content-center flex-column'>

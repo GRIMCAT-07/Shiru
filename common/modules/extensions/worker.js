@@ -80,7 +80,7 @@ class Worker {
       if (result.status === 'fulfilled') {
         results.push(...result.value)
       } else {
-        console.error(result)
+        console.debug(result)
         errors.push('Source ' + this.id + ' failed to load results:\n' + result.reason.message)
       }
     }

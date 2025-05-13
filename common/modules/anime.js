@@ -1,4 +1,5 @@
-import { codes, printError, DOMPARSER, getRandomInt, countdown } from '@/modules/util.js'
+import { codes, DOMPARSER, getRandomInt, countdown } from '@/modules/util.js'
+import { printError } from '@/modules/networking.js'
 import { anilistClient } from '@/modules/anilist.js'
 import _anitomyscript from 'anitomyscript'
 import { toast } from 'svelte-sonner'
@@ -10,6 +11,7 @@ import { playAnime } from '@/views/TorrentSearch/TorrentModal.svelte'
 import { animeSchedule } from '@/modules/animeschedule.js'
 import { settings } from '@/modules/settings.js'
 import { cache, caches } from '@/modules/cache.js'
+import { status } from '@/modules/networking.js'
 import Helper from '@/modules/helper.js'
 
 import { Drama, BookHeart, MountainSnow, Laugh, Adult, Droplets, FlaskConical, Ghost, Skull, HeartPulse, Volleyball, Car, Brain, Footprints, Guitar, Bot, WandSparkles, Activity } from 'lucide-svelte'
@@ -795,8 +797,9 @@ export function nextAiring(nodes, variables) {
 const concurrentRequests = new Map()
 export async function getKitsuMappings(anilistID) {
   if (!anilistID) return
-  const cachedEntry = cache.cachedEntry(caches.MAPPINGS, `kitsu-${anilistID}`)
+  const cachedEntry = cache.cachedEntry(caches.MAPPINGS, `kitsu-${anilistID}`, status.value === 'offline')
   if (cachedEntry) return cachedEntry
+  else if (status.value === 'offline') return
   if (concurrentRequests.has(`kitsu-${anilistID}`)) return concurrentRequests.get(`kitsu-${anilistID}`)
   const requestPromise = (async () => {
     try {
@@ -842,8 +845,9 @@ export async function getKitsuMappings(anilistID) {
 
 export async function getAniMappings(anilistID) {
   if (!anilistID) return
-  const cachedEntry = cache.cachedEntry(caches.MAPPINGS, `ani-${anilistID}`)
+  const cachedEntry = cache.cachedEntry(caches.MAPPINGS, `ani-${anilistID}`, status.value === 'offline')
   if (cachedEntry) return cachedEntry
+  else if (status.value === 'offline') return
   if (concurrentRequests.has(`ani-${anilistID}`)) return concurrentRequests.get(`ani-${anilistID}`)
   const requestPromise = (async () => {
     try {

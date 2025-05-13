@@ -1,16 +1,21 @@
 <script context='module'>
   import Debug from 'debug'
+  const debug = Debug('ui:extensions-view')
 
-  const debug = Debug('ui:extensions-settings')
-  const availableSources = (async () => {
+  let availableSources = getSources()
+  window.addEventListener('online', () => availableSources = getSources())
+  async function getSources() {
     try {
       const sources = await (await fetch(atob('aHR0cHM6Ly9lc20uc2gvZ2gvUm9ja2luQ2hhb3MvU2hpcnUtRXh0ZW5zaW9ucy9pbmRleC5qc29u'))).json()
-      return Array.isArray(sources) ? sources.map(source => source.main).filter(Boolean) : []
+      return Array.isArray(sources) ? sources.reduce((acc, source) => {
+        if (source.main) acc.push(source.main)
+        return acc
+      }, []) : []
     } catch (err) {
       debug('Failed to load available sources', err)
       return []
     }
-  })()
+  }
 </script>
 
 <script>

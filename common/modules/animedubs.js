@@ -1,4 +1,5 @@
-import { printError, getRandomInt, matchPhrase } from '@/modules/util.js'
+import { getRandomInt, matchPhrase } from '@/modules/util.js'
+import { printError,  status } from '@/modules/networking.js'
 import { cache, caches } from '@/modules/cache.js'
 import { writable } from 'simple-store-svelte'
 import Debug from 'debug'
@@ -38,6 +39,11 @@ class MALDubs {
     async getMALDubs() {
         debug('Getting MyAnimeList Dubs IDs')
         try {
+            const cachedEntry = await cache.cachedEntry(caches.RSS, 'MALDubs', true)
+            if (status.value === 'offline' && cachedEntry) {
+                this.dubLists.value = cachedEntry
+                return cachedEntry
+            }
             let res = {}
             try {
                 res = await fetch(`https://raw.githubusercontent.com/MAL-Dubs/MAL-Dubs/main/data/dubInfo.json?timestamp=${new Date().getTime()}`)
@@ -61,14 +67,16 @@ class MALDubs {
                 } else {
                     printError('Dub Caching Failed', 'Failed to load dub information!', res)
                 }
+            } else if (json) {
+                const result = await cache.cacheEntry(caches.RSS, 'MALDubs', {mappings: true}, json, Date.now() + getRandomInt(100, 200) * 60 * 1000)
+                this.dubLists.value = result
+                return result
             }
-            const result = cache.cacheEntry(caches.RSS, 'MALDubs', { mappings: true }, json, Date.now() + getRandomInt(100, 200) * 60 * 1000)
-            this.dubLists.value = await result
-            return result
         } catch (e) {
-            const cachedEntry = cache.cachedEntry(caches.RSS, 'MALDubs', true)
+            const cachedEntry = await cache.cachedEntry(caches.RSS, 'MALDubs', true)
             if (cachedEntry) {
                 debug(`Failed to request MALDubs RSS, this is likely due to an outage... falling back to cached data.`)
+                this.dubLists.value = cachedEntry
                 return cachedEntry
             }
             else throw e

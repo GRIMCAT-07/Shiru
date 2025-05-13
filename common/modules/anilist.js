@@ -4,7 +4,8 @@ import Bottleneck from 'bottleneck'
 
 import { alToken, settings } from '@/modules/settings.js'
 import { malDubs } from '@/modules/animedubs.js'
-import { printError, getRandomInt, sleep, matchKeys } from '@/modules/util.js'
+import { getRandomInt, sleep, matchKeys } from '@/modules/util.js'
+import { printError, status } from '@/modules/networking.js'
 import { cache, caches, mediaCache } from '@/modules/cache.js'
 import { malClient } from '@/modules/myanimelist.js'
 import Helper from '@/modules/helper.js'
@@ -161,8 +162,8 @@ class AnilistClient {
   constructor() {
     debug('Initializing Anilist Client for ID ' + this.userID?.viewer?.data?.Viewer?.id)
     this.limiter.on('failed', async (error) => {
-      printError('Search Failed', 'Failed making request to anilist!\nTry again in a minute.', error)
-
+      await printError('Search Failed', 'Failed making request to Anilist!\nTry again in a minute.', error)
+      if (status.value === 'offline') throw new Error('Failed making request to Anilist, network is offline... not retrying')
       if (error.status === 500) return 1
 
       if (!error.statusText) {
@@ -216,15 +217,15 @@ class AnilistClient {
     try {
       json = await res.json()
     } catch (error) {
-      if (res.ok) printError('Search Failed', 'Failed making request to anilist!\nTry again in a minute.', error)
+      if (res.ok) printError('Search Failed', 'Failed making request to Anilist!\nTry again in a minute.', error)
     }
     if (!res.ok && res.status !== 404) {
       if (json) {
         for (const error of json?.errors || []) {
-          printError('Search Failed', 'Failed making request to anilist!\nTry again in a minute.', error)
+          printError('Search Failed', 'Failed making request to Anilist!\nTry again in a minute.', error)
         }
       } else {
-        printError('Search Failed', 'Failed making request to anilist!\nTry again in a minute.', res)
+        printError('Search Failed', 'Failed making request to Anilist!\nTry again in a minute.', res)
       }
     }
     return json || res
@@ -336,7 +337,7 @@ class AnilistClient {
   /** @returns {Promise<import('./al.d.ts').PagedQuery<{ notifications: { id: number, type: string, createdAt: number, episode: number, media: import('./al.d.ts').Media}[] }>>} */
   getNotifications(variables = {}) {
     debug('Getting notifications')
-    const cachedEntry = cache.cachedEntry(caches.NOTIFICATIONS, JSON.stringify(variables), ignoreExpiry)
+    const cachedEntry = cache.cachedEntry(caches.NOTIFICATIONS, JSON.stringify(variables), ignoreExpiry || status.value === 'offline')
     if (cachedEntry) return cachedEntry
     const query = /* js */`
     query($page: Int, $perPage: Int) {
@@ -388,7 +389,7 @@ class AnilistClient {
     variables.id = variables.userID || this.userID?.viewer?.data?.Viewer.id
     const userSort = variables.sort || 'UPDATED_TIME_DESC'
     if (!variables.sort || Helper.isUserSort(variables)) variables.sort = 'UPDATED_TIME_DESC'
-    const cachedEntry = this.sortListEntries(userSort, await cache.cachedEntry(caches.USER_LISTS, JSON.stringify(variables), ignoreExpiry))
+    const cachedEntry = this.sortListEntries(userSort, await cache.cachedEntry(caches.USER_LISTS, JSON.stringify(variables), ignoreExpiry || status.value === 'offline'))
     if (cachedEntry) return cachedEntry
     const query = /* js */` 
       query($id: Int, $sort: [MediaListSort]) {
@@ -541,7 +542,7 @@ class AnilistClient {
    **/
   async alSearchCompound(flattenedTitles) {
     debug(`Searching for ${flattenedTitles?.length} titles via compound search`)
-    const cachedEntry = cache.cachedEntry(caches.COMPOUND, JSON.stringify(flattenedTitles))
+    const cachedEntry = cache.cachedEntry(caches.COMPOUND, JSON.stringify(flattenedTitles),  status.value === 'offline')
     if (cachedEntry) return cachedEntry
 
     if (!flattenedTitles.length) return []
@@ -614,7 +615,7 @@ class AnilistClient {
     if (settings.value.adult !== 'hentai') variables.genre_not = [ ...(variables.genre_not ? variables.genre_not : []), 'Hentai' ]
 
     debug(`Searching ${JSON.stringify(variables)}`)
-    const cachedEntry = cache.cachedEntry(caches.SEARCH, JSON.stringify(variables))
+    const cachedEntry = cache.cachedEntry(caches.SEARCH, JSON.stringify(variables), status.value === 'offline')
     if (cachedEntry) return cachedEntry
     const query = /* js */` 
     query($page: Int, $perPage: Int, $sort: [MediaSort], $search: String, $onList: Boolean, $status: [MediaStatus], $status_not: [MediaStatus], $season: MediaSeason, $year: Int, $genre: [String], $genre_not: [String], $tag: [String], $format: [MediaFormat], $format_not: [MediaFormat], $id_not: [Int], $idMal_not: [Int], $idMal: [Int], $isAdult: Boolean) {
@@ -633,7 +634,7 @@ class AnilistClient {
   searchIDSingle(variables) {
     variables.sort = variables.sort || 'OMIT'
     debug(`Searching for ID: ${variables?.id || variables?.idMal}`)
-    const cachedEntry = cache.cachedEntry(caches.SEARCH_IDS, JSON.stringify(variables))
+    const cachedEntry = cache.cachedEntry(caches.SEARCH_IDS, JSON.stringify(variables), status.value === 'offline')
     if (cachedEntry) return cachedEntry
     const query = /* js */` 
     query($id: Int, $idMal: Int) { 
@@ -652,7 +653,7 @@ class AnilistClient {
     if (settings.value.adult !== 'hentai') variables.genre_not = [ ...(variables.genre_not ? variables.genre_not : []), 'Hentai' ]
 
     debug(`Searching for IDs ${JSON.stringify(variables)}`)
-    const cachedEntry = cache.cachedEntry(caches.SEARCH_IDS, JSON.stringify(variables))
+    const cachedEntry = cache.cachedEntry(caches.SEARCH_IDS, JSON.stringify(variables), status.value === 'offline')
     if (cachedEntry) return cachedEntry
     const query = /* js */` 
     query($id: [Int], $idMal: [Int], $id_not: [Int], $page: Int, $perPage: Int, $status: [MediaStatus], $onList: Boolean, $sort: [MediaSort], $search: String, $season: MediaSeason, $year: Int, $genre: [String], $genre_not: [String], $tag: [String], $format: [MediaFormat], $isAdult: Boolean) { 
@@ -672,7 +673,7 @@ class AnilistClient {
   async searchAllIDS(variables) {
     variables.sort = variables.sort || 'OMIT'
     debug(`Searching for (ALL) IDs ${JSON.stringify(variables)}`)
-    const cachedEntry = cache.cachedEntry(caches.SEARCH_IDS, JSON.stringify(variables))
+    const cachedEntry = cache.cachedEntry(caches.SEARCH_IDS, JSON.stringify(variables), status.value === 'offline')
     if (cachedEntry) return cachedEntry
     let fetchedIDS = []
     let currentPage = 1
@@ -690,7 +691,7 @@ class AnilistClient {
   /** @returns {Promise<import('./al.d.ts').PagedQuery<{ airingSchedules: { airingAt: number, episode: number }[]}>>} */
   episodes(variables = {}) {
     debug(`Getting episodes for ${variables.id}`)
-    const cachedEntry = cache.cachedEntry(caches.EPISODES, variables.id)
+    const cachedEntry = cache.cachedEntry(caches.EPISODES, variables.id, status.value === 'offline')
     if (cachedEntry) return cachedEntry
     const query = /* js */`
       query($id: Int) {
@@ -707,7 +708,7 @@ class AnilistClient {
   /** @returns {Promise<import('./al.d.ts').Query<{ AiringSchedule: { airingAt: number }}>>} */
   episodeDate(variables) {
     debug(`Searching for episode date: ${variables.id}, ${variables.ep}`)
-    const cachedEntry = cache.cachedEntry(caches.EPISODES, JSON.stringify(variables))
+    const cachedEntry = cache.cachedEntry(caches.EPISODES, JSON.stringify(variables), status.value === 'offline')
     if (cachedEntry) return cachedEntry
     const query = /* js */`
       query($id: Int, $ep: Int) {
@@ -721,7 +722,7 @@ class AnilistClient {
   /** @returns {Promise<import('./al.d.ts').PagedQuery<{ mediaList: import('./al.d.ts').Following[]}>>} */
   following(variables) {
     debug('Getting following')
-    const cachedEntry = cache.cachedEntry(caches.FOLLOWING, JSON.stringify(variables))
+    const cachedEntry = cache.cachedEntry(caches.FOLLOWING, JSON.stringify(variables), status.value === 'offline')
     if (cachedEntry) return cachedEntry
     const query = /* js */`
       query($id: Int) {
@@ -749,7 +750,7 @@ class AnilistClient {
       debug(`Complex queries are enabled, returning cached recommendations from media ${variables.id}`)
       return { data: { Media: { ...mediaCache.value[variables.id] } } }
     }
-    const cachedEntry = cache.cachedEntry(caches.RECOMMENDATIONS, variables.id)
+    const cachedEntry = cache.cachedEntry(caches.RECOMMENDATIONS, variables.id, status.value === 'offline')
     if (cachedEntry) return cachedEntry
 
     const query = /* js */`

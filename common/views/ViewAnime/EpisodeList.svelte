@@ -22,7 +22,7 @@
       }
     } else if (episodeEntry) {
       return { airdate: episodeEntry.episode.airedAt, text: `${since(new Date(episodeEntry.episode.airedAt))}`, delayed: false }
-    } else if (malDubs.dubLists.value.incomplete.includes(media.idMal) && (await animeSchedule.dubAiredLists.value).find(entry => entry?.id === media.id && entry?.episode?.aired === 1)) {
+    } else if (malDubs.dubLists.value?.incomplete?.includes(media.idMal) && (await animeSchedule.dubAiredLists.value).find(entry => entry?.id === media.id && entry?.episode?.aired === 1)) {
       return { text: `Not Planned`, delayed: true }
     } else if (!entry && !episodeEntry && (media.seasonYear >= new Date().getFullYear()) && malDubs.isDubMedia(media)) {
       return { text: `In Production`, delayed: false }

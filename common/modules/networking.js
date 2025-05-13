@@ -1,9 +1,40 @@
+import { toast } from 'svelte-sonner'
 import { writable } from 'simple-store-svelte'
-import { getRandomInt } from '@/modules/util.js'
+import { settings } from '@/modules/settings.js'
+import { codes, getRandomInt } from '@/modules/util.js'
 import Debug from 'debug'
 
 const debug = Debug('ui:networking')
-export const status = writable('online')
+export const status = writable(navigator.onLine ? 'online' : 'offline')
+
+export async function printError(title, description, error) {
+    if (await isOffline(error)) return
+    debug(`Error: ${error.status || 429} - ${error.message || codes[error.status || 429]}`)
+    if (settings.value.toasts.includes('All') || settings.value.toasts.includes('Errors')) {
+        toast.error(title, {
+            description: `${description}\n${error.status || 429} - ${error.message || codes[error.status || 429]}`,
+            duration: 10000
+        })
+    }
+}
+
+const fetch = window.fetch
+window.fetch = async (...args) => {
+    try {
+        const res = await fetch(...args)
+        if (!res.ok) {
+            window.dispatchEvent(new CustomEvent('fetch-error', { detail: { error: {
+                response: res?.response,
+                status: res?.status,
+                message: res?.message
+            }, url: args[0]?.url || args[0], config: args[1] } }))
+        }
+        return res
+    } catch (error) {
+        window.dispatchEvent(new CustomEvent('fetch-error', { detail: { error, url: args[0]?.url || args[0], config: args[1] } }))
+        throw error
+    }
+}
 
 async function ping(timeout = 2000) {
     if (!navigator.onLine) return false
@@ -28,8 +59,9 @@ async function ping(timeout = 2000) {
 
 let monitor
 let offlinePromise
+window.addEventListener('fetch-error', (event) => isOffline(event?.detail?.error))
 export async function isOffline(error) {
-    if (!offlinePromise) {
+    if (!offlinePromise && !monitor) {
         offlinePromise = (async () => {
             if (status.value === 'offline') return true
             debug('Detected an error when executing #fetch(), checking for network outage...')
@@ -39,6 +71,7 @@ export async function isOffline(error) {
             if (!result) {
                 debug('Verified network is offline, starting up periodic checks for connectivity...')
                 status.value = 'offline'
+                window.dispatchEvent(new CustomEvent('offline'))
                 if (!monitor) {
                     monitor = (() => {
                         let stop = false
@@ -47,13 +80,14 @@ export async function isOffline(error) {
                             const result = await ping(status.value === 'offline' ? 500 : 2000)
                             if (result && status.value === 'offline') {
                                 status.value = 'online'
+                                window.dispatchEvent(new CustomEvent('online'))
                                 debug('Detected that the network connection has been restored!')
                                 stop = true
                                 monitor = null
                             } else if (!result) {
                                 debug('Network is still offline...')
                             }
-                            if (!stop) setTimeout(checkLoop, getRandomInt(1, 3) * 1000)
+                            if (!stop) setTimeout(checkLoop, getRandomInt(3, 5) * 1000)
                         }
                         checkLoop()
                         return () => (stop = true)
@@ -61,12 +95,15 @@ export async function isOffline(error) {
                 }
                 return true
             } else {
-                if (status.value === 'offline') status.value = 'online'
+                if (status.value === 'offline') {
+                    status.value = 'online'
+                    window.dispatchEvent(new CustomEvent('online'))
+                }
                 debug('Ping succeeded, network is online.')
                 return false
             }
         })()
         offlinePromise.finally(() => offlinePromise = null)
     }
-    return await offlinePromise
+    return (await offlinePromise) || (status.value === 'offline')
 }
