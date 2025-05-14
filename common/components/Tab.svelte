@@ -1,6 +1,6 @@
 <script>
   import { getContext } from 'svelte'
-  import { TABS } from './Tabs.svelte'
+  import { TABS } from '@/components/Tabs.svelte'
 
   const panel = {}
   const { registerPanel, selectedPanel } = getContext(TABS)

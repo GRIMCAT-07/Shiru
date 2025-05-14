@@ -1,6 +1,6 @@
 <script>
   import { getContext } from 'svelte'
-  import PreviewCard from './PreviewCard.svelte'
+  import PreviewCard from '@/components/cards/PreviewCard.svelte'
   import { episode, airingAt, getKitsuMappings, formatMap, statusColorMap } from '@/modules/anime.js'
   import { createListener } from '@/modules/util.js'
   import { hoverClick } from '@/modules/click.js'

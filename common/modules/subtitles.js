@@ -1,9 +1,9 @@
 import JASSUB from 'jassub'
 import { hex2arr, bin2hex } from 'uint8-util'
-import { toTS, subRx, videoRx } from './util.js'
+import { toTS, subRx, videoRx } from '@/modules/util.js'
 import { settings } from '@/modules/settings.js'
 import { client } from '@/modules/torrent.js'
-import clipboard from './clipboard.js'
+import clipboard from '@/modules/clipboard.js'
 import { SUPPORTS } from '@/modules/support.js'
 
 const defaultHeader = `[Script Info]

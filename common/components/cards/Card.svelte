@@ -1,10 +1,10 @@
 <script>
-  import SkeletonCard from './SkeletonCard.svelte'
-  import SmallCard from './SmallCard.svelte'
-  import EpisodeSkeletonCard from './EpisodeSkeletonCard.svelte'
-  import FullCard from './FullCard.svelte'
-  import EpisodeCard from './EpisodeCard.svelte'
-  import FullSkeletonCard from './FullSkeletonCard.svelte'
+  import SkeletonCard from '@/components/cards/SkeletonCard.svelte'
+  import SmallCard from '@/components/cards/SmallCard.svelte'
+  import EpisodeSkeletonCard from '@/components/cards/EpisodeSkeletonCard.svelte'
+  import FullCard from '@/components/cards/FullCard.svelte'
+  import EpisodeCard from '@/components/cards/EpisodeCard.svelte'
+  import FullSkeletonCard from '@/components/cards/FullSkeletonCard.svelte'
   import { settings } from '@/modules/settings.js'
 
   export let card

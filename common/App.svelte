@@ -3,8 +3,8 @@
   import { writable } from 'simple-store-svelte'
   import { anilistClient } from '@/modules/anilist.js'
   import IPC from '@/modules/ipc.js'
-  import { rss } from './views/TorrentSearch/TorrentModal.svelte'
-  import { files } from './views/Player/MediaHandler.svelte'
+  import { rss } from '@/views/TorrentSearch/TorrentModal.svelte'
+  import { files } from '@/views/Player/MediaHandler.svelte'
   import { settings } from '@/modules/settings.js'
   import { SUPPORTS } from '@/modules/support.js'
 
@@ -72,18 +72,18 @@
 </script>
 
 <script>
-  import Sidebar from './components/Sidebar.svelte'
-  import Router from './Router.svelte'
-  import ViewAnime from './views/ViewAnime/ViewAnime.svelte'
-  import ViewTrailer from './views/ViewAnime/ViewTrailer.svelte'
-  import TorrentModal from './views/TorrentSearch/TorrentModal.svelte'
-  import Menubar from './components/Menubar.svelte'
+  import Sidebar from '@/components/Sidebar.svelte'
+  import Router from '@/Router.svelte'
+  import ViewAnime from '@/views/ViewAnime/ViewAnime.svelte'
+  import ViewTrailer from '@/views/ViewAnime/ViewTrailer.svelte'
+  import TorrentModal from '@/views/TorrentSearch/TorrentModal.svelte'
+  import Menubar from '@/components/Menubar.svelte'
   import { Toaster } from 'svelte-sonner'
-  import Profiles from './components/Profiles.svelte'
-  import Notifications from './components/Notifications.svelte'
-  import MinimizeTray from './components/MinimizeTray.svelte'
-  import Navbar from './components/Navbar.svelte'
-  import Status from './components/Status.svelte'
+  import Profiles from '@/components/Profiles.svelte'
+  import Notifications from '@/components/Notifications.svelte'
+  import MinimizeTray from '@/components/MinimizeTray.svelte'
+  import Navbar from '@/components/Navbar.svelte'
+  import Status from '@/components/Status.svelte'
 
   setContext('view', view)
 </script>

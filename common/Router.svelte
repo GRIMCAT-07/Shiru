@@ -1,11 +1,11 @@
 <script>
-  import Home from './views/Home/Home.svelte'
-  import MediaHandler, { nowPlaying as media } from './views/Player/MediaHandler.svelte'
+  import Home from '@/views/Home/Home.svelte'
+  import MediaHandler, { nowPlaying as media } from '@/views/Player/MediaHandler.svelte'
   import Settings from '@/views/Settings/Settings.svelte'
-  import WatchTogether from './views/WatchTogether/WatchTogether.svelte'
-  import Miniplayer from './views/Player/Miniplayer.svelte'
-  import Search, { search } from './views/Search.svelte'
-  import AiringSchedule from './views/AiringSchedule.svelte'
+  import WatchTogether from '@/views/WatchTogether/WatchTogether.svelte'
+  import Miniplayer from '@/views/Player/Miniplayer.svelte'
+  import Search, { search } from '@/views/Search.svelte'
+  import AiringSchedule from '@/views/AiringSchedule.svelte'
 
   export let page = 'home'
   export let overlay = []

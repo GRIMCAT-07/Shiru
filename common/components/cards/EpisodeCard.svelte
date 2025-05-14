@@ -1,7 +1,7 @@
 <script>
   import { statusColorMap } from '@/modules/anime.js'
   import { episodesList } from '@/modules/episodes.js'
-  import EpisodePreviewCard from './EpisodePreviewCard.svelte'
+  import EpisodePreviewCard from '@/components/cards/EpisodePreviewCard.svelte'
   import { hoverClick, hoverExit } from '@/modules/click.js'
   import { writable } from 'svelte/store'
   import { since } from '@/modules/util.js'

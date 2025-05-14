@@ -1,7 +1,7 @@
-import { anilistClient } from './anilist.js'
-import { mediaCache } from './cache.js'
-import { anitomyscript, hasZeroEpisode } from './anime.js'
-import { chunks, matchKeys } from './util.js'
+import { anilistClient } from '@/modules/anilist.js'
+import { mediaCache } from '@/modules/cache.js'
+import { anitomyscript, hasZeroEpisode } from '@/modules/anime.js'
+import { chunks, matchKeys } from '@/modules/util.js'
 import Debug from 'debug'
 
 const debug = Debug('ui:animeresolver')

@@ -1,6 +1,6 @@
 <script>
-  import FullBanner from './FullBanner.svelte'
-  import SkeletonBanner from './SkeletonBanner.svelte'
+  import FullBanner from '@/components/banner/FullBanner.svelte'
+  import SkeletonBanner from '@/components/banner/SkeletonBanner.svelte'
   import ErrorCard from '@/components/cards/ErrorCard.svelte'
   import { settings } from '@/modules/settings.js'
   export let data
