@@ -8,7 +8,9 @@
   import { add } from '@/modules/torrent.js'
   import { toast } from 'svelte-sonner'
   import { anilistClient } from '@/modules/anilist.js'
+  import { episodesList } from '@/modules/episodes.js'
   import { click } from '@/modules/click.js'
+  import { trailer } from '@/views/ViewAnime/ViewTrailer.svelte'
   import Details from '@/views/ViewAnime/Details.svelte'
   import EpisodeList from '@/views/ViewAnime/EpisodeList.svelte'
   import ToggleList from '@/views/ViewAnime/ToggleList.svelte'
@@ -19,7 +21,7 @@
   import SmallCard from '@/components/cards/SmallCard.svelte'
   import SkeletonCard from '@/components/cards/SkeletonCard.svelte'
   import Helper from '@/modules/helper.js'
-  import { ArrowLeft, Clapperboard, ExternalLink, Users, Heart, Play, Share2, Timer, TrendingUp, Tv, Hash, ArrowDown01, ArrowUp10 } from 'lucide-svelte'
+  import { ArrowLeft, Clapperboard, TvMinimalPlay, ExternalLink, Users, Heart, Play, Share2, Timer, TrendingUp, Tv, Hash, ArrowDown01, ArrowUp10 } from 'lucide-svelte'
 
   export let overlay
   const view = getContext('view')
@@ -258,15 +260,22 @@
                     {/if}
                     {#if Helper.isAniAuth()}
                       <button class='btn bg-dark btn-lg btn-square d-flex align-items-center justify-content-center shadow-none border-0 ml-10' title={media.isFavourite ? 'Unfavourite' : 'Favourite'} use:click={toggleFavourite} disabled={!Helper.isAniAuth()}>
-                        <div class='favourite d-flex align-items-center justify-content-center'>
+                        <div class='favourite d-flex align-items-center justify-content-center' title={staticMedia.isFavourite ? 'Unfavourite' : 'Favourite'}>
                           <Heart color={media.isFavourite ? 'var(--tertiary-color)' : 'currentColor'} fill={media.isFavourite ? 'var(--tertiary-color)' : 'transparent'} size='1.7rem' />
                         </div>
                       </button>
                     {/if}
-                    <button class='btn bg-dark btn-lg btn-square d-flex align-items-center justify-content-center shadow-none border-0' class:ml-10={Helper.isAuthorized()} use:click={() => copyToClipboard(Helper.isAniAuth() || !staticMedia.idMal ? `https://anilist.co/anime/${staticMedia.id}` : `https://myanimelist.net/anime/${staticMedia.idMal}`)}>
+                    {#await (staticMedia.trailer?.id && media) || episodesList.getMedia(staticMedia.idMal) then trailerUrl}
+                      {#if trailerUrl?.trailer?.id || trailerUrl?.data?.trailer?.youtube_id }
+                        <button class='btn bg-dark btn-lg btn-square d-flex align-items-center justify-content-center shadow-none border-0' title='Watch Trailer' class:ml-10={Helper.isAuthorized()} use:click={() => $trailer = { media: staticMedia, id: (trailerUrl?.trailer?.id || trailerUrl?.data?.trailer?.youtube_id) }}>
+                          <TvMinimalPlay size='1.7rem' />
+                        </button>
+                      {/if}
+                    {/await}
+                    <button class='btn bg-dark btn-lg btn-square d-flex align-items-center justify-content-center shadow-none border-0' title='Share to Clipboard' class:ml-10={Helper.isAuthorized()} use:click={() => copyToClipboard(Helper.isAniAuth() || !staticMedia.idMal ? `https://anilist.co/anime/${staticMedia.id}` : `https://myanimelist.net/anime/${staticMedia.idMal}`)}>
                       <Share2 size='1.7rem' />
                     </button>
-                    <button class='btn bg-dark btn-lg btn-square d-flex align-items-center justify-content-center shadow-none border-0 ml-10' use:click={() => openInBrowser(Helper.isAniAuth() || !staticMedia.idMal ? `https://anilist.co/anime/${staticMedia.id}` : `https://myanimelist.net/anime/${staticMedia.idMal}`)}>
+                    <button class='btn bg-dark btn-lg btn-square d-flex align-items-center justify-content-center shadow-none border-0 ml-10' title={`View on ${Helper.isAniAuth() || !staticMedia.idMal ? 'Anilist' : 'MyAnimeList'}`} use:click={() => openInBrowser(Helper.isAniAuth() || !staticMedia.idMal ? `https://anilist.co/anime/${staticMedia.id}` : `https://myanimelist.net/anime/${staticMedia.idMal}`)}>
                       <ExternalLink size='1.7rem' />
                     </button>
                   </div>

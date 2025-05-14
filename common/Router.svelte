@@ -12,7 +12,7 @@
   export let playPage = false
 
   $: $search = page === 'search' && $search.scheduleList ? { format: [], format_not: [], status: [], status_not: [] } : { format: [], format_not: [], status: [], status_not: [], ...$search }
-  $: visible = !overlay.includes('torrent') && !overlay.includes('notifications') && !overlay.includes('profiles') && !overlay.includes('minimizetray') && !playPage && !$media?.display
+  $: visible = !overlay.includes('torrent') && !overlay.includes('notifications') && !overlay.includes('profiles') && !overlay.includes('minimizetray') && !overlay.includes('trailer') && !playPage && !$media?.display
 </script>
 <div class='w-full h-full position-absolute overflow-hidden' class:invisible={!($media && (Object.keys($media).length > 0)) || (playPage && overlay.includes('viewanime')) || (!visible && (page !== 'player'))}>
   <Miniplayer active={($media && (Object.keys($media).length > 0)) && ((page !== 'player' && visible) || (overlay.includes('viewanime') && visible))} class='bg-dark-light z-100 {(page === `player` && !overlay.includes(`viewanime`)) ? `h-full` : ``}' padding='2rem'>

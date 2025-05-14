@@ -98,7 +98,7 @@
           {/if}
         </div>
         {#if $profiles.length > 0}
-          <div class='info box pointer border-0 rounded-top-10 pt-10 pb-10 d-flex align-items-center justify-content-center text-center font-weight-bold'>
+          <div class='info box pointer border-0 rounded-top-30 pt-10 pb-10 d-flex align-items-center justify-content-center text-center font-weight-bold'>
             Other Profiles
           </div>
         {/if}
@@ -128,7 +128,7 @@
             </button>
           {/each}
           {#if ($profileAdd || (!$currentProfile && $profiles.length <= 0)) && $profiles.length < 5}
-            <div class='modal-buttons box pointer border-0 info d-flex flex-column {$profiles.length > 0 ? "" : "rounded-top-10"} {$currentProfile || $profiles.length > 0 ? "align-items-center" : "bg-transparent"}'>
+            <div class='modal-buttons box pointer border-0 info d-flex flex-column {$profiles.length > 0 ? "" : "rounded-top-30"} {$currentProfile || $profiles.length > 0 ? "align-items-center" : "bg-transparent"}'>
               {#if !$currentProfile && $profiles.length <= 0}
                 <h5 class='modal-title'>Log In</h5>
               {/if}
@@ -142,7 +142,7 @@
               </div>
             </div>
           {:else if $profiles.length < 5}
-            <button type='button' class='box pointer border-0 pt-10 pb-10 d-flex align-items-center justify-content-center text-center {$profiles.length > 0 && $currentProfile ? "" : !$currentProfile ? "rounded-bottom-10" : "rounded-top-10"}' on:click={() => { $profileAdd = true }}>
+            <button type='button' class='box pointer border-0 pt-10 pb-10 d-flex align-items-center justify-content-center text-center {$profiles.length > 0 && $currentProfile ? "" : !$currentProfile ? "rounded-bottom-30" : "rounded-top-30"}' on:click={() => { $profileAdd = true }}>
               <Plus class='mr-10' size='2.2rem' />
               <div class='mt-4'>
                 Add Profile
@@ -158,7 +158,7 @@
                 </div>
               </button>
             {/if}
-            <button type='button' class='box pointer border-0 rounded-bottom-10 pt-10 pb-10 d-flex align-items-center justify-content-center text-center' on:click={currentLogout}>
+            <button type='button' class='box pointer border-0 rounded-bottom-30 pt-10 pb-10 d-flex align-items-center justify-content-center text-center' on:click={currentLogout}>
               <LogOut class='mr-10' size='2.2rem' />
               <div class='mt-4'>
                 Sign Out
@@ -193,10 +193,10 @@
   .mw-350 {
     min-width: 35rem;
   }
-  .rounded-top-10 {
+  .rounded-top-30 {
     border-radius: 3rem 3rem 0 0;
   }
-  .rounded-bottom-10 {
+  .rounded-bottom-30 {
     border-radius: 0 0 3rem 3rem;
   }
   .auth-icon {

@@ -75,6 +75,7 @@
   import Sidebar from './components/Sidebar.svelte'
   import Router from './Router.svelte'
   import ViewAnime from './views/ViewAnime/ViewAnime.svelte'
+  import ViewTrailer from './views/ViewAnime/ViewTrailer.svelte'
   import TorrentModal from './views/TorrentSearch/TorrentModal.svelte'
   import Menubar from './components/Menubar.svelte'
   import { Toaster } from 'svelte-sonner'
@@ -97,6 +98,7 @@
     <Profiles bind:overlay={$overlay} />
     <Notifications bind:overlay={$overlay} />
     <ViewAnime bind:overlay={$overlay} />
+    <ViewTrailer bind:overlay={$overlay} />
     <TorrentModal bind:overlay={$overlay} />
     <MinimizeTray bind:overlay={$overlay} />
     <Router bind:page={$page} bind:overlay={$overlay} bind:playPage={$playPage} />

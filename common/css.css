@@ -89,6 +89,10 @@
   height: 3rem;
 }
 
+.h-40 {
+  height: 4rem;
+}
+
 .w-30 {
   width: 3rem;
 }
@@ -96,6 +100,10 @@
 .wh-25 {
   width: 2.5rem;
   height: 2.5rem;
+}
+
+.wm-1150 {
+  max-width: 115rem;
 }
 
 .wm-1200 {
@@ -112,6 +120,10 @@
     --sidebar-width: 7rem;
     --navbar-height: 0px;
   }
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
 }
 
 .line-height-1 {
@@ -185,6 +197,10 @@ a[href]:active, button:not([disabled]):active, fieldset:not([disabled]):active, 
 
 .pointer {
   cursor: pointer;
+}
+
+.mb-30 {
+  margin-bottom: 3rem;
 }
 
 .mt-2 {
