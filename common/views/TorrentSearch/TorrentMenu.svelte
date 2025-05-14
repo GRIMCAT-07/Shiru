@@ -7,7 +7,7 @@
   import { animeSchedule } from '@/modules/animeschedule.js'
   import { cache, caches } from '@/modules/cache.js'
   import { status } from '@/modules/networking.js'
-  import { getMediaMaxEp } from '@/modules/anime.js'
+  import { getMediaMaxEp, getKitsuMappings } from '@/modules/anime.js'
   import { dedupe, getResultsFromExtensions } from '@/modules/extensions/handler.js'
   import { anilistClient } from '@/modules/anilist.js'
   import { click } from '@/modules/click.js'
@@ -263,18 +263,18 @@
   <div class='d-flex'>
     <h3 class='mb-0 font-weight-bold text-white title mr-5'>{anilistClient.title(search?.media)}</h3>
     <button type='button' class='btn btn-square bg-dark ml-auto d-flex align-items-center justify-content-center rounded-2 flex-shrink-0' use:click={close}><X size='1.7rem' strokeWidth='3'/></button>
-    {#if search.media.bannerImage || search.media.trailer?.id}
-      <div class='position-absolute top-0 left-0 w-full h-full z--1'>
-        <div class='position-absolute w-full h-full overflow-hidden' >
-          <object class='img-cover w-full h-full' data={search.media.bannerImage || (search.media.trailer?.id && `https://i.ytimg.com/vi/${search.media.trailer?.id}/maxresdefault.jpg`) || ' '}>
-            <object class='img-cover w-full h-full' data={(search.media.trailer?.id && `https://i.ytimg.com/vi/${search.media.trailer?.id}/hqdefault.jpg`) || ' '}>
-              <img class='img-cover w-full h-full' src={' '} alt='bannerImage'> <!-- trailer no longer exists... hide all images. -->
+    <div class='position-absolute top-0 left-0 w-full h-full z--1'>
+      <div class='position-absolute w-full h-full overflow-hidden' >
+        {#await ((search.media.bannerImage || search.media.trailer?.id) && search.media) || getKitsuMappings(search.media.id) then banner}
+          <object class='w-full h-full img-cover' draggable='false' data={banner?.bannerImage || (banner.trailer?.id && `https://i.ytimg.com/vi/${banner.trailer?.id}/maxresdefault.jpg`) || banner?.included?.[0]?.attributes?.coverImage?.original || banner?.included?.[0]?.attributes?.coverImage?.large || banner?.included?.[0]?.attributes?.coverImage?.small || banner?.included?.[0]?.attributes?.coverImage?.tiny || ' '}>
+            <object class='w-full h-full img-cover' draggable='false' data={(banner.trailer?.id && `https://i.ytimg.com/vi/${banner.trailer?.id}/hqdefault.jpg`) || ' '}>
+              <img class='w-full h-full img-cover' draggable='false' src={' '} alt='banner'> <!-- trailer no longer exists... hide all images. -->
             </object>
           </object>
-        </div>
-        <div class='position-absolute top-0 left-0 w-full h-full' style='background: var(--torrent-banner-gradient)' />
+        {/await}
       </div>
-    {/if}
+      <div class='position-absolute top-0 left-0 w-full h-full' style='background: var(--torrent-banner-gradient)' />
+    </div>
   </div>
   <div class='input-group mt-20 h-40'>
     <Search size='2.6rem' strokeWidth='2.5' class='position-absolute z-10 text-dark-light h-full pl-10 pointer-events-none' />

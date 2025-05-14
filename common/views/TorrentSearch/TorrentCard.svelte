@@ -2,7 +2,7 @@
   import { click } from '@/modules/click.js'
   import { matchPhrase } from '@/modules/util.js'
   import { fastPrettyBytes, since } from '@/modules/util.js'
-  import { getEpisodeMetadataForMedia } from '@/modules/anime.js'
+  import { getEpisodeMetadataForMedia, getKitsuMappings } from '@/modules/anime.js'
   import { Database, BadgeCheck, FileQuestion } from 'lucide-svelte'
   import { toast } from 'svelte-sonner'
 
@@ -126,22 +126,24 @@
 </script>
 
 <div bind:this={card} class='card bg-dark p-15 d-flex mx-0 overflow-hidden pointer mb-10 mt-0 position-relative scale rounded-3' class:border-best={type === 'best'} class:border-magnet={type === 'magnet'} class:glow={countdown > -1} role='button' tabindex='0' use:click={() => play(result)} on:contextmenu|preventDefault={() => copyToClipboard(result.link)} title={result.parseObject.file_name}>
-  {#if media.bannerImage || media.trailer?.id}
-    <div class='position-absolute top-0 left-0 w-full h-full'>
-      <div class='position-absolute w-full h-full overflow-hidden' class:image-border={type === 'default'} >
-        {#await getEpisodeMetadataForMedia(media) then metadata}
-          <object class='img-cover w-full h-full' data={metadata?.[episode]?.image || ' '}>
-            <object class='img-cover w-full h-full' data={media.bannerImage || (media.trailer?.id && `https://i.ytimg.com/vi/${media.trailer?.id}/maxresdefault.jpg`) || ' '}>
-              <object class='img-cover w-full h-full' data={(media.trailer?.id && `https://i.ytimg.com/vi/${media.trailer?.id}/hqdefault.jpg`) || ' '}>
-                <img class='img-cover w-full h-full' src={' '} alt='bannerImage'> <!-- trailer no longer exists... hide all images. -->
-              </object>
+  <div class='position-absolute top-0 left-0 w-full h-full'>
+    <div class='position-absolute w-full h-full overflow-hidden' class:image-border={type === 'default'} >
+      {#await getEpisodeMetadataForMedia(media) then metadata}
+        <object class='img-cover w-full h-full' data={metadata?.[episode]?.image || ' '}>
+          <object class='img-cover w-full h-full' data={media.bannerImage || (media.trailer?.id && `https://i.ytimg.com/vi/${media.trailer?.id}/maxresdefault.jpg`) || ' '}>
+            <object class='img-cover w-full h-full' data={(media.trailer?.id && `https://i.ytimg.com/vi/${media.trailer?.id}/hqdefault.jpg`) || ' '}>
+              {#await getKitsuMappings(media.id) then banner} <!-- final attempt when trailer is missing -->
+                <object class='img-cover w-full h-full' draggable='false' data={banner?.included?.[0]?.attributes?.coverImage?.original || banner?.included?.[0]?.attributes?.coverImage?.large || banner?.included?.[0]?.attributes?.coverImage?.small || banner?.included?.[0]?.attributes?.coverImage?.tiny || ' '}>
+                  <img class='img-cover w-full h-full' draggable='false' src={' '} alt='banner'> <!-- nothing found on kitsu... hide all images. -->
+                </object>
+              {/await}
             </object>
           </object>
-        {/await}
-      </div>
-      <div class='position-absolute top-0 left-0 w-full h-full' style='background: var(--torrent-card-gradient);' />
+        </object>
+      {/await}
     </div>
-  {/if}
+    <div class='position-absolute top-0 left-0 w-full h-full' style='background: var(--torrent-card-gradient);' />
+  </div>
   <div class='d-flex pl-10 flex-column justify-content-between w-full h-auto position-relative' style='min-height: 10rem; min-width: 0;'>
     <div class='d-flex w-full'>
       {#if result.accuracy === 'high'}
