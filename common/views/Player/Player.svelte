@@ -331,21 +331,34 @@
     wasPaused = null
     currentTime = targetTime
   }
-  $: pagePause(page, playPage)
-  let pagePaused = false
-  function pagePause(page, playPage) {
-    if (buffer === 0) {
-      pagePaused = false
+  $: pagePause(page, playPage, overlay)
+  let pagePaused = 0
+  function pagePause(page, playPage, overlay) {
+    if (buffer === 0 && pagePaused) {
+      pagePaused = 1
       return
     }
-    if (!video?.ended && (((page !== 'player') || overlay?.length > 0) && !paused && playPage && !pip)) {
-      pagePaused = false
-      playPause()
-    } else if (!video?.ended && ((page === 'player') && paused && !pagePaused && (!overlay || overlay.length === 0)) && playPage && !pip) {
-      playPause()
-    } else if ((((page !== 'player') || overlay?.length > 0) && paused)) {
-      pagePaused = true
+    const playerPage = page === 'player'
+    const viewDetails = overlay?.length === 1 && overlay.includes('viewanime')
+    const overlayCount = overlay?.length
+    if (!video?.ended) {
+      if ((!playerPage || viewDetails) && !paused && playPage && !pip) {
+        pagePaused = 2
+        playPause()
+      } else if (playerPage && paused && pagePaused === 2 && !overlayCount && playPage && !pip) {
+        pagePaused = 1
+        playPause()
+      } else if (overlayCount && ((!viewDetails && !playerPage) || overlayCount > 1) && !paused && !playPage && !pip) {
+        pagePaused = 2
+        playPause()
+      } else if ((!overlayCount || viewDetails) && paused && pagePaused === 2 && !playPage && !pip) {
+        pagePaused = 1
+        playPause()
+      } else if ((!playerPage || overlayCount) && paused && pagePaused && pagePaused !== 2) {
+        pagePaused = 3
+      }
     }
+    if (!pagePaused) pagePaused = 1
   }
   async function autoPlay () {
     emit('duration', duration)
