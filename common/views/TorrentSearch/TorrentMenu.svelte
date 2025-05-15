@@ -26,7 +26,7 @@
   function isMovie (media) {
     if (!media) return false
     if (media.format === 'MOVIE') return true
-    if ([...Object.values(media.title), ...media.synonyms].some(title => title?.toLowerCase().includes('movie'))) return true
+    if ([...Object.values(media.title), ...media.synonyms].some(title => title?.toLowerCase().includes('movie') && !title?.toLowerCase().includes('short'))) return true // TODO: revisit this, it causes false positives since the term "movie" is used randomly on shorts that are clearly not movie length.
     // if (!getParentForSpecial(media)) return true // TODO: this is good for checking movies, but false positives with normal TV shows
     return media.duration > 80 && media.episodes === 1
   }
