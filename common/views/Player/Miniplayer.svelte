@@ -21,7 +21,10 @@
     $: width = !$isMobile ? (cache.getEntry(caches.GENERAL, 'widthMiniplayer') || '0px') : '0px'
     $: position = cache.getEntry(caches.GENERAL, 'posMiniplayer') || 'bottom right'
     $: draggingPos = ''
-    $: if (!$isMobile) { cache.setEntry(caches.GENERAL, 'widthMiniplayer', width); cache.setEntry(caches.GENERAL, 'posMiniplayer', position) }
+    $: {
+        if (!$isMobile) cache.setEntry(caches.GENERAL, 'widthMiniplayer', width)
+        cache.setEntry(caches.GENERAL, 'posMiniplayer', position)
+    }
     let height = '0px'
     let left = '0px'
     let top = '0px'

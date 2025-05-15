@@ -271,13 +271,13 @@
                           <TvMinimalPlay size='1.7rem' />
                         </button>
                       {/if}
+                      <button class='btn bg-dark btn-lg btn-square d-flex align-items-center justify-content-center shadow-none border-0' title='Share to Clipboard' class:ml-10={Helper.isAuthorized() || (trailerUrl?.trailer?.id || trailerUrl?.data?.trailer?.youtube_id)} use:click={() => copyToClipboard(Helper.isAniAuth() || !staticMedia.idMal ? `https://anilist.co/anime/${staticMedia.id}` : `https://myanimelist.net/anime/${staticMedia.idMal}`)}>
+                        <Share2 size='1.7rem' />
+                      </button>
+                      <button class='btn bg-dark btn-lg btn-square d-flex align-items-center justify-content-center shadow-none border-0 ml-10' title={`View on ${Helper.isAniAuth() || !staticMedia.idMal ? 'Anilist' : 'MyAnimeList'}`} use:click={() => openInBrowser(Helper.isAniAuth() || !staticMedia.idMal ? `https://anilist.co/anime/${staticMedia.id}` : `https://myanimelist.net/anime/${staticMedia.idMal}`)}>
+                        <ExternalLink size='1.7rem' />
+                      </button>
                     {/await}
-                    <button class='btn bg-dark btn-lg btn-square d-flex align-items-center justify-content-center shadow-none border-0' title='Share to Clipboard' class:ml-10={Helper.isAuthorized()} use:click={() => copyToClipboard(Helper.isAniAuth() || !staticMedia.idMal ? `https://anilist.co/anime/${staticMedia.id}` : `https://myanimelist.net/anime/${staticMedia.idMal}`)}>
-                      <Share2 size='1.7rem' />
-                    </button>
-                    <button class='btn bg-dark btn-lg btn-square d-flex align-items-center justify-content-center shadow-none border-0 ml-10' title={`View on ${Helper.isAniAuth() || !staticMedia.idMal ? 'Anilist' : 'MyAnimeList'}`} use:click={() => openInBrowser(Helper.isAniAuth() || !staticMedia.idMal ? `https://anilist.co/anime/${staticMedia.id}` : `https://myanimelist.net/anime/${staticMedia.idMal}`)}>
-                      <ExternalLink size='1.7rem' />
-                    </button>
                   </div>
                 </div>
               </div>

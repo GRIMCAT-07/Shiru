@@ -2,6 +2,7 @@
   import { persisted } from 'svelte-persisted-store'
   import { getContext } from 'svelte'
   import { click } from '@/modules/click.js'
+  import { SUPPORTS } from '@/modules/support.js'
   import IPC from '@/modules/ipc.js'
 
   export let page
@@ -42,23 +43,31 @@
       </div>
     {/if}
 </div>
-<div class='position-absolute'>
-  <img src='./logo_filled.png' class='z-102 position-absolute w-50 h-50 m-10 pointer d-md-block d-none p-5' class:mt-20={window.version?.platform === 'darwin'} alt='ico' use:click={close} />
+<div class='position-absolute' class:right-0={SUPPORTS.isAndroid}>
+  <img src='./logo_filled.png' class='z-102 position-absolute w-50 h-50 m-10 pointer d-none p-5' class:d-md-block={!SUPPORTS.isAndroid} class:mt-20={window.version?.platform === 'darwin'} alt='ico' use:click={close} />
   {#if $debug}
-    <div class='z-100 ribbon right text-center position-absolute font-size-16 font-weight-bold'>Debug Mode</div>
+    <div class='z-100 ribbon text-center position-absolute font-size-16 font-weight-bold pointer-events-none {!SUPPORTS.isAndroid ? `ribbon-left` : `ribbon-right`}'>Debug Mode</div>
   {/if}
 </div>
 
 <style>
   .ribbon {
-    background: #f63220;
-    box-shadow: 0 0 0 999px #f63220;
+    background: var(--accent-color);
+    box-shadow: 0 0 0 10rem var(--accent-color);
     clip-path: inset(0 -100%);
-    pointer-events: none;
+    opacity: 0.6;
+  }
+  .ribbon-left {
     min-width: 16rem;
     inset: 0 auto auto 0;
     transform-origin: 100% 0;
     transform: translate(-29.3%) rotate(-45deg);
+  }
+  .ribbon-right {
+    min-width: 19rem;
+    inset: 0 0 auto auto;
+    transform-origin: 0 0;
+    transform: translate(29.3%) rotate(45deg);
   }
   .navbar {
     --navbar-height: 32px !important;

@@ -7,6 +7,7 @@
   import { animeSchedule } from '@/modules/animeschedule.js'
   import { cache, caches } from '@/modules/cache.js'
   import { status } from '@/modules/networking.js'
+  import { SUPPORTS } from '@/modules/support.js'
   import { getMediaMaxEp, getKitsuMappings } from '@/modules/anime.js'
   import { dedupe, getResultsFromExtensions } from '@/modules/extensions/handler.js'
   import { anilistClient } from '@/modules/anilist.js'
@@ -261,7 +262,7 @@
 
 <div class='controls w-full bg-very-dark position-sticky top-0 z-10 pt-20 pb-10 px-30 mb-10'>
   <div class='d-flex'>
-    <h3 class='mb-0 font-weight-bold text-white title mr-5'>{anilistClient.title(search?.media)}</h3>
+    <h3 class='mb-0 font-weight-bold text-white title mr-5' class:font-size-40={!SUPPORTS.isAndroid} class:font-size-24={SUPPORTS.isAndroid}>{anilistClient.title(search?.media)}</h3>
     <button type='button' class='btn btn-square bg-dark ml-auto d-flex align-items-center justify-content-center rounded-2 flex-shrink-0' use:click={close}><X size='1.7rem' strokeWidth='3'/></button>
     <div class='position-absolute top-0 left-0 w-full h-full z--1'>
       <div class='position-absolute w-full h-full overflow-hidden' >
@@ -280,12 +281,12 @@
     <Search size='2.6rem' strokeWidth='2.5' class='position-absolute z-10 text-dark-light h-full pl-10 pointer-events-none' />
     <input
       type='search'
-      class='form-control bg-dark pl-40 pr-20 rounded-3 h-40'
+      class='form-control bg-dark pl-40 pr-30 rounded-3 h-40'
       autocomplete='off'
       data-option='search'
       placeholder='Filter torrents by text, or manually specify one by pasting a magnet link or torrent file' bind:value={searchText} />
     <div class='dropdown primary dropleft with-arrow position-absolute z-20 h-full right-0' use:click={() => {showOptions.set(!$showOptions)}}>
-      <button type='button' class='options h-full bg-transparent border-0 pointer p-0 pr-10 muted d-flex align-items-center'><EllipsisVertical size='2rem' /></button>
+      <button type='button' class='options h-full bg-transparent border-0 pointer p-0 pr-10 muted d-flex align-items-center' title='More Options'><EllipsisVertical size='2rem' /></button>
       <div class='position-absolute visibility top-0 text-capitalize hm-40 text-nowrap' class:hidden={!$showOptions}>
         <div class='dropdown dropleft with-arrow z-20 pointer bg-dark p-5 rounded-1 option' aria-label='Preferred Audio Language' title='Preferred Audio Language' use:click={toggleDropdown}>
           <div class='d-flex align-items-center justify-content-center pr-5'><ChevronLeft size='2rem' strokeWidth={2.5}  /><span class='ml-10'>Preferred Audio</span></div>
@@ -305,9 +306,9 @@
   </div>
   <div class='row mt-10'>
     <div class='col-12 col-sm-6 d-flex align-items-center justify-content-center justify-content-sm-start'>
-      <div class='d-flex align-items-center mr-5 w-140 overflow-hidden' title='Toggle Autoplay'>
+      <div class='d-flex align-items-center mr-5 overflow-hidden' title='Toggle Autoplay'>
         <Timer size='2.75rem' class='position-absolute z-10 text-dark-light pl-10 pointer-events-none' />
-        <button type='button' class='form-control w-full bg-dark pointer pl-15 control text-nowrap' use:click={() => autoPlayToggle()}>
+        <button type='button' class='form-control w-full bg-dark pointer control text-nowrap {!$settings.rssAutoplay ? `pl-15` : `px-25`}' use:click={() => autoPlayToggle()}>
         <span class:ml-20={!$settings.rssAutoplay} class:ml-10={$settings.rssAutoplay}>
           {#if $settings.rssAutoplay}
             Autoplay [{countdown}]
@@ -317,7 +318,7 @@
         </span>
         </button>
       </div>
-      <div class='d-flex align-items-center mr-5' style='width: calc(5.5rem + {String(search.episode).length * .75}rem) !important'  title='Episode'>
+      <div class='d-flex align-items-center mr-5' style='width: calc(5.5rem + {(String(search.episode).length <= 10 ? String(search.episode).length : 10) * (SUPPORTS.isAndroid ? 1.1 : .85)}rem) !important' title='Episode'>
         <Clapperboard size='2.75rem' class='position-absolute z-10 text-dark-light pl-10 pointer-events-none' />
         <input type='number' inputmode='numeric' pattern='[0-9]*' class='form-control bg-dark pl-40 control' placeholder='5' value={search.episode} on:input={episodeInput} disabled={(!search.episode && search.episode !== 0) || movie} />
       </div>
@@ -448,14 +449,18 @@
     max-width: 100%;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 1);
   }
+  .pr-30 {
+    padding-right: 3rem;
+  }
   .pl-40 {
     padding-left: 4rem;
   }
   .mt-80 {
     margin-top: 8rem;
   }
-  .w-140 {
-    width: 14rem;
+  .px-25 {
+    padding-left: 2.5rem;
+    padding-right: 2rem;
   }
   .px-30 {
     padding-left: 3rem;

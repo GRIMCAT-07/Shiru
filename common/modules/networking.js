@@ -42,14 +42,14 @@ async function ping(timeout = 2000) {
     const signal = controller.signal
     const timer = setTimeout(() => controller.abort(), timeout)
     try {
-        await fetch('https://cp.cloudflare.com/generate_204?cacheBust=' + Date.now(), {
+        const res = await fetch('https://cp.cloudflare.com/generate_204?cacheBust=' + Date.now(), {
             method: 'HEAD',
             mode: 'no-cors',
             cache: 'no-cache',
             headers: { 'Pragma': 'no-cache' },
             signal
         })
-        return true
+        return res?.ok
     } catch (err) {
         return false
     } finally {
@@ -65,7 +65,7 @@ export async function isOffline(error) {
         offlinePromise = (async () => {
             if (status.value === 'offline') return true
             debug('Detected an error when executing #fetch(), checking for network outage...')
-            if (!(!error?.response && /request failed|failed to fetch|network\s?error/i.test(error?.message))) return false
+            if (!(!error?.response && (/request failed|failed to fetch|resolve host|network\s?error/i.test(error?.message) || (!error?.message && error?.status === 404)))) return false
             debug(`Verified suspicious error with navigator.onLine=${navigator.onLine}, verifying with ping...`)
             const result = await ping()
             if (!result) {

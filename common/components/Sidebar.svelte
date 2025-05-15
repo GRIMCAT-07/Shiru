@@ -7,11 +7,12 @@
   import { actionPrompt } from '@/components/MinimizeTray.svelte'
   import { settings } from '@/modules/settings.js'
   import { SUPPORTS } from '@/modules/support.js'
+  import { status } from '@/modules/networking.js'
   import { toast } from 'svelte-sonner'
   import Helper from '@/modules/helper.js'
   import IPC from '@/modules/ipc.js'
   import SidebarLink from '@/components/SidebarLink.svelte'
-  import { Clock, Download, Heart, Home, Search, ListVideo, TvMinimalPlay, LogIn, Settings, Users, Bell, BellDot } from 'lucide-svelte'
+  import { CalendarSearch, Download, Heart, Home, Search, ListVideo, History, TvMinimalPlay, LogIn, Settings, Users, Bell, BellDot } from 'lucide-svelte'
 
   let updateState = ''
 
@@ -31,8 +32,9 @@
 
 <div class='sidebar z-30 d-md-block' class:animated={$settings.expandingSidebar}>
   <div class='sidebar-overlay z--1 pointer-events-none h-full position-absolute' />
-  <div class='sidebar-menu h-full d-flex flex-column justify-content-center align-items-center m-0 pb-5 animate' class:br-10={!$settings.expandingSidebar} class:pt-100={!SUPPORTS.isAndroid}>
+  <div class='sidebar-menu h-full d-flex flex-column m-0 pb-5 animate' class:br-10={!$settings.expandingSidebar}>
     {#if !SUPPORTS.isAndroid}
+      <div class='status-transition w-50 m-10 p-5 mb-0 top-0 flex-shrink-0 pointer-events-none {$status === `offline` ? `h-80` : `h-50`}'/>
       <SidebarLink click={() => { $profileView = !$profileView }} icon='login' text={Helper.getUser() ? 'Profiles' : 'Login'} css='{!SUPPORTS.isAndroid ? `mt-auto` : ``}' {page} overlay={!$notifyView && !$actionPrompt && $profileView && 'profile'} nowPlaying={$view} image={Helper.getUserAvatar()}>
         <LogIn size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' />
       </SidebarLink>
@@ -44,7 +46,7 @@
       <Search size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' stroke-width='2.5' stroke='currentColor' color={active ? 'currentColor' : '#5e6061'} />
     </SidebarLink>
     <SidebarLink click={() => { page = 'schedule' }} _page='schedule' icon='schedule' text='Schedule' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
-      <Clock size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
+      <CalendarSearch size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
     </SidebarLink>
     {#if $media?.media}
       {@const currentMedia = $view}
@@ -60,7 +62,7 @@
           $view = (currentMedia?.id === $media?.media.id && active ? null : $media?.media)
         }
       }} rbClick={() => { $view = (currentMedia?.id === $media?.media.id && active ? null : $media?.media) }} _page={playPage ? 'player' : ''} icon='queue_music' text={$media?.display ? 'Last Watched' : 'Now Playing'} {page} overlay={active} nowPlaying={!playPage && ($view?.id === $media?.media?.id)} let:active>
-        <svelte:component this={playPage ? TvMinimalPlay : ListVideo} size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
+        <svelte:component this={playPage ? TvMinimalPlay : $media?.display ? History : ListVideo} size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
       </SidebarLink>
     {/if}
     <SidebarLink click={() => { page = 'watchtogether' }} _page='watchtogether' icon='groups' text='Watch Together' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>

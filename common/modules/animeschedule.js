@@ -68,9 +68,9 @@ class AnimeSchedule {
 
     async findNewDelayedEpisodes() { // currently only dubs are handled as they typically get delayed...
         debug(`Checking for delayed dub episodes...`)
-        const delayedEpisodes = (await this.dubAiringLists.value).filter(entry => new Date(entry.delayedFrom) <= new Date() && new Date(entry.delayedUntil) > new Date()).flatMap(entry => Array.from({ length: entry.episodeNumber - (entry.subtractedEpisodeNumber || entry.episodeNumber) + 1 }, (_, i) => (entry.subtractedEpisodeNumber || entry.episodeNumber) + i).filter(episode => !cache.getEntry(caches.NOTIFICATIONS, 'delayedDubs').includes(`${entry?.media?.media?.id}:${episode}:${entry.delayedUntil}`)).map(episode => ({ ...entry, episodeNumber: episode, subtractedEpisodeNumber: undefined })))
-        debug(`Found ${delayedEpisodes.length} new delayed episodes${delayedEpisodes.length > 0 ? '.. notifying!' : ''}`)
-        if (delayedEpisodes.length === 0) return
+        const delayedEpisodes = (await this.dubAiringLists.value)?.filter(entry => new Date(entry.delayedFrom) <= new Date() && new Date(entry.delayedUntil) > new Date()).flatMap(entry => Array.from({ length: entry.episodeNumber - (entry.subtractedEpisodeNumber || entry.episodeNumber) + 1 }, (_, i) => (entry.subtractedEpisodeNumber || entry.episodeNumber) + i)?.filter(episode => !cache.getEntry(caches.NOTIFICATIONS, 'delayedDubs').includes(`${entry?.media?.media?.id}:${episode}:${entry.delayedUntil}`))?.map(episode => ({ ...entry, episodeNumber: episode, subtractedEpisodeNumber: undefined })))
+        debug(`Found ${delayedEpisodes?.length} new delayed episodes${delayedEpisodes?.length ? '.. notifying!' : ''}`)
+        if (!delayedEpisodes?.length) return
         await anilistClient.searchAllIDS({id: delayedEpisodes.map(entry => entry?.media?.media.id)})
         for (const entry of delayedEpisodes) {
             const media = entry?.media?.media
@@ -127,9 +127,9 @@ class AnimeSchedule {
             const airingListKey = `${type === 'Hentai' ? 'sub' : type.toLowerCase()}AiringLists`
 
             debug(`Checking for new ${type} Schedule notifications`)
-            const newNotifications = (await this[airingListKey].value).filter(entry => (entry?.unaired && ((type !== 'Hentai' && !(entry?.media?.media?.genres || entry?.genres)?.includes('Hentai')) || (type === 'Hentai' && (entry?.media?.media?.genres || entry?.genres)?.includes('Hentai'))) && !cache.getEntry(caches.NOTIFICATIONS, notifyKey).includes(entry?.media?.media?.id || entry?.id))).map(entry => entry?.media?.media || entry)
+            const newNotifications = (await this[airingListKey].value)?.filter(entry => (entry?.unaired && ((type !== 'Hentai' && !(entry?.media?.media?.genres || entry?.genres)?.includes('Hentai')) || (type === 'Hentai' && (entry?.media?.media?.genres || entry?.genres)?.includes('Hentai'))) && !cache.getEntry(caches.NOTIFICATIONS, notifyKey).includes(entry?.media?.media?.id || entry?.id))).map(entry => entry?.media?.media || entry)
             debug(`Found ${newNotifications?.length} new ${type} notifications`)
-            if (newNotifications?.length === 0) return
+            if (!newNotifications?.length) return
             await anilistClient.searchAllIDS({id: newNotifications.map(media => media.id)})
             for (const media of newNotifications) {
                 const cachedMedia = mediaCache.value[media?.id]
@@ -257,7 +257,7 @@ class AnimeSchedule {
         debug(`Getting media for schedule feed (${type}) page ${page} perPage ${perPage}`)
         if (!this[`${type.toLowerCase()}AiredLists`].value) await this.feedChanged(type)
         const currentTime = Math.floor(Date.now() / 1000)
-        let res = await this[`${type.toLowerCase()}AiredLists`].value
+        let res = (await this[`${type.toLowerCase()}AiredLists`].value) || []
         const section = settings.value.homeSections.find(s => s[0] === `${type}${type === `Hentai` ? `` : `bed`} Releases`)
         if (section && section[2].length > 0) res = res.filter(episode => section[2].includes(episode.format) && (section[2].includes('TV_SHORT') || !episode.duration || (episode.duration >= 12)))
         const cachedAiredLists = this[`${type.toLowerCase()}AiredListsCache`].value[`${page}-${perPage}`]

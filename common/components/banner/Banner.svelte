@@ -21,7 +21,7 @@
   }
 </script>
 
-<div class='w-full h-450 position-relative'>
+<div class='w-full h-400 position-relative'>
   <!-- really shit and hacky way of fixing scroll position jumping when banner changes height -->
   <div class='position-absolute top-0 transparent h-450 opacity-0'>.</div>
   {#await data}

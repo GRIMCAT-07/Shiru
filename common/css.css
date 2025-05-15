@@ -93,6 +93,10 @@
   height: 4rem;
 }
 
+.h-80 {
+  height: 8rem;
+}
+
 .w-30 {
   width: 3rem;
 }
@@ -120,6 +124,10 @@
     --sidebar-width: 7rem;
     --navbar-height: 0px;
   }
+}
+
+.status-transition {
+  transition: height .3s ease 2s;
 }
 
 .scrollbar-none {

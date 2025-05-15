@@ -8,7 +8,7 @@
   import { SUPPORTS } from '@/modules/support.js'
   import NavbarLink from '@/components/NavbarLink.svelte'
   import { onDestroy, onMount } from 'svelte'
-  import { Home, Search, Users, Clock, Settings, Bell, BellDot, ListVideo, TvMinimalPlay } from 'lucide-svelte'
+  import { Home, Search, Users, CalendarSearch, Settings, Bell, BellDot, ListVideo, History, TvMinimalPlay } from 'lucide-svelte'
   const view = getContext('view')
   export let page
   export let playPage
@@ -39,7 +39,7 @@
       <Search size='3.4rem' class='flex-shrink-0 p-5 m-5 rounded' stroke-width='2.5' stroke='currentColor' color={active ? 'currentColor' : '#5e6061'} />
     </NavbarLink>
     <NavbarLink click={() => { page = 'schedule' }} _page='schedule' icon='schedule' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
-      <Clock size='3.4rem' class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
+      <CalendarSearch size='3.4rem' class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
     </NavbarLink>
     {#if $media?.media}
       {@const currentMedia = $view}
@@ -55,7 +55,7 @@
           $view = (currentMedia?.id === $media?.media.id && active ? null : $media?.media)
         }
       }} rbClick={() => { $view = (currentMedia?.id === $media?.media.id && active ? null : $media?.media) }} _page={playPage ? 'player' : ''} icon='queue_music' {page} overlay={active} nowPlaying={!playPage && ($view?.id === $media?.media?.id)} let:active>
-        <svelte:component this={playPage ? TvMinimalPlay : ListVideo} size='3.4rem' class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
+        <svelte:component this={playPage ? TvMinimalPlay : $media?.display ? History : ListVideo} size='3.4rem' class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
       </NavbarLink>
     {/if}
     <NavbarLink click={() => { page = 'watchtogether' }} _page='watchtogether' icon='groups' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
