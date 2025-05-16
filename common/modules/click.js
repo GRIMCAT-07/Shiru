@@ -3,10 +3,18 @@ import { SUPPORTS } from '@/modules/support.js'
 let lastTapElement = null
 let lastTapTarget = null
 let lastHoverElement = null
+let lastInteractionMethod = 'mouse'
 
 const noop = _ => {}
 
-document.addEventListener('pointerup', (e) => {
+document.addEventListener('mousedown', () => lastInteractionMethod = 'mouse')
+document.addEventListener('touchstart', () => lastInteractionMethod = 'touch')
+document.addEventListener('pointerup', selectionChange)
+document.addEventListener('focusin', (e) => {
+  if (lastInteractionMethod !== 'dpad') return
+  selectionChange(e)
+})
+function selectionChange(e) {
   const activeEl = document.activeElement
   const isTextInput = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable)
   if (!isTextInput && !e.target?.closest('.select-all')) window.getSelection()?.removeAllRanges()
@@ -18,7 +26,7 @@ document.addEventListener('pointerup', (e) => {
       lastHoverElement = null
     }
   }, 10)
-})
+}
 
 document.addEventListener('pointercancel', (e) => {
   lastTapElement?.(false)
@@ -329,7 +337,8 @@ queueMicrotask(() => {
   document.addEventListener('keydown', e => {
     if (DirectionKeyMap[e.key]) {
       e.preventDefault()
+      lastInteractionMethod = 'dpad'
       navigateDPad(DirectionKeyMap[e.key])
-    }
+    } else lastInteractionMethod = 'keyboard'
   })
 })

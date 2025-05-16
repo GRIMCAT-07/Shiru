@@ -318,8 +318,8 @@ img[src=''], img[src=' '] {
 
 *:focus-visible {
   outline: none;
-  border-radius: 5px;
-  box-shadow: inset 0 0 0 1.5px #eee !important;
+  border-radius: .5rem;
+  box-shadow: inset 0 0 0 .4rem var(--tertiary-color) !important;
 }
 
 .btn-secondary:focus-visible {

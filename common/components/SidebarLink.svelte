@@ -20,7 +20,7 @@
   }
 </script>
 
-<div class='sidebar-link sidebar-link-with-icon pointer overflow-hidden {css}' class:my-auto={SUPPORTS.isAndroid} use:click={() => { handleOverlays(); _click() } } on:contextmenu|preventDefault={() => { if (rbClick) { handleOverlays(); rbClick() } } }>
+<div class='sidebar-link sidebar-link-with-icon pointer overflow-hidden {css} {SUPPORTS.isAndroid ? `my-auto pl-12` : `pl-14`}' use:click={() => { handleOverlays(); _click() } } on:contextmenu|preventDefault={() => { if (rbClick) { handleOverlays(); rbClick() } } }>
   <span class='text-nowrap d-flex align-items-center w-full h-full'>
     {#if image}
       <span class='rounded d-flex' title={text}>
@@ -61,11 +61,29 @@
     color: var(--dark-color);
   }
 
+  .sidebar-link:focus > span > span:nth-child(1), .sidebar-link:focus-visible > span > span:nth-child(1) {
+    background: #fff;
+    color: var(--dark-color);
+  }
+
+  .sidebar-link:focus, .sidebar-link:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
   .sidebar-link {
     width: 100%;
     font-size: 1.4rem;
-    padding: 0.75rem 1.5rem;
+    padding: 0.75rem;
     height: 5.5rem;
+  }
+
+  .pl-14 {
+    padding-left: 1.4rem;
+  }
+
+  .pl-12 {
+    padding-left: 1.2rem;
   }
 
   .sidebar-link img {

@@ -24,7 +24,7 @@
 </script>
 
 <div class='w-full z-101 navbar bg-transparent border-0 p-0 d-flex draggable'>
-    {#if window.version?.platform !== 'darwin'}
+    {#if window.version?.platform !== 'darwin' && !SUPPORTS.isAndroid}
       <div class='window-controls d-flex position-absolute top-0 right-0 h-full'>
         <button class='button max-button d-flex border-0 color-white align-items-center justify-content-center' on:click={() => IPC.emit('minimize')}><svg class='svg-controls' height='12' role='img' viewBox='0 0 12 12' width='12'><rect fill='currentColor' height='1' width='10' x='1' y='6' /></svg></button>
         <button class='button restore-button d-flex border-0 color-white align-items-center justify-content-center' on:click={async () => IPC.emit('maximize')}>

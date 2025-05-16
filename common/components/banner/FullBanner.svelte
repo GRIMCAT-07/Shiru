@@ -8,7 +8,7 @@
   import AudioLabel from '@/views/ViewAnime/AudioLabel.svelte'
   import Scoring from '@/views/ViewAnime/Scoring.svelte'
   import Helper from "@/modules/helper.js"
-  import { Play, Heart, Eye } from 'lucide-svelte'
+  import { Play, Heart } from 'lucide-svelte'
   import { getContext } from 'svelte'
 
   export let mediaList
@@ -115,9 +115,12 @@
     {/each}
   </div>
   <div class='d-flex flex-row pb-10 w-600 mw-full default-cursor'>
-    <button class='btn bg-dark-light px-20 shadow-none border-0 d-flex align-items-center justify-content-center' use:click={() => playMedia(currentStatic)}>
-      <Play class='mr-10' fill='currentColor' size='1.7rem' />
-      <span>Watch Now</span>
+    <button class='btn bg-dark-light px-20 shadow-none border-0 d-flex align-items-center justify-content-center' title='Watch' use:click={() => playMedia(currentStatic)}>
+      <Play class='mr-10' size='1.7rem' />
+      <span>{current.mediaListEntry?.progress ? current.mediaListEntry?.status === 'COMPLETED' ? 'Rewatch Now' : 'Continue Now' : 'Watch Now'}</span>
+    </button>
+    <button class='btn bg-dark-light ml-10 px-20 shadow-none border-0 d-flex align-items-center justify-content-center' title='View Details' use:click={viewMedia}>
+      <span>View Details</span>
     </button>
     {#if Helper.isAuthorized()}
       <Scoring media={current} />
@@ -129,14 +132,11 @@
         </div>
       </button>
     {/if}
-    <button class='btn bg-dark-light btn-square ml-10 d-flex align-items-center justify-content-center shadow-none border-0' title='View Details' use:click={viewMedia}>
-      <Eye size='1.7rem' />
-    </button>
   </div>
   <div class='d-flex'>
     {#each mediaList as media}
       {@const active = (currentStatic?.id === media?.id)}
-      <div class='pt-10 pb-10 badge-wrapper' class:pointer={!active} class:default-cursor={active} use:click={() => setCurrent(media)}>
+      <div class='pt-10 pb-10 badge-wrapper' aria-hidden='true' class:pointer={!active} class:default-cursor={active} use:click={() => setCurrent(media)}>
         <div class='rounded bg-dark-light mr-10 progress-badge overflow-hidden' class:active style='height: 3px;' style:width={active ? '5rem' : '2.7rem'}>
           <div class='progress-content h-full' class:bg-white={active} />
         </div>
