@@ -106,6 +106,10 @@
   height: 2.5rem;
 }
 
+.mw-0 {
+  min-width: 0;
+}
+
 .wm-1150 {
   max-width: 115rem;
 }
@@ -140,6 +144,18 @@
 
 .line-height-normal {
   line-height: normal;
+}
+
+.line-2 {
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.line-3 {
+  display: -webkit-box !important;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
 .line-4 {
@@ -205,6 +221,10 @@ a[href]:active, button:not([disabled]):active, fieldset:not([disabled]):active, 
 
 .pointer {
   cursor: pointer;
+}
+
+.not-allowed {
+  cursor: not-allowed;
 }
 
 .mb-30 {
@@ -400,6 +420,10 @@ This is pretty god awful causing noticeable visual stuttering, creating the impr
 }
 .pre-wrap {
   white-space: pre-wrap
+}
+
+.p-4 {
+  padding: 0.4rem;
 }
 
 .px-50 {

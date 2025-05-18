@@ -188,7 +188,7 @@
     if (search === null || search.media?.id !== request?.media?.id || search.episode !== request?.episode) return null
     results.update(r => ({ ...r, resolved: true }))
     debug(`All query promises have successfully been resolved for ${search?.media?.id}:E${search?.episode}`, Array.from(uniqueErrors))
-    if ($status !== 'offline' && JSON.stringify(Array.from(uniqueErrors)).match(/found no results/i) && (getMediaMaxEp(search?.media, true) < search?.episode)) return { errors: [ { message: `${anilistClient.title(search.media)} ${search.media?.format !== 'MOVIE' || (getMediaMaxEp(search?.media, false) > 1) ? `Episode ${search.media.nextAiringEpisode?.episode}` : ``} hasn't released yet! ${search?.media?.nextAiringEpisode?.timeUntilAiring ? `\n${search.media?.format !== 'MOVIE' || (getMediaMaxEp(search?.media, false) > 1) ? `This episode` : `This movie`} will be released on ${new Date(Date.now() + search.media.nextAiringEpisode?.timeUntilAiring * 1000).toDateString()}` : ''}` }]}
+    if ($status !== 'offline' && JSON.stringify(Array.from(uniqueErrors)).match(/found no results/i) && (getMediaMaxEp(search?.media, true) < search?.episode)) return { errors: [ { message: `${anilistClient.title(search.media)} ${search.media?.format !== 'MOVIE' || (getMediaMaxEp(search?.media, false) > 1) ? `Episode ${search.media.nextAiringEpisode?.episode || search.episode}` : ``} hasn't released yet! ${search?.media?.nextAiringEpisode?.timeUntilAiring ? `\n${search.media?.format !== 'MOVIE' || (getMediaMaxEp(search?.media, false) > 1) ? `This episode` : `This movie`} will be released on ${new Date(Date.now() + search.media.nextAiringEpisode?.timeUntilAiring * 1000).toDateString()}` : ''}` }]}
     return { errors: Array.from(uniqueErrors).map((message) => ({ message })) }
   }
 
@@ -373,7 +373,7 @@
   {/each}
   {#if lookupHidden?.length && $results?.resolved}
     <button type='button' class='mb-10 control h-50 btn w-full p-5 rounded-3 d-flex align-items-center font-size-16 font-weight-semi-bold overflow-hidden' class:bg-dark={!viewHidden} class:bg-primary={viewHidden} use:click={()=> { viewHidden = !viewHidden }}>
-      <span class='ml-20'>{lookupHidden?.length} Unseeded Results (Unavailable)</span>
+      <span class='ml-20'>{lookupHidden?.length} Unseeded Result{lookupHidden?.length > 1 ? 's' : ''} (Unavailable)</span>
       <svelte:component this={ viewHidden ? ChevronUp : ChevronDown } class='ml-auto mr-10' size='2.2rem' />
     </button>
     {#if viewHidden}

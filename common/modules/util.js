@@ -107,6 +107,12 @@ export function past(episodeDate, weeks = 0, skip) {
   return episodeDate
 }
 
+/** @param {Date} date */
+export function monthDay(date) {
+  const day = date.getDate()
+  return (new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric' }).format(date)) + (day % 10 === 1 && day !== 11 ? 'st' : day % 10 === 2 && day !== 12 ? 'nd' : day % 10 === 3 && day !== 13 ? 'rd' : 'th')
+}
+
 const units = [' B', ' kB', ' MB', ' GB', ' TB']
 export function fastPrettyBytes (num) {
   if (isNaN(num)) return '0 B'

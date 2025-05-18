@@ -260,7 +260,7 @@
                     {/if}
                     {#if Helper.isAniAuth()}
                       <button class='btn bg-dark btn-lg btn-square d-flex align-items-center justify-content-center shadow-none border-0 ml-10' title={media.isFavourite ? 'Unfavourite' : 'Favourite'} use:click={toggleFavourite} disabled={!Helper.isAniAuth()}>
-                        <div class='favourite d-flex align-items-center justify-content-center' title={staticMedia.isFavourite ? 'Unfavourite' : 'Favourite'}>
+                        <div class='favourite d-flex align-items-center justify-content-center' title={media.isFavourite ? 'Unfavourite' : 'Favourite'}>
                           <Heart color={media.isFavourite ? 'var(--tertiary-color)' : 'currentColor'} fill={media.isFavourite ? 'var(--tertiary-color)' : 'transparent'} size='1.7rem' />
                         </div>
                       </button>
@@ -354,7 +354,7 @@
           <button class='close order pointer z-30 bg-dark position-absolute' use:click={()=> {episodeOrder = !episodeOrder}}>
             <svelte:component this={episodeOrder ? ArrowDown01 : ArrowUp10} size='2rem' />
           </button>
-          <EpisodeList bind:episodeLoad={episodeLoad} {media} {episodeOrder} bind:userProgress bind:watched episodeCount={getMediaMaxEp(media)} {play} />
+          <EpisodeList bind:episodeLoad={episodeLoad} media={staticMedia} {episodeOrder} bind:userProgress bind:watched episodeCount={getMediaMaxEp(media)} {play} />
         </div>
       </div>
     {/if}

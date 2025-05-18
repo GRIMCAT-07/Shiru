@@ -232,9 +232,6 @@
   .font-size-28 {
     font-size: 2.8rem;
   }
-  .p-4 {
-    padding: 0.4rem;
-  }
   .w-43 {
     width: 4.3rem;
   }

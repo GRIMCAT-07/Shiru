@@ -246,9 +246,6 @@
   .font-size-10 {
     font-size: 1rem;
   }
-  .not-allowed {
-    cursor: not-allowed !important;
-  }
 
   .notification-item {
     background-color: rgb(26, 28, 32);

@@ -12,7 +12,7 @@
         </h1>
         {#if errors}
           <div class='font-size-22 text-center text-muted'>
-            {#if JSON.stringify(errors)?.match(/found no results/i) || JSON.stringify(errors)?.match(/will be released on/i)}
+            {#if JSON.stringify(errors)?.match(/found no results/i) || JSON.stringify(errors)?.match(/will be released on|hasn't released yet/i)}
               No results found.
             {:else if (JSON.stringify(errors)?.match(/extension is not enabled/i) && !errors?.filter(error => !error?.message.match(/extension is not enabled/i))?.length) || JSON.stringify(errors)?.match(/no torrent sources/i)}
               No Extensions Found

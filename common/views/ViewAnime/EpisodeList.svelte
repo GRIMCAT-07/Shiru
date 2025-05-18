@@ -31,7 +31,7 @@
 </script>
 
 <script>
-  import { since, matchPhrase } from '@/modules/util.js'
+  import { since, monthDay, matchPhrase } from '@/modules/util.js'
   import { click } from '@/modules/click.js'
   import { onMount, onDestroy } from 'svelte'
   import { episodeByAirDate } from '@/modules/extensions/handler.js'
@@ -174,7 +174,7 @@
       }
 
       const episodeNumber = episode - (zeroAsFirstEpisode ? 1 : 0)
-      episodeList[episodeNumber - (!zeroEpisode ? 1 : 0)] = { zeroEpisode, episode: episodeNumber, image: episode === 0 ? zeroEpisode[0]?.thumbnail : episodeList.some((ep) => ep.image === (image || kitsuEpisode?.thumbnail?.original || streamingThumbnail) && ep.episode !== episodeNumber) ? null : (image || kitsuEpisode?.thumbnail?.original || streamingThumbnail), summary: episode === 0 ? (zeroSummary || summary) : episodeList.some((ep) => ep.summary === (summary || overview || kitsuEpisode?.synopsis || kitsuEpisode?.description) && ep.episode !== episodeNumber) ? null : (summary || overview || kitsuEpisode?.synopsis || kitsuEpisode?.description), rating, title: title || kitsuEpisode?.titles?.en_us || kitsuEpisode?.titles?.en_jp || newTitle?.jp || oldTitle?.jp, length: lastDuration, airdate: validatedAiringAt, airingAt: validatedAiringAt, filler, dubAiring }
+      episodeList[episodeNumber - (!zeroEpisode ? 1 : 0)] = { zeroEpisode, episode: episodeNumber, image: (media?.status === 'FINISHED' || new Date(validatedAiringAt).getTime() <= (Date.now() + 7 * 24 * 60 * 60 * 1000)) ? episode === 0 ? zeroEpisode[0]?.thumbnail : episodeList.some((ep) => ep.image === (image || kitsuEpisode?.thumbnail?.original || streamingThumbnail) && ep.episode !== episodeNumber) ? null : (image || kitsuEpisode?.thumbnail?.original || streamingThumbnail) : null, summary: (media?.status === 'FINISHED' || new Date(validatedAiringAt).getTime() <= Date.now()) ? episode === 0 ? (zeroSummary || summary) : episodeList.some((ep) => ep.summary === (summary || overview || kitsuEpisode?.synopsis || kitsuEpisode?.description) && ep.episode !== episodeNumber) ? null : (summary || overview || kitsuEpisode?.synopsis || kitsuEpisode?.description) : `This episode will be released on ${monthDay(validatedAiringAt)}.`, rating, title: (media?.status === 'FINISHED' || new Date(validatedAiringAt).getTime() <= (Date.now() + 7 * 24 * 60 * 60 * 1000)) ? title || kitsuEpisode?.titles?.en_us || kitsuEpisode?.titles?.en_jp || newTitle?.jp || oldTitle?.jp : null, length: lastDuration, airdate: validatedAiringAt, airingAt: validatedAiringAt, filler, dubAiring }
     }
 
     if (zeroEpisode && episodeList.length === alEpisodes.length) episodeList = episodeList.slice(0, -1)
@@ -243,93 +243,109 @@
   {:then _}
     {#if episodeList}
       {#each currentEpisodes as { zeroEpisode, episode, image, summary, rating, title, length, airdate, filler, dubAiring}, index}
-        {#await Promise.all([title, filler, dubAiring])}
-          {#each Array.from({length: Math.min(episodeCount || 0, maxEpisodes)}) as _, index}
-            <div class='w-full px-20 content-visibility-auto scale h-150' class:my-20={!mobileList || index !== 0}>
-              <EpisodeSkeletonCard/>
-            </div>
-          {/each}
-        {:then [title, filler, dubAiring]}
-          {@const completed = !watched && userProgress >= (episode + (zeroEpisode ? 1 : 0))}
-          {@const target = userProgress + 1 === (episode + (zeroEpisode ? 1 : 0))}
-          {@const hasFiller = filler?.filler || filler?.recap}
-          {@const progress = !watched && ($animeProgress?.[episode + (zeroEpisode ? 1 : 0)] ?? 0)}
-          {@const resolvedTitle = episodeList.filter((ep) => ep.episode < episode).some((ep) => matchPhrase(ep.title, title, 0.1, true)) ? null : title}
-          <div class='w-full content-visibility-auto scale' class:my-20={!mobileList || index !== 0} class:opacity-half={completed} class:scale-target={target} class:px-20={!target} class:px-10={target} class:h-150={image || summary}>
-            <div class='rounded w-full h-full overflow-hidden d-flex flex-xsm-column flex-row pointer position-relative' class:border={target || hasFiller} class:bg-black={completed} class:border-secondary={hasFiller} class:bg-dark={!completed} use:click={() => play(episode)}>
-              {#if image}
-                <div class='h-full d-flex'>
-                  <img alt='thumbnail' src={image} class='img-cover h-full'/>
-                  {#if dubAiring}
-                    <div class='position-relative d-none sm-label'>
-                      <AudioLabel {media} episodeList={true} dubbed={dubAiring?.airdate && (new Date(dubAiring.airdate).getTime() <= new Date().getTime())} subbed={(airdate && (new Date(airdate).getTime() <= new Date().getTime())) || (dubAiring?.airdate && (new Date(dubAiring.airdate).getTime() <= new Date().getTime()))} />
-                    </div>
-                  {/if}
-                </div>
-              {/if}
-              {#if hasFiller}
-                <div class='position-absolute bottom-0 right-0 bg-secondary py-5 px-10 text-dark rounded-top rounded-left font-weight-bold'>
-                  {filler?.filler ? 'Filler' : 'Recap'}
-                </div>
-              {/if}
-              <div class='h-full w-full px-20 pt-15 d-flex flex-column'>
-                <div class='w-full d-flex flex-row mb-15'>
-                  <div class='text-white font-weight-bold font-size-16 overflow-hidden title'>
-                    {#if resolvedTitle && !resolvedTitle.includes(episode)}{episode}. {/if}{resolvedTitle || 'Episode ' + episode}
-                  </div>
-                  {#if length}
-                    <div class='ml-auto pl-5'>
-                      {length}m
-                    </div>
-                  {/if}
-                </div>
-                {#if completed}
-                  <div class='progress mb-15' style='height: 2px; min-height: 2px;'>
-                    <div class='progress-bar w-full'/>
-                  </div>
-                {:else if progress}
-                  <div class='progress mb-15' style='height: 2px; min-height: 2px;'>
-                    <div class='progress-bar' style='width: {progress}%'/>
+        {#if media?.status === 'FINISHED' || (episodeOrder ? (index === 0 || ((new Date(currentEpisodes[index - 1]?.airdate).getTime() <= new Date().getTime()) || (currentEpisodes[index - 1]?.airdate === airdate))) : (index === currentEpisodes.length - 1 || ((new Date(currentEpisodes[index + 1]?.airdate).getTime() <= new Date().getTime())) || (currentEpisodes[index + 1]?.airdate === airdate)))}
+          {#await Promise.all([title, filler, dubAiring])}
+            {#each Array.from({length: Math.min(episodeCount || 0, maxEpisodes)}) as _, index}
+              <div class='w-full px-20 content-visibility-auto scale h-150' class:my-20={!mobileList || index !== 0}>
+                <EpisodeSkeletonCard/>
+              </div>
+            {/each}
+          {:then [title, filler, dubAiring]}
+            {@const unreleased = media?.status !== 'FINISHED' && new Date(airdate).getTime() > new Date()}
+            {@const completed = !watched && userProgress >= (episode + (zeroEpisode ? 1 : 0))}
+            {@const target = userProgress + 1 === (episode + (zeroEpisode ? 1 : 0))}
+            {@const hasFiller = filler?.filler || filler?.recap}
+            {@const progress = !watched && ($animeProgress?.[episode + (zeroEpisode ? 1 : 0)] ?? 0)}
+            {@const resolvedTitle = episodeList.filter((ep) => ep.episode < episode).some((ep) => matchPhrase(ep.title, title, 0.1, true)) ? null : title}
+            <div class='w-full content-visibility-auto scale' tabindex='0' class:my-20={!mobileList || index !== 0} class:opacity-half={completed} class:scale-target={target} class:px-20={!target} class:px-10={target} class:h-150={image || (summary && !unreleased)}>
+              <div class='rounded-2 w-full h-full overflow-hidden d-flex flex-xsm-column flex-row position-relative {unreleased ? `unreleased not-allowed` : `pointer`}' class:border={target || hasFiller} class:bg-black={completed} class:border-secondary={hasFiller} class:bg-dark={!completed} use:click={() => play(episode)}>
+                <div class="unreleased-overlay position-absolute top-0 left-0 right-0 h-full pointer-events-none rounded-2" class:d-none={!unreleased}/>
+                {#if image}
+                  <div class='h-full d-flex'>
+                    <img alt='thumbnail' src={image} class='img-cover h-full'/>
+                    {#if dubAiring}
+                      <div class='position-relative d-none sm-label'>
+                        <AudioLabel {media} episodeList={true} dubbed={dubAiring?.airdate && (new Date(dubAiring.airdate).getTime() <= new Date().getTime())} subbed={(airdate && (new Date(airdate).getTime() <= new Date().getTime())) || (dubAiring?.airdate && (new Date(dubAiring.airdate).getTime() <= new Date().getTime()))} />
+                      </div>
+                    {/if}
                   </div>
                 {/if}
-                <div class='font-size-12 overflow-hidden line-4'>
-                  {summary || ''}
-                </div>
-                <div class='font-size-12 mt-auto' class:pt-10={dubAiring} class:pt-15={!dubAiring} class:mb-5={dubAiring} class:mb-10={!dubAiring}>
-                  {#if dubAiring}
-                    <div class='d-flex flex-row date-row'>
-                      <div class='mr-5 py-5 px-10 text-dark text-nowrap rounded-top rounded-left font-weight-bold' class:lg-label={image} class:bg-danger={dubAiring.delayed} class:bg-dubbed={!dubAiring.delayed}>
-                        Dub: {dubAiring.text}
-                      </div>
-                      {#if airdate || dubAiring.delayed}
-                        <div class='py-5 px-10 text-dark text-nowrap rounded-top rounded-left font-weight-bold' class:lg-label={image} class:bg-danger={!airdate && dubAiring.delayed} class:bg-subbed={!(!airdate && dubAiring.delayed)}>
-                          Sub: {airdate ? since(new Date(airdate)) : dubAiring.text}
-                        </div>
-                      {/if}
+                {#if hasFiller}
+                  <div class='position-absolute bottom-0 right-0 bg-secondary py-5 px-10 text-dark rounded-top rounded-left font-weight-bold'>
+                    {filler?.filler ? 'Filler' : 'Recap'}
+                  </div>
+                {/if}
+                <div class='h-full w-full px-20 pt-15 d-flex flex-column'>
+                  <div class='w-full d-flex flex-row mb-15'>
+                    <div class='text-white font-weight-bold font-size-16 overflow-hidden title'>
+                      {#if resolvedTitle && !resolvedTitle.includes(episode)}{episode}. {/if}{resolvedTitle || 'Episode ' + episode}
                     </div>
-                  {:else}
-                    {#if airdate}
-                      {since(new Date(airdate))}
-                    {:else if media.status === 'RELEASING' && episode > 1}
-                      In Production
+                    {#if length}
+                      <div class='ml-auto pl-5'>
+                        {length}m
+                      </div>
                     {/if}
+                  </div>
+                  {#if completed}
+                    <div class='progress mb-15' style='height: .2rem; min-height: .2rem;'>
+                      <div class='progress-bar w-full'/>
+                    </div>
+                  {:else if progress}
+                    <div class='progress mb-15' style='height: .2rem; min-height: .2rem;'>
+                      <div class='progress-bar' style='width: {progress}%'/>
+                    </div>
                   {/if}
-                  {#if airdate && dubAiring && (new Date(airdate).getTime() > new Date().getTime())}
-                    <span class='d-none' class:sm-label={image}>{since(new Date(airdate))}</span>
-                  {/if}
+                  <div class='font-size-12 overflow-hidden line-4' class:summary={unreleased} class:font-weight-bold={unreleased}>
+                    {summary || ''}
+                  </div>
+                  <div class='font-size-12 mt-auto' class:pt-10={dubAiring} class:pt-15={!dubAiring} class:mb-5={dubAiring} class:mb-10={!dubAiring}>
+                    {#if dubAiring}
+                      <div class='d-flex flex-row date-row'>
+                        <div class='mr-5 py-5 px-10 text-dark text-nowrap rounded-top rounded-left font-weight-bold' class:lg-label={image} class:bg-danger={dubAiring.delayed} class:bg-dubbed={!dubAiring.delayed}>
+                          Dub: {dubAiring.text}
+                        </div>
+                        {#if airdate || dubAiring.delayed}
+                          <div class='py-5 px-10 text-dark text-nowrap rounded-top rounded-left font-weight-bold' class:lg-label={image} class:bg-danger={!airdate && dubAiring.delayed} class:bg-subbed={!(!airdate && dubAiring.delayed)}>
+                            Sub: {airdate ? since(new Date(airdate)) : dubAiring.text}
+                          </div>
+                        {/if}
+                      </div>
+                    {:else}
+                      {#if airdate}
+                        {since(new Date(airdate))}
+                      {:else if media.status === 'RELEASING' && episode > 1}
+                        In Production
+                      {/if}
+                    {/if}
+                    {#if airdate && dubAiring && (new Date(airdate).getTime() > new Date().getTime())}
+                      <span class='d-none' class:sm-label={image}>{since(new Date(airdate))}</span>
+                    {/if}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        {/await}
+          {/await}
+        {/if}
       {/each}
     {/if}
   {/await}
 </div>
 
 <style>
+  .unreleased {
+    filter: blur(.06rem) grayscale(50%);
+  }
+  .unreleased:hover, .unreleased:focus {
+    filter: blur(0) grayscale(20%);
+  }
+  .unreleased .summary {
+    color: var(--accent-color)
+  }
+  .unreleased-overlay {
+    background: repeating-linear-gradient(-45deg, rgba(0,0,0,0.3), rgba(0,0,0,0.3) 1rem, transparent 1rem, transparent 2rem);
+  }
   .opacity-half {
-    opacity: 30%;
+    opacity: 50%;
   }
   .title {
     display: -webkit-box !important;
@@ -338,16 +354,16 @@
     word-break: break-all;
   }
   .scale {
-    transition: transform 0.2s ease;
+    transition: opacity .2s ease-in-out, transform .2s ease-in-out, padding .1s ease-in-out;
   }
-  .scale:hover {
+  .scale:hover, .scale:focus {
     transform: scale(1.04);
   }
-  .scale-target:hover {
+  .scale-target:hover, .scale-target:focus {
     transform: scale(1.02) !important;
   }
   .border {
-    --dm-border-color: white
+    --dm-border-color: white;
   }
   @media (max-width: 310px), (min-width: 993px) and (max-width: 1300px) {
     .lg-label {

@@ -87,7 +87,7 @@
 </script>
 
 <h4 class='mb-10 font-weight-bold'>Debug Settings</h4>
-<SettingCard title='Logging Levels' description='Enable logging of specific parts of the app. These logs are saved to %appdata$/Shiru/logs/main.log or ~/config/Shiru/logs/main.log.'>
+<SettingCard title='Logging Levels' description='Enable logging of specific parts of the app.{!SUPPORTS.isAndroid ? ` These logs are saved to ${window.version?.platform === `win32` ? `%appdata%` : `~/config`}/Shiru/logs/main.log.` : ``}'>
   <select class='form-control bg-dark w-300 mw-full' bind:value={$debug}>
     <option value='' selected>None</option>
     <option value='*'>All</option>
