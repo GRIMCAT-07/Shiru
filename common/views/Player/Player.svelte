@@ -861,7 +861,7 @@
   function resetImmerse () {
     clearTimeout(immerseTimeout)
     immersed = false
-    immerseTimeout = setTimeout(immersePlayer, (paused ? 5 : 1) * 1000)
+    if (!paused || miniplayer) immerseTimeout = setTimeout(immersePlayer, (paused ? 5 : 1) * 1000)
   }
 
   function toggleImmerse () {
@@ -1339,7 +1339,8 @@
   class:fitWidth
   bind:this={container}
   role='none'
-  on:pointermove={resetImmerse}
+  on:mousemove={resetImmerse}
+  on:touchmove={resetImmerse}
   on:keypress={resetImmerse}
   on:keydown={resetImmerse}
   on:mouseleave={immersePlayer}>
