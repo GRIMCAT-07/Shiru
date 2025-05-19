@@ -74,6 +74,6 @@
   .window-controls {
     backdrop-filter: blur(8px);
     width: 137px;
-    background: rgba(24, 24, 24, 0.1);
+    background: rgba(24, 24, 24, 0.2);
   }
 </style>
