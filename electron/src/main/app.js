@@ -36,6 +36,11 @@ export default class App {
     height: 900,
     frame: process.platform === 'darwin',
     titleBarStyle: 'hidden',
+    ...(process.platform !== 'darwin' ? { titleBarOverlay: {
+        color: 'rgba(47, 50, 65, 0)',
+        symbolColor: '#eee',
+        height: 28
+      } } : {}),
     backgroundColor: '#17191c',
     autoHideMenuBar: true,
     webPreferences: {
@@ -75,13 +80,6 @@ export default class App {
     this.mainWindow.on('closed', () => this.destroy())
     this.webtorrentWindow.on('closed', () => this.destroy())
     ipcMain.on('close', () => { this.close = true; this.destroy() })
-    ipcMain.on('minimize', () => this.mainWindow?.minimize())
-    ipcMain.on('maximize', () => {
-      const focusedWindow = this.mainWindow
-      focusedWindow?.isMaximized() ? focusedWindow.unmaximize() : focusedWindow.maximize()
-    })
-    this.mainWindow.on('maximize', () => this.mainWindow.webContents.send('isMaximized', true))
-    this.mainWindow.on('unmaximize', () => this.mainWindow.webContents.send('isMaximized', false))
 
     ipcMain.on('close-prompt', () => {
       this.showAndFocus()
