@@ -35,7 +35,7 @@
         let timeout = null
         function dragStart (e) {
             clearTimeout(timeout)
-            padding = '0rem'
+            padding = '0px'
             const { pointerId, offsetX, offsetY } = e
             const bounds = container.getBoundingClientRect()
             const relativeBounds = container.offsetParent.getBoundingClientRect()
@@ -96,7 +96,7 @@
             if (pointerId) node.releasePointerCapture(pointerId)
         }
         function handleResize ({ movementX }) {
-            width = width.slice(0, -2) - movementX + 'px'
+            width = parseFloat(width.slice(0, -2)) + (position?.match(/left/i) ? movementX : -movementX) + 'px'
         }
         node.addEventListener('pointerdown', resizeStart)
         node.addEventListener('pointerup', resizeEnd)
@@ -107,9 +107,7 @@
      class:mt-20={active && (position.match(/top/i) || draggingPos.match(/top/i))} class:active class:animate={!dragging} class:custompos={!position}
      style:--left={left} style:--top={top} style:--height={height} style:--width={width} style:--padding={padding} style:--maxwidth={maxwidth} style:--minwidth={minwidth}
      role='group' bind:this={container} on:dragstart|preventDefault|self>
-    {#if resize && active}
-        <div class='resize' use:resizable />
-    {/if}
+    <div class='resize resize-{position ? (position.match(/top/i) ? `b` : `t`) + (position.match(/left/i) ? `r` : `l`) : `tl`}' class:d-none={!resize || !active} use:resizable />
     <slot />
     <div class='miniplayer-footer' class:dragging use:draggable tabindex='-1'>::::</div>
 </div>
@@ -118,13 +116,32 @@
     .resize {
         background: transparent;
         position: absolute;
-        top: 0;
-        left: 0;
-        cursor: nw-resize;
         user-select: none;
         width: 1.5rem;
         height: 1.5rem;
         z-index: 100;
+    }
+    .resize-tl {
+        top: 0;
+        left: 0;
+        cursor: nw-resize;
+    }
+    .resize-tr {
+        top: 0;
+        right: 0;
+        cursor: sw-resize;
+    }
+    .resize-bl {
+        bottom: 0;
+        left: 0;
+        margin-bottom: 2.2rem;
+        cursor: sw-resize;
+    }
+    .resize-br {
+        bottom: 0;
+        right: 0;
+        margin-bottom: 2.2rem;
+        cursor: nw-resize;
     }
     .active {
         position: absolute;

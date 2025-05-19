@@ -1331,6 +1331,7 @@
 <div
   class='player w-full h-full d-flex flex-column overflow-hidden position-relative'
   class:pointer={miniplayer}
+  class:rounded-top-10={miniplayer}
   class:miniplayer
   class:pip
   class:immersed={immersed}
@@ -1479,10 +1480,10 @@
     </span>
     <!-- miniplayer buttons -->
     {#if miniplayer}
-      <span class='position-absolute rounded-10 top-0 right-0 m-5 btn-shadow' class:ctrl={!SUPPORTS.isAndroid} class:mr-40={!SUPPORTS.isAndroid} class:mr-50={SUPPORTS.isAndroid} title='Minimize' data-name='playPause' use:click={() => (playPage = !playPage)}>
+      <span class='position-absolute rounded-10 top-0 right-0 m-10 btn-shadow' class:ctrl={!SUPPORTS.isAndroid} class:mr-40={!SUPPORTS.isAndroid} class:mr-50={SUPPORTS.isAndroid} title='Minimize' data-name='playPause' use:click={() => (playPage = !playPage)}>
         <Minus size='1.9rem' strokeWidth='3'/>
       </span>
-      <span class='position-absolute rounded-10 top-0 right-0 m-5 btn-shadow' class:ctrl={!SUPPORTS.isAndroid} title='Exit' data-name='playPause' use:click={() => { window.dispatchEvent(new CustomEvent('torrent-unload')); if (page === 'player') page = 'home'}}>
+      <span class='position-absolute rounded-10 top-0 right-0 m-10 btn-shadow' class:ctrl={!SUPPORTS.isAndroid} title='Exit' data-name='playPause' use:click={() => { window.dispatchEvent(new CustomEvent('torrent-unload')); if (page === 'player') page = 'home'}}>
         <X size='1.9rem' strokeWidth='3'/>
       </span>
     {/if}
