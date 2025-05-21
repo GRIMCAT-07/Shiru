@@ -2,8 +2,8 @@
   import { generateRandomString } from "@/modules/util.js"
   import { writable } from 'simple-store-svelte'
   import { swapProfiles, alToken, malToken, profiles, sync } from '@/modules/settings.js'
-  import { platformMap } from '@/views/Settings/Settings.svelte'
   import { clientID } from "@/modules/myanimelist.js"
+  import { SUPPORTS } from '@/modules/support.js'
   import { click } from '@/modules/click.js'
   import { toast } from 'svelte-sonner'
   import { ClockAlert, LogOut, Plus, X } from 'lucide-svelte'
@@ -42,26 +42,22 @@
   }
 
   function confirmAnilist () {
-    IPC.emit('open', 'https://anilist.co/api/v2/oauth/authorize?client_id=21788&response_type=token') // Change redirect_url to shiru://alauth
-    supportNotify()
+    IPC.emit(SUPPORTS.isAndroid ? 'open' : 'open-auth', 'https://anilist.co/api/v2/oauth/authorize?client_id=21788&response_type=token') // Change redirect_url to shiru://alauth
   }
 
   function confirmMAL () {
     const state = generateRandomString(10)
     const challenge = generateRandomString(50)
     sessionStorage.setItem(state, challenge)
-    IPC.emit('open', `https://myanimelist.net/v1/oauth2/authorize?response_type=code&client_id=${clientID}&state=${state}&code_challenge=${challenge}&code_challenge_method=plain`) // Change redirect_url to shiru://malauth
-    supportNotify()
+    IPC.emit(SUPPORTS.isAndroid ? 'open' : 'open-auth', `https://myanimelist.net/v1/oauth2/authorize?response_type=code&client_id=${clientID}&state=${state}&code_challenge=${challenge}&code_challenge_method=plain`) // Change redirect_url to shiru://malauth
   }
 
-  function supportNotify() {
-    if (platformMap[window.version.platform] === 'Linux') {
-      toast('Support Notification', {
-        description: "If your linux distribution doesn't support custom protocol handlers, you can simply paste the full URL into the app.",
-        duration: 300000
-      })
-    }
-  }
+  IPC.on('auth-canceled', () => {
+    toast.error('Login Canceled', {
+      description: 'The authorization window to log into your account was closed. If this was a mistake, please try logging in again.',
+      duration: 10000
+    })
+  })
 </script>
 <script>
   export let overlay
@@ -87,12 +83,12 @@
   {#if $profileView}
     <div class='modal-dialog' on:pointerup|self={close} on:keydown={checkClose} tabindex='-1' role='button' bind:this={modal}>
       <div class='modal-content w-auto mw-350 d-flex justify-content-center flex-column'>
-        <div class="d-flex justify-content-end align-items-start w-auto">
+        <div class='d-flex justify-content-end align-items-start w-auto'>
           <button type='button' class='btn btn-square d-flex align-items-center justify-content-center' use:click={close}><X size='1.7rem' strokeWidth='3'/></button>
         </div>
         <div class='d-flex flex-column align-items-center'>
           {#if $currentProfile}
-            <img class='h-150 rounded-circle' src={$currentProfile.viewer.data.Viewer["avatar"]?.large || $currentProfile.viewer.data.Viewer["avatar"]?.medium || $currentProfile.viewer.data.Viewer["picture"]} alt='Current Profile' title='Current Profile'>
+            <img class='h-150 rounded-circle' src={$currentProfile.viewer.data.Viewer['avatar']?.large || $currentProfile.viewer.data.Viewer['avatar']?.medium || $currentProfile.viewer.data.Viewer['picture']} alt='Current Profile' title='Current Profile'>
             <img class='h-3 auth-icon rounded-circle' src={isAniProfile($currentProfile) ? './anilist_icon.png' : './myanimelist_icon.png'} alt={isAniProfile($currentProfile) ? 'Logged in with AniList' : 'Logged in with MyAnimeList'} title={isAniProfile($currentProfile) ? 'Logged in with AniList' : 'Logged in with MyAnimeList'}>
             <p class='font-size-18 font-weight-bold'>{$currentProfile.viewer.data.Viewer.name}</p>
           {/if}

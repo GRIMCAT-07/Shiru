@@ -138,6 +138,7 @@ export default class Protocol {
    */
   handleProtocol (text) {
     // Handle magnet links
+    if (!text) return
     if (text.startsWith("magnet:")) {
       this.add(text)
       return

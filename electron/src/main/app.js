@@ -5,7 +5,7 @@ import { toXmlString } from 'powertoast'
 import Jimp from 'jimp'
 import fs from 'fs'
 
-import { BrowserWindow, MessageChannelMain, Notification, Tray, Menu, nativeImage, app, dialog, ipcMain, powerMonitor, shell } from 'electron'
+import { BrowserWindow, MessageChannelMain, Notification, Tray, Menu, nativeImage, app, dialog, ipcMain, powerMonitor, shell, session } from 'electron'
 import electronShutdownHandler from '@paymoapp/electron-shutdown-handler'
 
 import { store, development } from './util.js'
@@ -173,6 +173,61 @@ export default class App {
     })
 
     ipcMain.on('webtorrent-reload', () => { if (!this.mainWindow?.isDestroyed() && !this.webtorrentWindow?.isDestroyed()) this.webtorrentWindow.webContents.postMessage('webtorrent-reload', null) })
+
+    let authWindow
+    ipcMain.on('open-auth', (event, url) => {
+      if (authWindow && !authWindow.isDestroyed()) authWindow.loadURL(url)
+      else {
+        const partitionName = 'open-auth'
+        authWindow = new BrowserWindow({
+          width: 480,
+          height: 720,
+          webPreferences: {
+            sandbox: true,
+            contextIsolation: true,
+            backgroundThrottling: false,
+            allowRunningInsecureContent: false,
+            partition: partitionName
+          },
+          icon: this.logo,
+          title: 'Login',
+          backgroundColor: '#17191c',
+          autoHideMenuBar: true
+        })
+
+        authWindow.webContents.setWindowOpenHandler(() => { return { action: 'deny' } })
+        authWindow.webContents.on('did-finish-load', () => authWindow.show())
+        authWindow.webContents.on('did-start-loading', () => authWindow.webContents.insertCSS
+          (`
+            ::-webkit-scrollbar {
+              width: 6px;
+              height: 6px;
+              background-color: transparent;
+            }
+            ::-webkit-scrollbar-thumb {
+              background-color: #2a2e32;
+              border-radius: 3px;
+            }
+            ::-webkit-scrollbar-corner {
+              background-color: transparent;
+            }
+          `))
+        authWindow.on('close', () => {
+          this.mainWindow.webContents.send('auth-canceled')
+          session.fromPartition(partitionName).clearStorageData()
+        })
+        authWindow.webContents.on('will-redirect', (event, url) => {
+          if (url.startsWith('shiru:')) {
+            event.preventDefault()
+            authWindow.destroy()
+            ipcMain.emit('handle-protocol', {}, url)
+            session.fromPartition(partitionName).clearStorageData()
+          }
+        })
+
+        authWindow.loadURL(url)
+      }
+    })
 
     ipcMain.on('quit-and-install', () => {
       if (this.updater.hasUpdate) {
