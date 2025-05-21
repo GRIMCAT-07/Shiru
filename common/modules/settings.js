@@ -217,7 +217,7 @@ export async function swapProfiles(profile, newProfile) {
     })
   } else if (profile !== null) {
     if (profile?.viewer?.data?.Viewer?.id === currentProfile?.viewer?.data?.Viewer?.id && newProfile) {
-      localStorage.setItem(alToken ? 'ALviewer' : 'MALviewer', profile)
+      localStorage.setItem(alToken ? 'ALviewer' : 'MALviewer', JSON.stringify(profile))
     } else if (profiles.value.some(p => p.viewer?.data?.Viewer?.id === profile?.viewer?.data?.Viewer?.id && newProfile)) {
       profiles.update(profiles => profiles.map(p => p.viewer?.data?.Viewer?.id === profile?.viewer?.data?.Viewer?.id ? profile : p))
     } else {
