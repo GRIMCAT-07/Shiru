@@ -2,7 +2,6 @@
   import SoftModal from '@/components/SoftModal.svelte'
   import { writable } from 'simple-store-svelte'
   import { anilistClient } from '@/modules/anilist.js'
-  import { SUPPORTS } from '@/modules/support.js'
   import { click } from '@/modules/click.js'
   import { X } from 'lucide-svelte'
   export const trailer = writable()
@@ -24,7 +23,7 @@
 
 <SoftModal class='pointer-events-none w-full scrollbar-none align-items-center mb-30' bind:showModal={$trailer} {close} id='viewTrailer'>
   <div class='pointer-events-auto d-flex align-items-center rounded-top-5 w-full wm-calc bg-dark h-40'>
-    <span class='title ml-20 font-weight-very-bold text-muted select-all mr-20' class:font-size-18={!SUPPORTS.isAndroid} class:font-size-14={SUPPORTS.isAndroid}>{anilistClient.title($trailer.media)}</span>
+    <span class='title ml-20 font-weight-very-bold text-muted select-all mr-20 font-scale-18'>{anilistClient.title($trailer.media)}</span>
     <button type='button' class='btn btn-square bg-transparent shadow-none border-0 d-flex align-items-center justify-content-center ml-auto mr-5' use:click={close}><X size='1.7rem' strokeWidth='3'/></button>
   </div>
   <div class='pointer-events-auto ratio-16-9 position-relative w-full wm-calc'>

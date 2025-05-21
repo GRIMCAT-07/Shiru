@@ -4,6 +4,7 @@
   import IPC from '@/modules/ipc.js'
   import { ExternalLink } from 'lucide-svelte'
   import ToggleTitle from '@/views/ViewAnime/ToggleTitle.svelte'
+  import ToggleFooter from '@/views/ViewAnime/ToggleFooter.svelte'
   import Helper from '@/modules/helper.js'
 
   /** @type {import('@/modules/al.d.ts').Media} */
@@ -19,15 +20,9 @@
 {#await following then res}
   {@const following = [...new Map(res?.data?.Page?.mediaList.filter(item => !Helper.isAuthorized() || item.user.id !== Helper.getUser().id).map(item => [item.user.name, item])).values()]}
   {#if following?.length}
-    {#if following.length > 4}
-      <span class='d-flex align-items-end pointer' use:click={toggleList}>
-        <ToggleTitle size={following.length} title={'Following'} showMore={showMore}></ToggleTitle>
-      </span>
-    {:else}
-      <span class='d-flex align-items-end'>
-        <ToggleTitle size={following.length} title={'Following'} showMore={showMore}></ToggleTitle>
-      </span>
-    {/if}
+    <span class='d-flex align-items-end mt-20' aria-hidden='true' class:pointer={following.length > 4} class:not-reactive={!(following.length > 4)} use:click={toggleList}>
+      <ToggleTitle title={'Following'} class={following.length > 4 ? `more` : ``}></ToggleTitle>
+    </span>
     <div class='px-15 pt-5 flex-column'>
       {#each following.slice(0, showMore ? 100 : 4) as friend}
         <div class='d-flex align-items-center w-full pt-20 font-size-16'>
@@ -40,5 +35,6 @@
         </div>
       {/each}
     </div>
+    <ToggleFooter {showMore} {toggleList} size={following.length} />
   {/if}
 {/await}

@@ -257,7 +257,7 @@
             {@const hasFiller = filler?.filler || filler?.recap}
             {@const progress = !watched && ($animeProgress?.[episode + (zeroEpisode ? 1 : 0)] ?? 0)}
             {@const resolvedTitle = episodeList.filter((ep) => ep.episode < episode).some((ep) => matchPhrase(ep.title, title, 0.1, true)) ? null : title}
-            <div class='w-full content-visibility-auto scale' tabindex='0' class:my-20={!mobileList || index !== 0} class:opacity-half={completed} class:scale-target={target} class:px-20={!target} class:px-10={target} class:h-150={image || (summary && !unreleased)}>
+            <div class='w-full content-visibility-auto scale my-20' class:opacity-half={completed} class:scale-target={target} class:px-20={!target} class:px-10={target} class:h-150={image || (summary && !unreleased)}>
               <div class='rounded-2 w-full h-full overflow-hidden d-flex flex-xsm-column flex-row position-relative {unreleased ? `unreleased not-allowed` : `pointer`}' class:border={target || hasFiller} class:bg-black={completed} class:border-secondary={hasFiller} class:bg-dark={!completed} use:click={() => play(episode)}>
                 <div class="unreleased-overlay position-absolute top-0 left-0 right-0 h-full pointer-events-none rounded-2" class:d-none={!unreleased}/>
                 {#if image}
@@ -357,10 +357,10 @@
     transition: opacity .2s ease-in-out, transform .2s ease-in-out, padding .1s ease-in-out;
   }
   .scale:hover, .scale:focus {
-    transform: scale(1.04);
+    transform: scale(1.035);
   }
   .scale-target:hover, .scale-target:focus {
-    transform: scale(1.02) !important;
+    transform: scale(1.015) !important;
   }
   .border {
     --dm-border-color: white;
@@ -386,6 +386,39 @@
     img {
       width: 100%;
       height: 15rem !important;
+    }
+  }
+
+  @media (min-width: 1920px) {
+    .scale:hover, .scale:focus {
+      transform: scale(1.04);
+    }
+    .scale-target:hover, .scale-target:focus {
+      transform: scale(1.02) !important;
+    }
+  }
+  @media (min-width: 2400px) {
+    .scale:hover, .scale:focus {
+      transform: scale(1.03);
+    }
+    .scale-target:hover, .scale-target:focus {
+      transform: scale(1.015) !important;
+    }
+  }
+  @media (min-width: 3360px) {
+    .scale:hover, .scale:focus {
+      transform: scale(1.02);
+    }
+    .scale-target:hover, .scale-target:focus {
+      transform: scale(1.01) !important;
+    }
+  }
+  @media (min-width: 4800px) {
+    .scale:hover, .scale:focus {
+      transform: scale(1.01);
+    }
+    .scale-target:hover, .scale-target:focus {
+      transform: scale(1.005) !important;
     }
   }
 </style>

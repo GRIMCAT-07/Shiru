@@ -14,7 +14,7 @@
   export let nowPlaying = false
   export let overlay = ''
 
-  const btnSize = !SUPPORTS.isAndroid ? '3.1rem' : '3.4rem'
+  const btnSize = !SUPPORTS.isAndroid ? '3.1rem' : '3.6rem'
   function handleOverlays() {
     if ((!icon.includes("login") && !icon.includes("bell") && !icon.includes("favorite")) || (!overlay && !icon.includes("favorite"))) { window.dispatchEvent(new CustomEvent('overlay-check', { detail: { nowPlaying: !overlay && nowPlaying } })) }
   }
@@ -61,12 +61,12 @@
     color: var(--dark-color);
   }
 
-  .sidebar-link:focus > span > span:nth-child(1), .sidebar-link:focus-visible > span > span:nth-child(1) {
+  .sidebar-link:focus-visible > span > span:nth-child(1) {
     background: #fff;
     color: var(--dark-color);
   }
 
-  .sidebar-link:focus, .sidebar-link:focus-visible {
+  .sidebar-link:focus-visible {
     outline: none !important;
     box-shadow: none !important;
   }

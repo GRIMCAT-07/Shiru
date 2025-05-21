@@ -24,7 +24,7 @@
   })
 
   const view = getContext('view')
-  const btnSize = !SUPPORTS.isAndroid ? '3.1rem' : '3.4rem'
+  const btnSize = !SUPPORTS.isAndroid ? '3.1rem' : '3.6rem'
 
   export let page
   export let playPage
@@ -84,7 +84,7 @@
     {/if}
     <SidebarLink click={() => { $notifyView = !$notifyView }} icon='bell' text='Notifications' css='{!$settings.donate && !SUPPORTS.isAndroid && updateState !== `downloading` && updateState !== `ready` ? `mt-auto` : ``}' {page} overlay={!$actionPrompt && $notifyView && 'notify'} nowPlaying={$view} let:active>
       {#if $hasUnreadNotifications && $hasUnreadNotifications > 0}
-        <BellDot size={btnSize} class='flex-shrink-0 p-5 m-5 rounded notify' strokeWidth='2.5' color={$notifyView ? 'white' : 'currentColor'} />
+        <BellDot size={btnSize} class='flex-shrink-0 p-5 m-5 rounded notify {$notifyView ? `` : `notify-color`}' strokeWidth='2.5' color='currentColor' />
       {:else}
         <Bell size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
       {/if}
@@ -123,12 +123,10 @@
     }
   }
   .sidebar :global(.notify):hover {
-    color: #af68fa !important;
+    color: var(--dark-color) !important;
   }
-  .sidebar :global(.notify) {
-    font-variation-settings: 'FILL' 1;
+  .sidebar :global(.notify-color) {
     color: #af68fa;
-    text-shadow: 0 0 1rem #af68fa;
   }
   @keyframes purple_glow {
     from {

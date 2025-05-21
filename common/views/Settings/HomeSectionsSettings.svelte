@@ -51,18 +51,15 @@
     </div>
   {/if}
   <div class='d-flex mb-10 w-509 mw-full not-reactive' class:tp={draggingItem === item} role='menuitem' tabindex='0'>
-    {#if !SUPPORTS.isAndroid}
-      <div class='input-group-prepend grab' class:tp={draggingItem === item} draggable='true' role='menuitem' tabindex='0' on:dragstart={({ clientY, target }) => { mouseYCoordinate = clientY; draggingItem = item; draggingItemIndex = index; distanceTopGrabbedVsPointer = target.offsetTop - clientY } } on:drag={e => { mouseYCoordinate = e.clientY }} on:dragover={() => { hoveredItemIndex = index }} on:dragend={() => { mouseYCoordinate = null; draggingItem = null; hoveredItemIndex = null; } }>
-        <span class='input-group-text d-flex align-items-center px-5'><ArrowDownUp size='1.8rem' /></span>
-      </div>
-    {:else}
-      <div class='input-group-prepend'>
-        <button use:click={() => swapItem(index, index - 1)} class='input-group-text d-flex align-items-center px-5 pointer'><ArrowUp size='1.8rem' /></button>
-      </div>
-      <div class='input-group-prepend'>
-        <button use:click={() => swapItem(index, index + 1)} class='input-group-text d-flex align-items-center px-5 pointer'><ArrowDown size='1.8rem' /></button>
-      </div>
-    {/if}
+    <div class='input-group-prepend grab' class:d-none={SUPPORTS.isAndroid} class:tp={draggingItem === item} draggable='true' role='menuitem' tabindex='0' on:dragstart={({ clientY, target }) => { mouseYCoordinate = clientY; draggingItem = item; draggingItemIndex = index; distanceTopGrabbedVsPointer = target.offsetTop - clientY } } on:drag={e => { mouseYCoordinate = e.clientY }} on:dragover={() => { hoveredItemIndex = index }} on:dragend={() => { mouseYCoordinate = null; draggingItem = null; hoveredItemIndex = null; } }>
+      <span class='input-group-text d-flex align-items-center px-5'><ArrowDownUp size='1.8rem' /></span>
+    </div>
+    <div class='input-group-prepend' class:d-none={!SUPPORTS.isAndroid}>
+      <button use:click={() => swapItem(index, index - 1)} class='input-group-text d-flex align-items-center px-5 pointer'><ArrowUp size='1.8rem' /></button>
+    </div>
+    <div class='input-group-prepend' class:d-none={!SUPPORTS.isAndroid}>
+      <button use:click={() => swapItem(index, index + 1)} class='input-group-text d-flex align-items-center px-5 pointer'><ArrowDown size='1.8rem' /></button>
+    </div>
     <div class='position-relative flex-shrink-1 w-150 mw-full'>
       <select class='form-control flex-shrink-1 bg-dark fix-border' on:change={(event) => { if (event.target.value !== homeSections[index][0]) homeSections[index] = allowedHomeSections.find(([title]) => title === event.target.value) }} bind:value={homeSections[index][0]}>
         {#each allowedHomeSections as section}

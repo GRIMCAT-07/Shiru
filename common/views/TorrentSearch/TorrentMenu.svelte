@@ -7,7 +7,6 @@
   import { animeSchedule } from '@/modules/animeschedule.js'
   import { cache, caches } from '@/modules/cache.js'
   import { status } from '@/modules/networking.js'
-  import { SUPPORTS } from '@/modules/support.js'
   import { getMediaMaxEp, getKitsuMappings } from '@/modules/anime.js'
   import { dedupe, getResultsFromExtensions } from '@/modules/extensions/handler.js'
   import { anilistClient } from '@/modules/anilist.js'
@@ -262,7 +261,7 @@
 
 <div class='controls w-full bg-very-dark position-sticky top-0 z-10 pt-20 pb-10 px-30 mb-10'>
   <div class='d-flex'>
-    <h3 class='mb-0 font-weight-bold text-white title mr-5' class:font-size-40={!SUPPORTS.isAndroid} class:font-size-24={SUPPORTS.isAndroid}>{anilistClient.title(search?.media)}</h3>
+    <h3 class='mb-0 font-weight-bold text-white title mr-5 font-scale-40'>{anilistClient.title(search?.media)}</h3>
     <button type='button' class='btn btn-square bg-dark ml-auto d-flex align-items-center justify-content-center rounded-2 flex-shrink-0' use:click={close}><X size='1.7rem' strokeWidth='3'/></button>
     <div class='position-absolute top-0 left-0 w-full h-full z--1'>
       <div class='position-absolute w-full h-full overflow-hidden' >
@@ -294,7 +293,7 @@
             <div class='custom-radio overflow-y-auto overflow-x-hidden hm-400'>
               {#each languages as language}
                 <input name='audio-radio-set' type='radio' id='audio-{language.value}-radio' value={language.value} checked={language.value === $settings.audioLanguage} />
-                <label for='audio-{language.value}-radio' use:click={(event) => { $settings.audioLanguage = language.value }} class='pb-5'>
+                <label for='audio-{language.value}-radio' use:click={() => { $settings.audioLanguage = language.value }} class='pb-5'>
                   {language.label}
                 </label>
               {/each}
@@ -318,7 +317,7 @@
         </span>
         </button>
       </div>
-      <div class='d-flex align-items-center mr-5' style='width: calc(5.5rem + {(String(search.episode).length <= 10 ? String(search.episode).length : 10) * (SUPPORTS.isAndroid ? 1.1 : .85)}rem) !important' title='Episode'>
+      <div class='d-flex align-items-center mr-5' style='width: calc(40px + {(String(search.episode).length <= 10 ? String(search.episode).length : 10) * 7}px) !important' title='Episode'>
         <Clapperboard size='2.75rem' class='position-absolute z-10 text-dark-light pl-10 pointer-events-none' />
         <input type='number' inputmode='numeric' pattern='[0-9]*' class='form-control bg-dark pl-40 control' placeholder='5' value={search.episode} on:input={episodeInput} disabled={(!search.episode && search.episode !== 0) || movie} />
       </div>

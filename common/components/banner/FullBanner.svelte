@@ -66,7 +66,7 @@
 <div class='gradient-left z--1 h-full position-absolute top-0 w-800' />
 <img src='./logo_filled.png' class='position-absolute z--1 m-10 p-0 {SUPPORTS.isAndroid ? `right-0 mr-20` : `left-0 ml-20 d-md-none`}' style='width: 6rem; height: 6rem' alt='ico' />
 <div class='pl-20 pb-20 justify-content-end d-flex flex-column h-full banner mw-full grab' use:drag={swipeMedia}>
-  <div class='text-white font-weight-bold' class:font-size-40={!SUPPORTS.isAndroid} class:font-size-24={SUPPORTS.isAndroid}>
+  <div class='text-white font-weight-bold font-scale-40'>
     <span class='default-cursor title overflow-hidden d-inline-block pr-5'>{anilistClient.title(currentStatic)}</span>
   </div>
   <div class='details text-white text-capitalize pt-10 pb-10 d-flex w-600 mw-full default-cursor'>
@@ -104,8 +104,10 @@
       </span>
     {/if}
   </div>
-  <div class='text-muted line-4 overflow-hidden w-600 mw-full default-cursor description'>
-    {currentStatic.description?.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim() || ''}
+  <div class='h-100'>
+    <div class='text-muted line-4 overflow-hidden w-600 mw-full default-cursor'>
+      {currentStatic.description?.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim() || ''}
+    </div>
   </div>
   <div class='details text-white text-capitalize pt-15 pb-10 d-flex w-600 mw-full default-cursor'>
     {#each currentStatic.genres as genre}
@@ -186,9 +188,6 @@
     max-width: 100%;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 1);
   }
-  .font-size-40 {
-    font-size: 4rem;
-  }
   .banner, img {
     animation: fadeIn ease .8s;
   }
@@ -206,8 +205,22 @@
     cursor: default;
   }
   .description {
-    line-height: 2rem;
-    height: calc(2rem * 4);
+    height: 10rem;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-wrap: break-word;
+  }
+
+  .description::after {
+    content: '...';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(to left, #17191c, transparent);
+    padding-left: 0.5rem;
   }
 
   @keyframes fadeIn {
@@ -219,6 +232,6 @@
     }
   }
   button:hover, .badge-wrapper.pointer:hover .progress-badge {
-    background: #292d33 !important;
+    background: var(--gray-color-light) !important;
   }
 </style>

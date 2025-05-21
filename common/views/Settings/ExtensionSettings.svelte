@@ -21,7 +21,6 @@
 <script>
   import { click } from '@/modules/click.js'
   import SettingCard from '@/views/Settings/SettingCard.svelte'
-  import { SUPPORTS } from '@/modules/support.js'
   import { stringToHex, capitalize, toFlags } from '@/modules/util.js'
   import { extensionManager } from '@/modules/extensions/manager.js'
   import { TriangleAlert, Github, Folder, FileQuestion, Trash2, CircleX, ChevronDown, ChevronUp, SquarePlus, Adult } from 'lucide-svelte'
@@ -110,8 +109,8 @@
 
 <h4 class='mb-10 font-weight-bold'>Extension Settings</h4>
 <div class='d-flex bg-dark-light rounded-3 p-4 mw-300 mb-20'>
-  <button type='button' class='btn w-150 rounded-3 shadow-none border-0 overflow-hidden text-truncate' class:font-size-16={!SUPPORTS.isAndroid} class:font-size-14={SUPPORTS.isAndroid} class:bg-primary={mainTab} class:bg-transparent={!mainTab} use:click={()=> { mainTab = true }}>Extensions</button>
-  <button type='button' class='btn w-150 rounded-3 shadow-none border-0 overflow-hidden text-truncate' class:font-size-16={!SUPPORTS.isAndroid} class:font-size-14={SUPPORTS.isAndroid} class:bg-primary={!mainTab} class:bg-transparent={mainTab} use:click={()=> { mainTab = false }}>Sources</button>
+  <button type='button' class='btn w-150 rounded-3 shadow-none border-0 overflow-hidden text-truncate font-scale-16' class:bg-primary={mainTab} class:bg-transparent={!mainTab} use:click={()=> { mainTab = true }}>Extensions</button>
+  <button type='button' class='btn w-150 rounded-3 shadow-none border-0 overflow-hidden text-truncate font-scale-16' class:bg-primary={!mainTab} class:bg-transparent={mainTab} use:click={()=> { mainTab = false }}>Sources</button>
 </div>
 {#if mainTab}
   <div class='wm-1200 w-full'>
@@ -149,10 +148,10 @@
                 {/if}
               </div>
               <div class='d-flex flex-wrap align-items-end'>
-                <span class='badge border-0 bg-light pl-10 pr-10 mt-10' class:font-size-16={!SUPPORTS.isAndroid} class:font-size-14={SUPPORTS.isAndroid}>{extension?.version}</span>
-                {#if extension?.type}<span class='badge border-0 bg-light pl-10 pr-10 ml-10 mt-10' class:font-size-16={!SUPPORTS.isAndroid} class:font-size-14={SUPPORTS.isAndroid}>{capitalize(extension?.type)}</span>{/if}
-                {#if extension?.speed}<span class='badge border-0 bg-light pl-10 pr-10 ml-10 mt-10' class:font-size-16={!SUPPORTS.isAndroid} class:font-size-14={SUPPORTS.isAndroid}>{capitalize(extension?.speed)} Speed</span>{/if}
-                {#if extension?.accuracy}<span class='badge border-0 bg-light pl-10 pr-10 ml-10 mt-10' class:font-size-16={!SUPPORTS.isAndroid} class:font-size-14={SUPPORTS.isAndroid}>{capitalize(extension?.accuracy)} Accuracy</span>{/if}
+                <span class='badge border-0 bg-light pl-10 pr-10 mt-10 font-scale-16'>{extension?.version}</span>
+                {#if extension?.type}<span class='badge border-0 bg-light pl-10 pr-10 ml-10 mt-10 font-scale-16'>{capitalize(extension?.type)}</span>{/if}
+                {#if extension?.speed}<span class='badge border-0 bg-light pl-10 pr-10 ml-10 mt-10 font-scale-16'>{capitalize(extension?.speed)} Speed</span>{/if}
+                {#if extension?.accuracy}<span class='badge border-0 bg-light pl-10 pr-10 ml-10 mt-10 font-scale-16'>{capitalize(extension?.accuracy)} Accuracy</span>{/if}
                 {#if extension?.nsfw}
                   <div class='d-flex align-items-center' title='Query results include adult content'><Adult class='ml-10 mt-10' size='2.2rem' /></div>
                 {/if}
@@ -179,7 +178,7 @@
   {/if}
   <div class='input-group wm-1200 mb-20'>
     <input placeholder='https://example.com/index.json, gh:user/repo, or npm:package_name' type='url' class='form-control bg-dark-light mw-full rounded-2 h-43 border' class:disabled={pendingSource} class:cursor-wait={pendingSource} bind:value={sourceUrl} />
-    <button class='ml-10 btn btn-primary d-flex align-items-center justify-content-center rounded-2 w-200 h-43' class:font-size-16={!SUPPORTS.isAndroid} class:font-size-14={SUPPORTS.isAndroid} class:disabled={pendingSource || !sourceUrl?.length} class:cursor-wait={pendingSource} type='button' use:click={() => addSource()}><SquarePlus class='mr-10' size='1.8rem' /><span>Add Source</span></button>
+    <button class='ml-10 btn btn-primary d-flex align-items-center justify-content-center rounded-2 w-200 h-43 font-scale-16' class:disabled={pendingSource || !sourceUrl?.length} class:cursor-wait={pendingSource} type='button' use:click={() => addSource()}><SquarePlus class='mr-10' size='1.8rem' /><span>Add Source</span></button>
   </div>
   <div class='wm-1200'>
     {#if Object.values(settings.sourcesNew)?.length}
@@ -196,7 +195,7 @@
               <FileQuestion size='2.2rem' />
             {/if}
           </div>
-          <span class='font-weight-semi-bold ml-10 overflow-hidden text-truncate mr-5' style='' class:font-size-18={!SUPPORTS.isAndroid} class:font-size-16={SUPPORTS.isAndroid}>{extension.host.replace(/^[^:]+:/, '')}</span>
+          <span class='font-weight-semi-bold ml-10 overflow-hidden text-truncate mr-5 font-scale-18'>{extension.host.replace(/^[^:]+:/, '')}</span>
           <span class='font-weight-semi-bold ml-auto text-muted text-nowrap'>{extension.count} Extensions</span>
           <button type='button' use:click={() => removeSource(extension.host)} class='btn btn-square d-flex align-items-center justify-content-center ml-10 bg-transparent shadow-none border-0' title='Remove Source' style='color: var(--accent-color)' class:disabled={pendingSource} class:cursor-wait={pendingSource}><Trash2 size='1.8rem' /></button>
         </div>
@@ -218,7 +217,7 @@
               <div class='d-flex align-items-center ml-10'>
                 <Github size='2.2rem' />
               </div>
-              <span class='font-weight-semi-bold ml-10' class:font-size-18={!SUPPORTS.isAndroid} class:font-size-16={SUPPORTS.isAndroid}>{source.startsWith('gh:') ? source.slice(3) : source}</span>
+              <span class='font-weight-semi-bold ml-10 font-scale-18'>{source.startsWith('gh:') ? source.slice(3) : source}</span>
               <button type='button' use:click={() => addSource(source)} class='btn btn-square d-flex align-items-center justify-content-center ml-10 bg-transparent shadow-none border-0 ml-auto' title='Add Source' style='color: var(--success-color-subtle)' class:disabled={pendingSource} class:cursor-wait={pendingSource}><SquarePlus size='1.8rem' /></button>
             </div>
           {/each}

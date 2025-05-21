@@ -152,11 +152,11 @@
                     <div class='position-absolute top-0 left-0 w-full h-full rounded-5' style='background: var(--notification-card-gradient)' />
                   </div>
                 {/if}
-                <div class='rounded-5 d-flex justify-content-center align-items-center overflow-hidden mr-10 z-10' class:notification-icon-container-rg={!SUPPORTS.isAndroid} class:notification-icon-container-lg={SUPPORTS.isAndroid}>
+                <div class='rounded-5 d-flex justify-content-center align-items-center overflow-hidden mr-10 z-10 notification-icon-container'>
                   <img src={notification.icon} alt='icon' class='notification-icon rounded-5 w-auto' />
                 </div>
                 <div class='notification-content z-10 w-full'>
-                  <p class='notification-title overflow-hidden font-size-18 font-weight-bold mt-0 mb-0 mr-40' class:line-clamp-2={!SUPPORTS.isAndroid} class:font-size-18={!SUPPORTS.isAndroid} class:line-clamp-1={SUPPORTS.isAndroid} class:font-size-14={SUPPORTS.isAndroid}>{notification.title}</p>
+                  <p class='notification-title overflow-hidden font-weight-bold mt-0 mb-0 mr-40 font-scale-18 {SUPPORTS.isAndroid ? `line-clamp-1` : `line-clamp-2`}'>{notification.title}</p>
                   <button type='button' class='position-absolute right-0 top-0 mr-5 mt-5 btn btn-square d-flex align-items-center justify-content-center' class:not-allowed={watched} class:not-reactive={watched} use:click={() => { if (!watched) notification.prompt = false; delete notification.prompt; notification.read = !notification.read } }>
                     {#if notification.read}
                       <MailOpen size='1.7rem' strokeWidth='3'/>
@@ -164,8 +164,8 @@
                       <MailCheck size='1.7rem' strokeWidth='3'/>
                     {/if}
                   </button>
-                  <p class='font-size-12 mb-0' class:mr-20={!SUPPORTS.isAndroid} class:mr-30={SUPPORTS.isAndroid} class:mt-0={SUPPORTS.isAndroid}>{notification.message}</p>
-                  <div class='d-flex justify-content-between align-items-center'>
+                  <p class='font-size-12 mb-0 mt-0'>{notification.message}</p>
+                  <div class='d-flex justify-content-between align-items-center mt-5'>
                     <p class='font-size-10 text-muted mt-0 mb-0'>{since(new Date(notification.timestamp * 1000))}</p>
                     <div>
                       {#if announcement}
@@ -293,13 +293,9 @@
     object-fit: cover;
     object-position: center;
   }
-  .notification-icon-container-rg {
+  .notification-icon-container {
     width: 6rem;
     height: 8rem;
-  }
-  .notification-icon-container-lg {
-    width: 8rem;
-    height: 10rem;
   }
   .rounded-5 {
     border-radius: .5rem;

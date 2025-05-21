@@ -1426,14 +1426,14 @@
   {/if}
   <div class='top z-40 row d-title'>
     <div class='stats pl-20 col-4 d-title'>
-      <div class='font-weight-bold overflow-hidden text-truncate' class:font-size-20={SUPPORTS.isAndroid}>
+      <div class='font-weight-bold overflow-hidden text-truncate font-scale-23'>
         {#if media?.title}
           {media?.title}
         {:else if media?.media?.title} <!-- useful when a torrent is EXTREMELY slow at loading... -->
           {anilistClient.title(media?.media)}
         {/if}
       </div>
-      <div class='font-weight-normal overflow-hidden text-truncate text-muted' class:font-size-16={!SUPPORTS.isAndroid} class:font-size-14={SUPPORTS.isAndroid}>
+      <div class='font-weight-normal overflow-hidden text-truncate text-muted font-scale-16'>
         {#if (media?.episode === 0 || media?.episode) && media?.media?.format !== 'MOVIE' && (!media?.episodeTitle || !media.episodeTitle.includes(media.episode))}
           {@const maxEpisodes = getMediaMaxEp(media.media) - (media.zeroEpisode ? 1 : 0)}
           Episode {media.episodeRange || media.episode}
@@ -1446,12 +1446,12 @@
       </div>
     </div>
     <div class='d-flex justify-content-center bottom-0 col-4 d-title d-filler'>
-      <span class='icon'><Users size={SUPPORTS.isAndroid ? '2.5rem' : '3rem'} class='pt-5' strokeWidth={3} /> </span>
-      <span class='stats' class:font-size-16={SUPPORTS.isAndroid}>{torrent.peers || 0}</span>
-      <span class='icon'><ArrowDown size={SUPPORTS.isAndroid ? '2.5rem' : '3rem'} /></span>
-      <span class='stats' class:font-size-16={SUPPORTS.isAndroid}>{fastPrettyBytes(torrent.down)}/s</span>
-      <span class='icon'><ArrowUp size={SUPPORTS.isAndroid ? '2.5rem' : '3rem'} /></span>
-      <span class='stats' class:font-size-16={SUPPORTS.isAndroid}>{fastPrettyBytes(torrent.up)}/s</span>
+      <span class='icon'><Users class='pt-5 block-scale-30' strokeWidth={3} /> </span>
+      <span class='stats font-scale-24'>{torrent.peers || 0}</span>
+      <span class='icon'><ArrowDown class='block-scale-30' /></span>
+      <span class='stats font-scale-24'>{fastPrettyBytes(torrent.down)}/s</span>
+      <span class='icon'><ArrowUp class='block-scale-30' /></span>
+      <span class='stats font-scale-24'>{fastPrettyBytes(torrent.up)}/s</span>
       {#if skipPrompt}
         <div class='position-absolute text-monospace rounded skipPrompt d-flex flex-column align-items-center text-center bg-dark-light p-20 z-50 mt-60' class:w-500={SUPPORTS.isAndroid}>
           <div class='skipFont'>
@@ -1522,7 +1522,7 @@
       </button>
     {/if}
   </div>
-  <div class='bottom d-flex z-40 flex-column px-20' class:font-size-16={SUPPORTS.isAndroid}>
+  <div class='bottom d-flex z-40 flex-column px-20 font-scale-24'>
     <div class='w-full d-flex align-items-center h-20 mb-5 seekbar' tabindex='0' role='button' on:keydown={handleSeekbarKey}>
       <Seekbar
         accentColor='var(--accent-color)'
@@ -1576,9 +1576,9 @@
           </span>
         {/if}
       </div>
-      <div class='ts' class:font-size-16={SUPPORTS.isAndroid} class:font-size-20={!SUPPORTS.isAndroid} class:mr-auto={playbackRate === 1}>{toTS(targetTime, safeduration > 3600 ? 2 : 3)} / {toTS(safeduration - targetTime, safeduration > 3600 ? 2 : 3)}</div>
+      <div class='ts font-scale-20' class:mr-auto={playbackRate === 1}>{toTS(targetTime, safeduration > 3600 ? 2 : 3)} / {toTS(safeduration - targetTime, safeduration > 3600 ? 2 : 3)}</div>
       {#if playbackRate !== 1}
-        <div class='ts mr-auto' class:font-size-16={SUPPORTS.isAndroid} class:font-size-20={!SUPPORTS.isAndroid}>x{playbackRate.toFixed(1)}</div>
+        <div class='ts mr-auto font-scale-20'>x{playbackRate.toFixed(1)}</div>
       {/if}
       <input type='file' class='d-none' id='search-subtitle' accept='.srt,.vtt,.ass,.ssa,.sub,.txt' on:input|preventDefault|stopPropagation={handleFile} bind:this={fileInput}/>
       {#if !subHeaders?.length}

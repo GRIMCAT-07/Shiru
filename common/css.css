@@ -2,7 +2,7 @@
   --accent-color: #e5204c;
   --dm-link-text-color: var(--dm-muted-text-color) !important;
   --dm-link-text-color-hover: var(--dm-text-color) !important;
-  --base-html-font-size: 50%;
+  --base-html-font-size: 48%;
   --base-html-font-size-1600: 50%;
   --base-html-font-size-1920: 62.5%;
   --tooltip-width: 17rem;
@@ -99,6 +99,10 @@
 
 .w-30 {
   width: 3rem;
+}
+
+.w-40 {
+  width: 4rem;
 }
 
 .wh-25 {
@@ -438,10 +442,16 @@ This is pretty god awful causing noticeable visual stuttering, creating the impr
   }
 }
 
-
 .rounded-10 {
   border-radius: 1rem;
 }
 .rounded-top-10 {
   border-radius: 1rem 1rem 0 0;
+}
+
+button.bg-dark:not([disabled]):hover {
+  background: var(--dark-color-light) !important;
+}
+button.bg-dark-light:not([disabled]):hover {
+  background: var(--gray-color-light) !important;
 }

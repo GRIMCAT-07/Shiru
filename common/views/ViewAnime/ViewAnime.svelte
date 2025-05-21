@@ -180,11 +180,9 @@
 <div class='modal modal-full z-50' class:show={staticMedia} on:keydown={checkClose} tabindex='-1' role='button' bind:this={modal}>
   <div class='h-full modal-content bg-very-dark p-0 overflow-y-auto position-relative' bind:this={container}>
     {#if staticMedia}
-      {#if (mediaList.length > 1) && !SUPPORTS.isAndroid}
-        <button class='close back pointer z-30 bg-dark top-20 left-0 position-fixed' use:click={back}>
-          <ArrowLeft size='1.8rem' />
-        </button>
-      {/if}
+      <button class='close back pointer z-30 bg-dark top-20 left-0 position-fixed' class:d-none={!((mediaList.length > 1) && !SUPPORTS.isAndroid)} use:click={back}>
+        <ArrowLeft size='1.8rem' />
+      </button>
       <button class='close pointer z-30 bg-dark top-20 right-0 position-fixed' type='button' use:click={() => close()}> &times; </button>
       {#await ((staticMedia.bannerImage || staticMedia.trailer?.id) && staticMedia) || getKitsuMappings(staticMedia.id) then banner}
         <object class='w-full cover-img banner position-absolute' draggable='false' data={banner?.bannerImage || (banner.trailer?.id && `https://i.ytimg.com/vi/${banner.trailer?.id}/maxresdefault.jpg`) || banner?.included?.[0]?.attributes?.coverImage?.original || banner?.included?.[0]?.attributes?.coverImage?.large || banner?.included?.[0]?.attributes?.coverImage?.small || banner?.included?.[0]?.attributes?.coverImage?.tiny || ' '}>
@@ -193,7 +191,7 @@
           </object>
         </object>
       {/await}
-      <div class='row px-20' class:mb-40={!SUPPORTS.isAndroid}>
+      <div class='row px-20'>
         <div class='col-lg-7 col-12 pb-10'>
           <div bind:this={leftColumn}>
             <div class='d-flex flex-sm-row flex-column align-items-sm-end pb-20 mb-15'>
@@ -204,7 +202,7 @@
                 </div>
               </div>
               <div class='pl-sm-20 ml-sm-20'>
-                <h1 class='font-weight-very-bold text-white select-all mb-0' class:font-size-24={SUPPORTS.isAndroid}>{anilistClient.title(staticMedia)}</h1>
+                <h1 class='font-weight-very-bold text-white select-all mb-0 font-scale-40'>{anilistClient.title(staticMedia)}</h1>
                 <div class='d-flex flex-row font-size-18 flex-wrap mt-5'>
                   {#if staticMedia.averageScore}
                     <div class='d-flex flex-row mt-10' title='{staticMedia.averageScore / 10} by {anilistClient.reviews(staticMedia)} reviews'>
@@ -351,7 +349,7 @@
           </div>
         </div>
         <div class='col-lg-5 col-12 d-none d-lg-flex flex-column pl-lg-20' bind:this={rightColumn}>
-          <button class='close order pointer z-30 bg-dark position-absolute' use:click={()=> {episodeOrder = !episodeOrder}}>
+          <button class='close order pointer z-30 bg-dark position-absolute' title='Reverse Episodes' use:click={()=> {episodeOrder = !episodeOrder}}>
             <svelte:component this={episodeOrder ? ArrowDown01 : ArrowUp10} size='2rem' />
           </button>
           <EpisodeList bind:episodeLoad={episodeLoad} media={staticMedia} {episodeOrder} bind:userProgress bind:watched episodeCount={getMediaMaxEp(media)} {play} />
@@ -362,9 +360,6 @@
 </div>
 
 <style>
-  .mb-40 {
-    margin-bottom: 4rem !important;
-  }
   .close {
     top: 5rem !important;
     left: unset !important;
@@ -409,9 +404,5 @@
   }
   .cover {
     aspect-ratio: 7/10;
-  }
-
-  button.bg-dark:not([disabled]):hover {
-    background: #292d33 !important;
   }
 </style>

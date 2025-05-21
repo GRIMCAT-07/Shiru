@@ -1,16 +1,10 @@
 <script>
   export let title
-  export let size = 0
-  export let showMore = false
-  export let expandable = true
 </script>
-<div class='w-full d-flex flex-row align-items-center pt-20 mt-10'>
+<div class='w-full d-flex flex-row align-items-center pt-10 text-white {$$restProps.class}'>
   <hr class='w-full' />
-  <div class='title position-absolute font-size-18 font-weight-semi-bold px-20 text-white'>{title}</div>
+  <div class='title position-absolute font-size-18 font-weight-semi-bold px-20'>{title}</div>
   <hr class='w-full' />
-  {#if size > 4 && expandable}
-    <div class='ml-auto pl-20 font-size-12 more text-muted text-nowrap'>{showMore ? 'Show Less' : 'Show More'}</div>
-  {/if}
 </div>
 
 <style>

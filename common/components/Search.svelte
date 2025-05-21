@@ -12,7 +12,6 @@
 <script>
   import { traceAnime, genreIcons, genreList, tagList } from '@/modules/anime.js'
   import { settings } from '@/modules/settings.js'
-  import { SUPPORTS } from '@/modules/support.js'
   import { click } from '@/modules/click.js'
   import { page } from '@/App.svelte'
   import { toast } from 'svelte-sonner'
@@ -172,7 +171,7 @@
 <form class='container-fluid py-20 px-md-50 bg-dark pb-0 position-sticky top-0 search-container z-40' on:input bind:this={form}>
   <div class='row'>
     <div class='col-lg col-4 p-10 d-flex flex-column justify-content-end'>
-      <div class='pb-10 font-weight-semi-bold d-flex' class:font-size-24={!SUPPORTS.isAndroid} class:font-size-18={SUPPORTS.isAndroid}>
+      <div class='pb-10 font-weight-semi-bold d-flex font-scale-24'>
         <Type class='mr-10' size='3rem' />
         <div>Title</div>
       </div>
@@ -190,7 +189,7 @@
       </div>
     </div>
     <div class='col-lg col-4 p-10 d-flex flex-column justify-content-end'>
-      <div class='pb-10 font-weight-semi-bold d-flex' class:font-size-24={!SUPPORTS.isAndroid} class:font-size-18={SUPPORTS.isAndroid}>
+      <div class='pb-10 font-weight-semi-bold d-flex font-scale-24'>
         <Drama class='mr-10' size='3rem' />
         <div>Genres</div>
       </div>
@@ -218,7 +217,7 @@
       </datalist>
     </div>
     <div class='col-lg col-4 p-10 d-flex flex-column justify-content-end'>
-      <div class='pb-10 font-weight-semi-bold d-flex' class:font-size-24={!SUPPORTS.isAndroid} class:font-size-18={SUPPORTS.isAndroid}>
+      <div class='pb-10 font-weight-semi-bold d-flex font-scale-24'>
         <Hash class='mr-10' size='3rem' />
         <div>Tags</div>
       </div>
@@ -245,7 +244,7 @@
     </div>
     {#if !search.scheduleList}
       <div class='col-lg col-4 p-10 d-flex flex-column justify-content-end'>
-        <div class='pb-10 font-weight-semi-bold d-flex' class:font-size-24={!SUPPORTS.isAndroid} class:font-size-18={SUPPORTS.isAndroid}>
+        <div class='pb-10 font-weight-semi-bold d-flex font-scale-24'>
           <CalendarRange class='mr-10' size='3rem' />
           <div>Season</div>
         </div>
@@ -268,7 +267,7 @@
       </div>
     {/if}
     <div class='col p-10 d-flex flex-column justify-content-end'>
-      <div class='pb-10 font-weight-semi-bold d-flex' class:font-size-24={!SUPPORTS.isAndroid} class:font-size-18={SUPPORTS.isAndroid}>
+      <div class='pb-10 font-weight-semi-bold d-flex font-scale-24'>
         <Tv class='mr-10' size='3rem' />
         <div>Format</div>
       </div>
@@ -278,7 +277,7 @@
     </div>
     {#if !search.scheduleList}
       <div class='col p-10 d-flex flex-column justify-content-end'>
-        <div class='pb-10 font-weight-semi-bold d-flex' class:font-size-24={!SUPPORTS.isAndroid} class:font-size-18={SUPPORTS.isAndroid}>
+        <div class='pb-10 font-weight-semi-bold d-flex font-scale-24'>
           <MonitorPlay class='mr-10' size='3rem' />
           <div>Status</div>
         </div>
@@ -287,7 +286,7 @@
         </div>
       </div>
       <div class='col p-10 d-flex flex-column justify-content-end'>
-        <div class='pb-10 font-weight-semi-bold d-flex' class:font-size-24={!SUPPORTS.isAndroid} class:font-size-18={SUPPORTS.isAndroid}>
+        <div class='pb-10 font-weight-semi-bold d-flex font-scale-24'>
           <ArrowDownWideNarrow class='mr-10' size='3rem' />
           <div>Sort</div>
         </div>

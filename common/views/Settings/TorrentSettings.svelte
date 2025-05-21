@@ -10,8 +10,8 @@
   }
 </script>
 
-<h4 class='mb-10 font-weight-bold'>DNS Settings</h4>
 {#if SUPPORTS.doh}
+  <h4 class='mb-10 font-weight-bold'>DNS Settings</h4>
   <SettingCard title='Use DNS Over HTTPS' description='Enables DNS Over HTTPS, useful if your ISP blocks certain domains.'>
     <div class='custom-switch'>
       <input type='checkbox' id='rss-dohtoggle' bind:checked={settings.enableDoH} />

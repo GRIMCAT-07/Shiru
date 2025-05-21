@@ -3,7 +3,6 @@
   import { airingAt, episode, formatMap, getKitsuMappings, getMediaMaxEp, statusColorMap } from '@/modules/anime.js'
   import { click } from '@/modules/click.js'
   import { page } from '@/App.svelte'
-  import { SUPPORTS } from '@/modules/support.js'
   import AudioLabel from '@/views/ViewAnime/AudioLabel.svelte'
   import { anilistClient, seasons } from '@/modules/anilist.js'
   import { mediaCache } from '@/modules/cache.js'
@@ -28,7 +27,7 @@
 <div class='d-flex px-md-20 py-10 position-relative justify-content-center' use:click={viewMedia}>
   <div class='card m-0 p-0 pointer full-card' style:--color={media.coverImage.color || '#1890ff'}>
     <div class='row h-full'>
-      <div class='img-col d-inline-block position-relative' class:col-4={!SUPPORTS.isAndroid} class:col-3={SUPPORTS.isAndroid}>
+      <div class='img-col d-inline-block position-relative col-3 col-md-4'>
         <img loading='lazy' src={media.coverImage.extraLarge || ''} alt='cover' class='cover-img w-full h-full' />
         {#if !_variables?.scheduleList}
           <AudioLabel {media} smallCard={false} />
@@ -103,7 +102,7 @@
           </div>
         {/if}
         {#if media.genres.length}
-          <div class='px-15 pb-5 genres' class:pt-10={$page === 'schedule' && SUPPORTS.isAndroid}>
+          <div class='px-15 pb-5 genres'>
             {#each media.genres.slice(0, 3) as genre}
               <span class='badge badge-color text-dark mt-5 mr-5 font-weight-bold'>{genre}</span>
             {/each}
