@@ -1,5 +1,5 @@
 <script>
-  import { getContext, onMount } from 'svelte'
+  import { getContext, onDestroy } from 'svelte'
   import { formatMap, genreIcons, getKitsuMappings, getMediaMaxEp, playMedia } from '@/modules/anime.js'
   import { playAnime } from '@/views/TorrentSearch/TorrentModal.svelte'
   import { settings } from '@/modules/settings.js'
@@ -161,8 +161,9 @@
     })
   }
 
+  let resizeObserver
   let leftColumn, rightColumn
-  function episodeHeight() {
+  function syncHeights() {
     if (leftColumn && rightColumn) {
       const leftHeight = leftColumn.offsetHeight
       if (rightColumn.style.height !== `${leftHeight}px`) {
@@ -171,10 +172,15 @@
     }
   }
 
-  onMount(() => {
-    setInterval(() => episodeHeight(), 500)
-    window.addEventListener('resize', episodeHeight)
-  })
+  $: {
+    resizeObserver?.disconnect()
+    if (staticMedia) {
+      resizeObserver = new ResizeObserver(syncHeights)
+      if (leftColumn) resizeObserver.observe(leftColumn)
+    }
+  }
+
+  onDestroy(() => resizeObserver?.disconnect())
 </script>
 
 <div class='modal modal-full z-50' class:show={staticMedia} on:keydown={checkClose} tabindex='-1' role='button' bind:this={modal}>

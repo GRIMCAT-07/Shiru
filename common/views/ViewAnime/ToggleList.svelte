@@ -18,6 +18,7 @@
   let observer = null
   let container = null
   function updateRowMarkers() {
+    if (!container) return
     const cards = Array.from(container.querySelectorAll('.small-card'))
     cards.forEach(card => card.classList.remove('first-in-row', 'last-in-row'))
     const rows = new Map()
@@ -43,8 +44,8 @@
       if (container) {
         observer = new ResizeObserver(updateRowMarkers)
         observer.observe(container)
-        window.addEventListener('resize', updateRowMarkers)
       }
+      window.addEventListener('resize', updateRowMarkers)
     })
   }
 </script>

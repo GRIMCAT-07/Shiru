@@ -22,6 +22,7 @@
   let observer = null
 
   function updateRowMarkers() {
+    if (!container) return
     const cards = container.querySelectorAll('.grid-card')
     let currentRow = []
     let prevTop = null
@@ -90,8 +91,10 @@
   })
 
   onMount(() => {
-    observer = new ResizeObserver(updateRowMarkers)
-    observer.observe(container)
+    if (container) {
+      observer = new ResizeObserver(updateRowMarkers)
+      observer.observe(container)
+    }
     window.addEventListener('resize', updateRowMarkers)
     loadTillFull()
   })
