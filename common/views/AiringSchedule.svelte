@@ -11,15 +11,21 @@
   async function fetchAllScheduleEntries (variables) {
     const results = { data: { Page: { media: [], pageInfo: { hasNextPage: false } } } }
     const airingLists = await (variables.hideSubs ? animeSchedule.dubAiringLists.value : animeSchedule.subAiringLists.value)
-    const ids = { idMal: airingLists.map(entry => variables.hideSubs ? entry.media?.media?.idMal : entry.idMal).filter(idMal => idMal !== undefined) }
-    const hideMyAnime = (variables.hideMyAnime && Helper.isAuthorized()) ? {[Helper.isAniAuth() ? 'id_not' : 'idMal_not']:
-            await Helper.userLists(variables).then(res => {
-                if (!res?.data && res?.errors) throw res.errors[0]
-                return Helper.isAniAuth()
-                    ? Array.from(new Set(res.data.MediaListCollection.lists.filter(({ status }) => variables.hideStatus.includes(status)).flatMap(list => list.entries.map(({ media }) => media.id))))
-                    : res.data.MediaList.filter(({ node }) => variables.hideStatus.includes(Helper.statusMap(node.my_list_status.status))).map(({ node }) => node.id)
-            })} : {}
-    const res = await anilistClient.searchAllIDS({ ...ids, ...hideMyAnime, ...SectionsManager.sanitiseObject(variables), page: 1, perPage: 50 })
+    let ids = airingLists.map(entry => {
+        const media = variables.hideSubs ? entry.media?.media : entry;
+        return media?.id ? { id: media.id, idMal: media.idMal ?? null } : null
+    }).filter(item => item !== null)
+    // Hide My Anime
+    if (variables.hideMyAnime && Helper.isAuthorized()) {
+      const hideIds = await Helper.userLists(variables).then(res => {
+        if (!res?.data && res?.errors) throw res.errors[0]
+          return Helper.isAniAuth()
+            ? Array.from(new Set(res.data.MediaListCollection.lists.filter(({ status }) => variables.hideStatus.includes(status)).flatMap(list => list.entries.map(({ media }) => media.id))))
+            : res.data.MediaList.filter(({ node }) => variables.hideStatus.includes(Helper.statusMap(node.my_list_status.status))).map(({ node }) => node.id)
+      })
+      ids = ids.filter(({ id, idMal }) => Helper.isAniAuth() ? !hideIds.includes(id) : !hideIds.includes(idMal))
+    }
+    const res = await anilistClient.searchAllIDS({ id: ids.map(({ id }) => id), ...SectionsManager.sanitiseObject(variables), page: 1, perPage: 50 })
     if (!res?.data && res?.errors) throw res.errors[0]
     results.data.Page.media = results.data.Page.media.concat(res.data.Page.media)
     if (variables.hideSubs) {
