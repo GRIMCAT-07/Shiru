@@ -40,9 +40,11 @@
       window.removeEventListener('resize', updateRowMarkers)
     })
     onMount(() => {
-      observer = new ResizeObserver(updateRowMarkers)
-      observer.observe(container)
-      window.addEventListener('resize', updateRowMarkers)
+      if (container) {
+        observer = new ResizeObserver(updateRowMarkers)
+        observer.observe(container)
+        window.addEventListener('resize', updateRowMarkers)
+      }
     })
   }
 </script>

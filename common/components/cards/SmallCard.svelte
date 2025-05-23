@@ -1,5 +1,6 @@
 <script>
   import { getContext } from 'svelte'
+  import { onMount, onDestroy } from 'svelte'
   import PreviewCard from '@/components/cards/PreviewCard.svelte'
   import { episode, airingAt, getKitsuMappings, formatMap, statusColorMap } from '@/modules/anime.js'
   import { createListener } from '@/modules/util.js'
@@ -34,25 +35,39 @@
     else if (state) viewMedia()
   }
 
+  let container
+  let previewCard
   let focusTimeout
   function handleFocus() {
+    clearTimeout(focusTimeout)
     focusTimeout = setTimeout(() => {
       if (settings.value.cardPreview) preview = true
-    }, 500)
+    }, 800)
   }
 
   function handleBlur() {
     clearTimeout(focusTimeout)
-    preview = false
+    focusTimeout = setTimeout(() => {
+      const focused = document.activeElement
+      if (container && !container.contains(focused) && (!previewCard || !previewCard.contains(focused))) {
+        preview = false
+      }
+    })
   }
+
+  onMount(() => container.addEventListener('focusout', handleBlur, { passive: true }))
+  onDestroy(() => {
+    container.removeEventListener('focusout', handleBlur)
+    clearTimeout(focusTimeout)
+  })
 
   const { reactive, init } = createListener(['btn', 'scoring', 'sound'])
   $: init(preview)
 </script>
 
-<div class='d-flex p-md-20 p-15 position-relative small-card-ct {$reactive ? `` : `not-reactive`}' use:hoverClick={[viewMedia, setHoverState, viewMedia]} on:focus={handleFocus} on:blur={handleBlur}>
+<div bind:this={container} class='d-flex p-md-20 p-15 position-relative small-card-ct {$reactive ? `` : `not-reactive`}' use:hoverClick={[viewMedia, setHoverState, viewMedia]} on:focus={handleFocus}>
   {#if preview}
-    <PreviewCard {media} {type} />
+    <PreviewCard {media} {type} bind:element={previewCard}/>
   {/if}
   <div class='item small-card d-flex flex-column pointer'>
     {#if $page === 'schedule'}
@@ -76,7 +91,7 @@
     {#if type || type === 0}
       <div class='context-type d-flex align-items-center'>
         {#if Number.isInteger(type) && type >= 0}
-          <ThumbsUp fill='currentColor' class='pr-5 pb-5 {type === 0 ? "text-muted" : "text-success"}' size='2rem' />
+          <ThumbsUp fill='currentColor' class='pr-5 pb-5 {type === 0 ? `text-muted` : `text-success`}' size='2rem' />
         {:else if Number.isInteger(type) && type < 0}
           <ThumbsDown fill='currentColor' class='text-danger pr-5 pb-5' size='2rem' />
         {/if}

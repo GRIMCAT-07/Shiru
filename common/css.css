@@ -187,6 +187,7 @@ a[href]:active, button:not([disabled]):active, fieldset:not([disabled]):active, 
 }
 
 [data-sonner-toaster][data-theme='dark'] {
+  top: 5rem !important;
   --normal-bg: var(--dark-color) !important;
   --normal-border: none !important;
   --normal-text: var(--dm-base-text-color) !important;
