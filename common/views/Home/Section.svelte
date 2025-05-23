@@ -67,10 +67,19 @@
     border-radius: 2rem;
   }
   .gallery :global(.small-card-ct:first-child) :global(.absolute-container) {
-    left: -48% !important;
+    left: -45% !important;
   }
   .gallery :global(.small-card-ct:last-child) :global(.absolute-container) {
-    right: -48% !important;
+    right: -45% !important;
+  }
+
+  @media (max-width: 768px) {
+    .gallery :global(.small-card-ct:first-child) :global(.absolute-container) {
+      left: -35% !important;
+    }
+    .gallery :global(.small-card-ct:last-child) :global(.absolute-container) {
+      right: -35% !important;
+    }
   }
   .glow:hover {
     color: var(--dm-link-text-color-hover) !important;

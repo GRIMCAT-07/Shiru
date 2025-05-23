@@ -35,7 +35,8 @@
   --notification-card-gradient: linear-gradient(90deg, rgba(23, 25, 28, 0.98) 32%, rgba(23, 25, 28, 0.85) 100%);
   --episode-card-gradient: linear-gradient(180deg, rgba(0, 0, 0, 0) 77.08%, rgba(0, 0, 0, 0.7) 100%);
   --episode-preview-card-gradient: linear-gradient(180deg, #0000 0%, #25292f00 80%, #25292f 100%);
-  --preview-card-gradient: linear-gradient(180deg, #0000 0%, #25292f00 80%, #25292fe3 95%, #25292f 100%);
+  --preview-card-end-gradient: linear-gradient(180deg, #0000 0%, #25292f00 85%, #25292fe3 95%, #25292f 98%);
+  --preview-card-trailer-gradient: linear-gradient(180deg, #0000 0%, #25292f00 85%, #25292fe3 95%, #25292f 100%);
   --section-end-gradient: linear-gradient(270deg, #17191cff 0%, #17191c00 100%);
   --warning-color: rgb(211 175 24);
   --error-color: rgb(71, 4, 4);
@@ -430,6 +431,10 @@ This is pretty god awful causing noticeable visual stuttering, creating the impr
   padding: 0.4rem;
 }
 
+.px-40 {
+  padding-left: 4rem;
+  padding-right: 4rem;
+}
 .px-50 {
   padding-left: 5rem;
   padding-right: 5rem;

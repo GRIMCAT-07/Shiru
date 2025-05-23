@@ -2,7 +2,7 @@
   import { formatMap, getKitsuMappings, getMediaMaxEp, playMedia } from '@/modules/anime.js'
   import { anilistClient, seasons } from '@/modules/anilist.js'
   import { episodesList } from '@/modules/episodes.js'
-  import { SUPPORTS } from '@/modules/support.js'
+  import { onMount, onDestroy } from 'svelte'
   import { click } from '@/modules/click.js'
   import Scoring from '@/views/ViewAnime/Scoring.svelte'
   import Helper from '@/modules/helper.js'
@@ -44,8 +44,8 @@
   }
 </script>
 
-<div class='position-absolute w-350 h-full absolute-container top-0 bottom-0 m-auto bg-dark-light z-30 rounded overflow-hidden pointer'>
-  <div class='banner position-relative bg-black overflow-hidden'>
+<div class='position-absolute w-350 h-full absolute-container top-0 bottom-0 m-auto bg-dark-light z-30 rounded overflow-hidden pointer' on:scroll={(e) => e.target.scrollTop = 0}>
+  <div class='banner position-relative bg-black overflow-hidden' >
     <object class='img-cover w-full h-full' data={media.bannerImage || (media.trailer?.id && `https://i.ytimg.com/vi/${media.trailer?.id}/maxresdefault.jpg`) || media.coverImage?.extraLarge || ' '}>
       <object class='img-cover w-full h-full' data={(media.trailer?.id && `https://i.ytimg.com/vi/${media.trailer?.id}/hqdefault.jpg`) || media.coverImage?.extraLarge || ' '}>
         <img class='img-cover w-full h-full' src={media.coverImage?.extraLarge || ' '} alt='banner'> <!-- trailer no longer exists... fallback to cover image. -->
@@ -147,7 +147,7 @@
       </div>
     </div>
     {#if media.description}
-      <div class='w-full h-full text-muted description overflow-hidden font-scale-14 {SUPPORTS.isAndroid ? `line-clamp-2` : `line-clamp-3`}'>
+      <div class='w-full h-full text-muted description overflow-hidden font-scale-14'>
         {media.description?.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()}
       </div>
     {/if}
@@ -155,18 +155,8 @@
 </div>
 
 <style>
-  .description {
-    display: -webkit-box !important;
-    -webkit-box-orient: vertical;
-  }
-  .line-clamp-2 {
-    -webkit-line-clamp: 2;
-  }
-  .line-clamp-3 {
-    -webkit-line-clamp: 3;
-  }
   .banner {
-    height: 45%
+    height: 40%
   }
   .sound {
     filter: drop-shadow(0 0 .4rem rgba(0, 0, 0, 1))
@@ -174,6 +164,15 @@
   .details > span:not(:last-child) {
     margin-right: .2rem;
     margin-bottom: .1rem;
+  }
+  .details::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--preview-card-end-gradient);
   }
   .banner::after {
     content: '';
@@ -183,7 +182,7 @@
     margin-bottom: -1px;
     width: 100%;
     height: 100%;
-    background: var(--preview-card-gradient);
+    background: var(--preview-card-trailer-gradient);
   }
   @keyframes load-in {
     from {

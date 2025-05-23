@@ -446,6 +446,7 @@ export const defaults = {
   disableSubtitleBlur: SUPPORTS.isAndroid,
   enableRPC: 'full',
   cards: 'small',
+  cardPreview: true,
   cardAudio: false,
   titleLang: 'romaji',
   hideMyAnime: false,

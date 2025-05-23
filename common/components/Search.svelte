@@ -1,6 +1,6 @@
 <script context='module'>
   const badgeKeys = ['title', 'search', 'genre', 'tag', 'season', 'year', 'format', 'format_not', 'status', 'status_not', 'sort', 'hideSubs', 'hideMyAnime', 'hideStatus']
-  const badgeDisplayNames = { title: BookUser, search: Type, genre: Drama, tag: Hash, season: CalendarRange, year: Leaf, format: Tv, format_not: MonitorUp, status: MonitorPlay, status_not: MonitorX, sort: ArrowDownWideNarrow, hideMyAnime: SlidersHorizontal, hideSubs: Mic }
+  const badgeDisplayNames = { title: BookUser, search: Type, genre: Drama, tag: Hash, season: CalendarRange, year: Leaf, format: Tv, format_not: MonitorUp, status: MonitorPlay, status_not: MonitorX, sort: ArrowDownWideNarrow, hideMyAnime: EyeOff, hideSubs: Mic }
   const sortOptions = { TITLE_ROMAJI: 'Title', START_DATE_DESC: 'Release Date', SCORE_DESC: 'Score', POPULARITY_DESC: 'Popularity', UPDATED_AT_DESC: 'Date Updated', UPDATED_TIME_DESC: 'Last Updated', STARTED_ON_DESC: 'Start Date', FINISHED_ON_DESC: 'Completed Date', PROGRESS_DESC: 'Your Progress', USER_SCORE_DESC: 'Your Score' }
   const formatOptions = { TV: 'TV Show', MOVIE: 'Movie', TV_SHORT: 'TV Short', SPECIAL: 'Special', OVA: 'OVA', ONA: 'ONA' }
 
@@ -17,7 +17,7 @@
   import { toast } from 'svelte-sonner'
   import Helper from '@/modules/helper.js'
   import CustomDropdown from '@/components/CustomDropdown.svelte'
-  import { BookUser, Type, Drama, Leaf, CalendarRange, MonitorPlay, MonitorUp, MonitorX, Tv, ArrowDownWideNarrow, Filter, FilterX, X, Tags, Hash, SlidersHorizontal, Mic, ImageUp, Search, Grid3X3, Grid2X2 } from 'lucide-svelte'
+  import { BookUser, Type, Drama, Leaf, CalendarRange, MonitorPlay, MonitorUp, MonitorX, Tv, ArrowDownWideNarrow, Filter, FilterX, X, Tags, Hash, SlidersHorizontal, EyeOff, Mic, ImageUp, Search, Grid3X3, Grid2X2 } from 'lucide-svelte'
 
   export let search
   let searchTextInput = {
@@ -166,13 +166,19 @@
     $settings.cards = type
     form.dispatchEvent(new Event('input', { bubbles: true }))
   }
+
+  let advancedSearch = 'd-advanced-search'
+  function toggleAdvancedSearch() {
+    if (!advancedSearch?.length) advancedSearch = 'd-advanced-search'
+    else advancedSearch = ''
+  }
 </script>
 
 <form class='container-fluid py-20 px-md-50 bg-dark pb-0 position-sticky top-0 search-container z-40' on:input bind:this={form}>
   <div class='row'>
-    <div class='col-lg col-4 p-10 d-flex flex-column justify-content-end'>
-      <div class='pb-10 font-weight-semi-bold d-flex font-scale-24'>
-        <Type class='mr-10' size='3rem' />
+    <div class='col-lg col-4 p-10 d-flex flex-column justify-content-end' class:d-advanced-title={advancedSearch}>
+      <div class='pb-10 font-weight-semi-bold d-flex align-items-center {advancedSearch} font-scale-24'>
+        <Type class='mr-10 block-scale-30'/>
         <div>Title</div>
       </div>
       <div class='input-group'>
@@ -188,9 +194,9 @@
           placeholder='Any'/>
       </div>
     </div>
-    <div class='col-lg col-4 p-10 d-flex flex-column justify-content-end'>
-      <div class='pb-10 font-weight-semi-bold d-flex font-scale-24'>
-        <Drama class='mr-10' size='3rem' />
+    <div class='col-lg col-4 p-10 d-flex {advancedSearch} flex-column justify-content-end'>
+      <div class='pb-10 font-weight-semi-bold d-flex align-items-center font-scale-24'>
+        <Drama class='mr-10 block-scale-30'/>
         <div>Genres</div>
       </div>
       <div class='input-group'>
@@ -216,9 +222,9 @@
         {/each}
       </datalist>
     </div>
-    <div class='col-lg col-4 p-10 d-flex flex-column justify-content-end'>
-      <div class='pb-10 font-weight-semi-bold d-flex font-scale-24'>
-        <Hash class='mr-10' size='3rem' />
+    <div class='col-lg col-4 p-10 d-flex {advancedSearch} flex-column justify-content-end'>
+      <div class='pb-10 font-weight-semi-bold d-flex align-items-center font-scale-24'>
+        <Hash class='mr-10 block-scale-30'/>
         <div>Tags</div>
       </div>
       <div class='input-group'>
@@ -243,9 +249,9 @@
       </datalist>
     </div>
     {#if !search.scheduleList}
-      <div class='col-lg col-4 p-10 d-flex flex-column justify-content-end'>
-        <div class='pb-10 font-weight-semi-bold d-flex font-scale-24'>
-          <CalendarRange class='mr-10' size='3rem' />
+      <div class='col-lg col-4 p-10 d-flex {advancedSearch} flex-column justify-content-end'>
+        <div class='pb-10 font-weight-semi-bold d-flex align-items-center font-scale-24'>
+          <CalendarRange class='mr-10 block-scale-30'/>
           <div>Season</div>
         </div>
         <div class='input-group'>
@@ -266,9 +272,9 @@
         </div>
       </div>
     {/if}
-    <div class='col p-10 d-flex flex-column justify-content-end'>
-      <div class='pb-10 font-weight-semi-bold d-flex font-scale-24'>
-        <Tv class='mr-10' size='3rem' />
+    <div class='col p-10 d-flex {advancedSearch} flex-column justify-content-end'>
+      <div class='pb-10 font-weight-semi-bold d-flex align-items-center font-scale-24'>
+        <Tv class='mr-10 block-scale-30'/>
         <div>Format</div>
       </div>
       <div class='input-group z-5'>
@@ -276,18 +282,18 @@
       </div>
     </div>
     {#if !search.scheduleList}
-      <div class='col p-10 d-flex flex-column justify-content-end'>
-        <div class='pb-10 font-weight-semi-bold d-flex font-scale-24'>
-          <MonitorPlay class='mr-10' size='3rem' />
+      <div class='col p-10 d-flex {advancedSearch} flex-column justify-content-end'>
+        <div class='pb-10 font-weight-semi-bold d-flex align-items-center font-scale-24'>
+          <MonitorPlay class='mr-10 block-scale-30'/>
           <div>Status</div>
         </div>
         <div class='input-group z-5'>
           <CustomDropdown id={`status-input`} bind:form options={{ RELEASING: 'Releasing', FINISHED: 'Finished', NOT_YET_RELEASED: 'Not Yet Released', CANCELLED: 'Cancelled' }} bind:value={search.status} bind:altValue={search.status_not} bind:disabled={search.disableSearch}/>
         </div>
       </div>
-      <div class='col p-10 d-flex flex-column justify-content-end'>
-        <div class='pb-10 font-weight-semi-bold d-flex font-scale-24'>
-          <ArrowDownWideNarrow class='mr-10' size='3rem' />
+      <div class='col p-10 d-flex {advancedSearch} flex-column justify-content-end'>
+        <div class='pb-10 font-weight-semi-bold d-flex align-items-center font-scale-24'>
+          <ArrowDownWideNarrow class='mr-10 block-scale-30'/>
           <div>Sort</div>
         </div>
         <div class='input-group'>
@@ -316,6 +322,21 @@
         </div>
       </div>
     {/if}
+    <div class='col-auto p-10 d-none d-advanced-search-toggle'>
+      <div class='align-self-end'>
+        <button
+          class='btn btn-square bg-dark-light px-5 align-self-end border-0'
+          type='button'
+          title='Advanced Search'
+          use:click={toggleAdvancedSearch}
+          disabled={search.disableHide || search.disableSearch}
+          class:text-primary={!advancedSearch?.length}>
+          <label for='d-advanced-search-toggle' class='pointer mb-0 d-flex align-items-center justify-content-center'>
+            <SlidersHorizontal size='1.625rem' />
+          </label>
+        </button>
+      </div>
+    </div>
     <div class='col-auto p-10 d-flex'>
       <div class='align-self-end'>
         <button
@@ -326,7 +347,7 @@
           disabled={search.disableHide || search.disableSearch || !Helper.isAuthorized()}
           class:text-primary={search.hideMyAnime}>
           <label for='hide-my-anime' class='pointer mb-0 d-flex align-items-center justify-content-center'>
-            <SlidersHorizontal size='1.625rem' />
+            <EyeOff size='1.625rem' />
           </label>
         </button>
       </div>
@@ -377,7 +398,7 @@
           {@const filteredBadges = sanitisedSearch.filter(badge => badge.key !== 'hideStatus' && (search.userList || badge.key !== 'title'))}
           <div class='d-flex flex-wrap flex-row align-items-center'>
             {#if filteredBadges.length > 0}
-              <Tags class='text-dark-light mr-20' size='3rem' />
+              <Tags class='text-dark-light mr-20 block-scale-30'/>
             {/if}
           {#each badgeKeys as key}
             {@const matchingBadges = filteredBadges.filter(badge => badge.key === key)}
@@ -395,10 +416,8 @@
         {/if}
       </div>
     </form>
-    {#if !search.disableSearch && !search.clearNext}
-      <span class='mr-10 filled ml-auto text-dark-light pointer' title='Small Cards' class:text-muted={$settings.cards === 'small'} use:click={() => changeCardMode('small')}><Grid3X3 size='2.25rem' /></span>
-      <span class='text-dark-light pointer' title='Large Cards' class:text-muted={$settings.cards === 'full'} use:click={() => changeCardMode('full')}><Grid2X2 size='2.25rem' /></span>
-    {/if}
+    <span class='mr-10 filled ml-auto text-dark-light pointer' class:d-advanced-search={!advancedSearch?.length} class:d-none={!(!search.disableSearch && !search.clearNext)} title='Small Cards' class:text-muted={$settings.cards === 'small'} use:click={() => changeCardMode('small')}><Grid3X3 size='2.25rem' /></span>
+    <span class='text-dark-light pointer' title='Large Cards' class:d-advanced-search={!advancedSearch?.length} class:d-none={!(!search.disableSearch && !search.clearNext)} class:text-muted={$settings.cards === 'full'} use:click={() => changeCardMode('full')}><Grid2X2 size='2.25rem' /></span>
   </div>
 </form>
 
@@ -431,7 +450,7 @@
   }
 
   .input-group:hover, .pointer:hover {
-    scale: 1.08;
+    scale: 1.02;
   }
 
   .container-fluid button:hover {
@@ -442,5 +461,20 @@
   }
   select.form-control:invalid {
     color: var(--dm-input-placeholder-text-color);
+  }
+
+  @media (max-width: 768px), (max-height: 450px), (max-width: 1000px) and (max-height: 540px) {
+    .d-advanced-title {
+      flex-basis: 0;
+      flex-grow: 1;
+      max-width: 100%;
+      min-width: 20rem !important;
+    }
+    .d-advanced-search {
+      display: none !important;
+    }
+    .d-advanced-search-toggle {
+      display: flex !important;
+    }
   }
 </style>

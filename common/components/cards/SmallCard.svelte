@@ -8,6 +8,7 @@
 
   import { page } from '@/App.svelte'
   import { anilistClient, currentYear } from '@/modules/anilist.js'
+  import { settings } from '@/modules/settings.js'
   import { mediaCache } from '@/modules/cache.js'
   import { CalendarDays, Tv, ThumbsUp, ThumbsDown } from 'lucide-svelte'
 
@@ -23,20 +24,33 @@
   }
   mediaCache.subscribe((value) => { if (value && (JSON.stringify(value[media?.id]) !== JSON.stringify(media))) media = value[media?.id] })
   const view = getContext('view')
-  function viewMedia () {
+  function viewMedia() {
     $view = media
   }
 
   let preview = false
-  function setHoverState (state) {
-    preview = state
+  function setHoverState(state) {
+    if (settings.value.cardPreview) preview = state
+    else if (state) viewMedia()
+  }
+
+  let focusTimeout
+  function handleFocus() {
+    focusTimeout = setTimeout(() => {
+      if (settings.value.cardPreview) preview = true
+    }, 500)
+  }
+
+  function handleBlur() {
+    clearTimeout(focusTimeout)
+    preview = false
   }
 
   const { reactive, init } = createListener(['btn', 'scoring', 'sound'])
   $: init(preview)
 </script>
 
-<div class='d-flex p-md-20 p-15 position-relative small-card-ct {$reactive ? `` : `not-reactive`}' use:hoverClick={[viewMedia, setHoverState, viewMedia]}>
+<div class='d-flex p-md-20 p-15 position-relative small-card-ct {$reactive ? `` : `not-reactive`}' use:hoverClick={[viewMedia, setHoverState, viewMedia]} on:focus={handleFocus} on:blur={handleBlur}>
   {#if preview}
     <PreviewCard {media} {type} />
   {/if}

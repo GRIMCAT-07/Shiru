@@ -61,6 +61,14 @@
     <option value='full'>Full</option>
   </select>
 </SettingCard>
+{#if SUPPORTS.isAndroid && settings.cards === 'small'}
+  <SettingCard title='Card Preview' description='If a detailed preview card should be shown when tapping or hovering over the small card.'>
+    <div class='custom-switch'>
+      <input type='checkbox' id='card-preview' bind:checked={settings.cardPreview} />
+      <label for='card-preview'>{settings.cardPreview ? 'On' : 'Off'}</label>
+    </div>
+  </SettingCard>
+{/if}
 <SettingCard title='Card Audio' description={'If the sub, dub, partial dub, and age rating icons should be shown on the cards, the corresponding episode number will be shown when possible. Additionally a label will be shown on the preview cards, anime view, episode cards, and the home banner of the highest possible audio available, either dub, partial dub, or sub. Note these will not be visible when viewing the schedule page. '}>
   <div class='custom-switch'>
     <input type='checkbox' id='card-audio' bind:checked={settings.cardAudio} />

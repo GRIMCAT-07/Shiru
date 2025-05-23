@@ -144,7 +144,7 @@
     left: 0 ; bottom: 0;
     margin-bottom: -1px;
     width: 100%; height: 100% ;
-    background: var(--preview-card-gradient);
+    background: var(--preview-card-trailer-gradient);
   }
   @keyframes load-in {
     from {

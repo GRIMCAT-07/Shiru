@@ -19,23 +19,47 @@
   let page = 0
   items.value = []
   let container = null
+  let observer = null
+
+  function updateRowMarkers() {
+    const cards = container.querySelectorAll('.grid-card')
+    let currentRow = []
+    let prevTop = null
+
+    cards.forEach(card => card.classList.remove('first-in-row', 'last-in-row'))
+    cards.forEach((card, index) => {
+      const rect = card.getBoundingClientRect()
+      if (rect.top !== prevTop && currentRow.length > 0) {
+        currentRow[currentRow.length - 1].classList.add('last-in-row')
+        currentRow = []
+      }
+
+      if (rect.top !== prevTop) {
+        card.classList.add('first-in-row')
+        currentRow.push(card)
+      } else currentRow.push(card)
+
+      prevTop = rect.top
+      if (index === cards.length - 1 && currentRow.length > 0) currentRow[currentRow.length - 1].classList.add('last-in-row')
+    })
+  }
 
   function loadSearchData () {
     const load = $search.load || SectionsManager.createFallbackLoad()
     const nextData = load(++page, undefined, searchCleanup($search))
     $items = [...$items, ...nextData]
+    requestAnimationFrame(updateRowMarkers)
     return nextData[nextData.length - 1].data
   }
   const update = debounce((event) => {
     if (!event.target.classList.contains('no-bubbles')) {
       $key = {}
     }
-  }, 300)
+  }, 500)
 
   $: loadTillFull($key)
 
   let canScroll = true
-
   async function loadTillFull (_key) {
     if (!container) return
     const cachedKey = $key
@@ -44,7 +68,6 @@
     items.value = []
     hasNextPage.value = true
     await loadSearchData()
-    // eslint-disable-next-line no-unmodified-loop-condition
     while (hasNextPage.value && container && cachedKey === $key && container.scrollHeight <= container.clientHeight) {
       canScroll = false
       await loadSearchData()
@@ -59,18 +82,27 @@
       canScroll = true
     }
   }
+
   onDestroy(() => {
+    observer?.disconnect()
+    window.removeEventListener('resize', updateRowMarkers)
     if ($search.clearNext || $search.disableSearch) $search = { format: [], format_not: [], status: [], status_not: [] }
   })
-  onMount(loadTillFull)
+
+  onMount(() => {
+    observer = new ResizeObserver(updateRowMarkers)
+    observer.observe(container)
+    window.addEventListener('resize', updateRowMarkers)
+    loadTillFull()
+  })
 </script>
 
-<div class='bg-dark h-full w-full overflow-y-scroll d-flex flex-wrap flex-row root overflow-x-hidden justify-content-center align-content-start' bind:this={container} on:scroll={infiniteScroll}>
+<div class='bg-dark h-full w-full overflow-y-scroll d-flex flex-wrap flex-row root overflow-x-hidden justify-content-center align-content-start' bind:this={container} on:scroll={infiniteScroll} on:resize={updateRowMarkers}>
   <Search bind:search={$search} on:input={update} />
-  <div class='w-full d-grid d-md-flex flex-wrap flex-row px-md-50 justify-content-center align-content-start'>
+  <div class='w-full d-grid d-md-flex flex-wrap flex-row px-40 justify-content-center align-content-start'>
     {#key $key}
       {#each $items as card}
-        <Card {card} variables={{...$search}} />
+        <div class='grid-card'><Card {card} variables={{...$search}} /></div>
       {/each}
       {#if $items?.length}
         <ErrorCard promise={$items[0].data} />
@@ -81,14 +113,26 @@
 
 <style>
   .d-grid:has(.item.small-card) {
-    grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)) !important
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)) !important;
   }
   .d-grid:has(.card.full-card) {
-    grid-template-columns: repeat(auto-fill, minmax(52rem, 1fr)) !important
+    grid-template-columns: repeat(auto-fill, minmax(52rem, 1fr)) !important;
   }
   .d-grid {
-    grid-template-columns: repeat(auto-fill, minmax(36rem, 1fr))
+    grid-template-columns: repeat(auto-fill, minmax(36rem, 1fr));
   }
+
+  .d-grid :global(.first-in-row .small-card-ct  .absolute-container) {
+    left: -50% !important;
+  }
+  .d-grid :global(.last-in-row .small-card-ct .absolute-container) {
+    right: -50% !important;
+  }
+
+  .d-grid :global(.item.small-card) {
+    max-width: 19rem !important;
+  }
+
   @media (min-width: 769px) {
     .d-grid :global(.item.small-card) {
       width: 19rem !important;
