@@ -20,6 +20,10 @@
   font-size: 4rem;
 }
 
+.square-scale-18 {
+  width: 1.8rem;
+  height: 1.8rem;
+}
 .block-scale-30 {
   block-size: 3rem;
 }
@@ -48,6 +52,10 @@
     font-size: 2.4rem !important;
   }
 
+  .square-scale-18 {
+    width: 1.4rem;
+    height: 1.4rem;
+  }
   .block-scale-30 {
     block-size: 2.5rem !important;
   }

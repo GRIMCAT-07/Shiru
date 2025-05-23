@@ -14,7 +14,7 @@ import { cache, caches } from '@/modules/cache.js'
 import { status } from '@/modules/networking.js'
 import Helper from '@/modules/helper.js'
 
-import { Drama, BookHeart, MountainSnow, Laugh, Adult, Droplets, FlaskConical, Ghost, Skull, HeartPulse, Volleyball, Car, Brain, Footprints, Guitar, Bot, WandSparkles, Activity } from 'lucide-svelte'
+import { Drama, BookHeart, MountainSnow, Laugh, Adult, Droplets, FlaskConical, Ghost, Skull, HeartPulse, Volleyball, Car, Brain, Footprints, Guitar, Bot, Sparkles, WandSparkles, Activity } from 'lucide-svelte'
 
 import Debug from 'debug'
 const debug = Debug('ui:anime')
@@ -275,7 +275,7 @@ export const genreIcons = {
   'Fantasy': WandSparkles,
   'Hentai': Adult,
   'Horror': Skull,
-  'Mahou Shoujo': Drama,
+  'Mahou Shoujo': Sparkles,
   'Mecha': Bot,
   'Music': Guitar,
   'Mystery': Footprints,

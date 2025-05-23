@@ -1,6 +1,6 @@
 <script context='module'>
-  const badgeKeys = ['title', 'search', 'genre', 'tag', 'season', 'year', 'format', 'format_not', 'status', 'status_not', 'sort', 'hideSubs', 'hideMyAnime', 'hideStatus']
-  const badgeDisplayNames = { title: BookUser, search: Type, genre: Drama, tag: Hash, season: CalendarRange, year: Leaf, format: Tv, format_not: MonitorUp, status: MonitorPlay, status_not: MonitorX, sort: ArrowDownWideNarrow, hideMyAnime: EyeOff, hideSubs: Mic }
+  const badgeKeys = ['title', 'search', 'genre', 'genre_not', 'tag', 'tag_not', 'season', 'year', 'format', 'format_not', 'status', 'status_not', 'sort', 'hideSubs', 'hideMyAnime', 'hideStatus']
+  const badgeDisplayNames = { title: BookUser, search: Type, genre: Hash, genre_not: Hash, tag: Hash, tag_not: Hash, season: CalendarRange, year: Leaf, format: Tv, format_not: MonitorUp, status: MonitorPlay, status_not: MonitorX, sort: ArrowDownWideNarrow, hideMyAnime: EyeOff, hideSubs: Mic }
   const sortOptions = { TITLE_ROMAJI: 'Title', START_DATE_DESC: 'Release Date', SCORE_DESC: 'Score', POPULARITY_DESC: 'Popularity', UPDATED_AT_DESC: 'Date Updated', UPDATED_TIME_DESC: 'Last Updated', STARTED_ON_DESC: 'Start Date', FINISHED_ON_DESC: 'Completed Date', PROGRESS_DESC: 'Your Progress', USER_SCORE_DESC: 'Your Score' }
   const formatOptions = { TV: 'TV Show', MOVIE: 'Movie', TV_SHORT: 'TV Short', SPECIAL: 'Special', OVA: 'OVA', ONA: 'ONA' }
 
@@ -17,21 +17,26 @@
   import { toast } from 'svelte-sonner'
   import Helper from '@/modules/helper.js'
   import CustomDropdown from '@/components/CustomDropdown.svelte'
-  import { BookUser, Type, Drama, Leaf, CalendarRange, MonitorPlay, MonitorUp, MonitorX, Tv, ArrowDownWideNarrow, Filter, FilterX, X, Tags, Hash, SlidersHorizontal, EyeOff, Mic, ImageUp, Search, Grid3X3, Grid2X2 } from 'lucide-svelte'
+  import { BookUser, Type, Leaf, CalendarRange, MonitorPlay, MonitorUp, MonitorX, Tv, ArrowDownWideNarrow, Filter, FilterX, X, Tags, Hash, SlidersHorizontal, EyeOff, Mic, ImageUp, Search, Grid3X3, Grid2X2 } from 'lucide-svelte'
 
   export let search
-  let searchTextInput = {
-    title: null,
-    genre: null,
-    tag: null
-  }
-  let form
 
-  let filteredTags = []
+  let form
+  let searchTextInput = null
+  const searchTags = {
+    headers: {
+      [genreList[0]]: 'Genres',
+      [tagList[0]]: 'Tags'
+    },
+    tags: [...toArray(search?.genre), ...toArray(search?.tag)],
+    tags_not: [...toArray(search?.genre_not), ...toArray(search?.tag_not)]
+  }
 
   $: {
-    const searchInput = (searchTextInput.tag ? searchTextInput.tag.toLowerCase() : null)
-    filteredTags = tagList.filter(tag => (!search.tag || !search.tag.includes(tag)) && (!searchInput || tag.toLowerCase().includes(searchInput))).slice(0, 20)
+    search.genre = searchTags.tags.filter(val => genreList.includes(val))
+    search.tag = searchTags.tags.filter(val => tagList.includes(val))
+    search.genre_not = searchTags.tags_not.filter(val => genreList.includes(val))
+    search.tag_not = searchTags.tags_not.filter(val => tagList.includes(val))
   }
 
   $: sanitisedSearch = Object.entries(searchCleanup(search, true)).flatMap(
@@ -50,8 +55,10 @@
       ...(schedule ? search : { format: [] }),
       title: '',
       search: '',
-      genre: '',
-      tag: '',
+      genre: [],
+      genre_not: [],
+      tag: [],
+      tag_not: [],
       season: '',
       year: null,
       format: [],
@@ -71,7 +78,9 @@
       droppedList: true,
       continueWatching: false
     }
-    searchTextInput.title.focus()
+    searchTags.tags = []
+    searchTags.tags_not = []
+    searchTextInput.focus()
     form.dispatchEvent(new Event('input', { bubbles: true }))
     $page = schedule ? 'schedule' : 'search'
   }
@@ -95,13 +104,17 @@
       if (Helper.isUserSort(search)) {
         search.sort = ''
       }
-    } else if ((badge.key === 'genre' || badge.key === 'tag') && !search.userList) {
+    } else if ((badge.key.startsWith('genre') || badge.key.startsWith('tag')) && !search.userList) {
       delete search.title
     } else if (badge.key === 'hideMyAnime') {
       delete search.hideStatus
     } 
     if (Array.isArray(search[badge.key])) {
       search[badge.key] = search[badge.key].filter((item) => item !== badge.value)
+      if (badge.key.startsWith('tag') || badge.key.startsWith('genre')) {
+        searchTags.tags = searchTags.tags.filter((item) => item !== badge.value)
+        searchTags.tags_not = searchTags.tags_not.filter((item) => item !== badge.value)
+      }
       if (search[badge.key].length === 0) {
         search[badge.key] = badge.key.includes('status') || badge.key.includes('format') ? [] : ''
       }
@@ -122,29 +135,12 @@
     form.dispatchEvent(new Event('input', { bubbles: true }))
   }
 
-  function filterTags(event, type, trigger) {
-    const list = type === 'tag' ? tagList : genreList
-    const searchKey = type === 'tag' ? 'tag' : 'genre'
-    const inputValue = event.target.value
-    let bestMatch = list.find(item => item.toLowerCase() === inputValue.toLowerCase())
-    if ((trigger === 'keydown' && (event.key === 'Enter' || event.code === 'Enter')) || (trigger === 'input' && bestMatch)) {
-      if (!bestMatch || inputValue.endsWith('*')) {
-        bestMatch = (inputValue.endsWith('*') && inputValue.slice(0, -1)) || list.find(item => item.toLowerCase().startsWith(inputValue.toLowerCase())) || list.find(item => item.toLowerCase().endsWith(inputValue.toLowerCase()))
-      }
-      if (bestMatch && (!search[searchKey] || !search[searchKey].includes(bestMatch))) {
-        search[searchKey] = search[searchKey] ? [...search[searchKey], bestMatch] : [bestMatch]
-        searchTextInput[searchKey] = null
-        setTimeout(() => {
-          form.dispatchEvent(new Event('input', {bubbles: true}))
-        }, 0)
-      }
-    }
-  }
-
   function clearTags() { // cannot specify genre and tag filtering with user specific sorting options when using alternative authentication.
     if (!Helper.isAniAuth() && Helper.isUserSort(search)) {
-      search.genre = ''
-      search.tag = ''
+      search.genre = []
+      search.tag = []
+      searchTags.tags = []
+      searchTags.tags_not = []
     }
   }
 
@@ -172,6 +168,10 @@
     if (!advancedSearch?.length) advancedSearch = 'd-advanced-search'
     else advancedSearch = ''
   }
+
+  function toArray(value) {
+    return Array.isArray(value) ? value : value ? [value] : []
+  }
 </script>
 
 <form class='container-fluid py-20 px-md-50 bg-dark pb-0 position-sticky top-0 search-container z-40' on:input bind:this={form}>
@@ -184,7 +184,7 @@
       <div class='input-group'>
         <Search size='2.6rem' strokeWidth='2.5' class='position-absolute z-10 text-dark-light h-full pl-10 pointer-events-none'/>
         <input
-          bind:this={searchTextInput.title}
+          bind:this={searchTextInput}
           type='search'
           class='form-control bg-dark-light text-capitalize pl-35 rounded-1'
           autocomplete='off'
@@ -196,57 +196,12 @@
     </div>
     <div class='col-lg col-4 p-10 d-flex {advancedSearch} flex-column justify-content-end'>
       <div class='pb-10 font-weight-semi-bold d-flex align-items-center font-scale-24'>
-        <Drama class='mr-10 block-scale-30'/>
+        <Hash class='mr-10 block-scale-30'/>
         <div>Genres</div>
       </div>
-      <div class='input-group'>
-        <input
-          id='genre'
-          type='search'
-          title={(!Helper.isAniAuth() && Helper.isUserSort(search)) ? 'Cannot use with sort: ' + sortOptions[search.sort] : ''}
-          class='form-control bg-dark-light border-left-0 text-capitalize no-bubbles'
-          autocomplete='off'
-          bind:value={searchTextInput.genre}
-          on:keydown={(event) => filterTags(event, 'genre', 'keydown')}
-          on:input={(event) => filterTags(event, 'genre', 'input')}
-          data-option='search'
-          disabled={search.disableSearch || (!Helper.isAniAuth() && Helper.isUserSort(search))}
-          placeholder='Any'
-          list='search-genre'/>
+      <div class='input-group z-5' title={(!Helper.isAniAuth() && Helper.isUserSort(search)) ? 'Cannot use with sort: ' + sortOptions[search.sort] : ''}>
+        <CustomDropdown id={`tags-input`} bind:form headers={searchTags.headers} options={[...toArray(genreList), ...toArray(tagList)]} bind:value={searchTags.tags} bind:altValue={searchTags.tags_not} constrainAlt={false} disabled={search.disableSearch || (!Helper.isAniAuth() && Helper.isUserSort(search))}/>
       </div>
-      <datalist id='search-genre'>
-        {#each genreList as genre}
-          {#if !search.genre || !search.genre.includes(genre) }
-            <option>{genre}</option>
-          {/if}
-        {/each}
-      </datalist>
-    </div>
-    <div class='col-lg col-4 p-10 d-flex {advancedSearch} flex-column justify-content-end'>
-      <div class='pb-10 font-weight-semi-bold d-flex align-items-center font-scale-24'>
-        <Hash class='mr-10 block-scale-30'/>
-        <div>Tags</div>
-      </div>
-      <div class='input-group'>
-        <input
-          id='tag'
-          type='search'
-          title={(!Helper.isAniAuth() && Helper.isUserSort(search)) ? 'Cannot use with sort: ' + sortOptions[search.sort] : ''}
-          class='form-control bg-dark-light border-left-0 text-capitalize no-bubbles'
-          autocomplete='off'
-          bind:value={searchTextInput.tag}
-          on:keydown={(event) => filterTags(event, 'tag', 'keydown')}
-          on:input={(event) => filterTags(event, 'tag', 'input')}
-          data-option='search'
-          disabled={search.disableSearch || (!Helper.isAniAuth() && Helper.isUserSort(search))}
-          placeholder='Any'
-          list='search-tag'/>
-      </div>
-      <datalist id='search-tag'>
-        {#each filteredTags as tag}
-          <option>{tag}</option>
-        {/each}
-      </datalist>
     </div>
     {#if !search.scheduleList}
       <div class='col-lg col-4 p-10 d-flex {advancedSearch} flex-column justify-content-end'>
@@ -298,7 +253,11 @@
         </div>
         <div class='input-group'>
           <select class='form-control bg-dark-light' required bind:value={search.sort} on:change={clearTags} disabled={search.disableSearch}>
-            <option value selected>Trending</option>
+            {#if search.sort !== 'TRENDING_DESC'}
+              <option value selected>Trending</option>
+            {:else}
+              <option value='TRENDING_DESC' selected>Trending</option>
+            {/if}
             <option value='POPULARITY_DESC'>Popularity</option>
             <option value='TITLE_ROMAJI'>Title</option>
             <option value='SCORE_DESC'>Score</option>
@@ -398,16 +357,16 @@
           {@const filteredBadges = sanitisedSearch.filter(badge => badge.key !== 'hideStatus' && (search.userList || badge.key !== 'title'))}
           <div class='d-flex flex-wrap flex-row align-items-center'>
             {#if filteredBadges.length > 0}
-              <Tags class='text-dark-light mr-20 block-scale-30'/>
+              <Tags class='text-dark-light mr-20 block-scale-30 mb-5'/>
             {/if}
           {#each badgeKeys as key}
             {@const matchingBadges = filteredBadges.filter(badge => badge.key === key)}
             {#each matchingBadges as badge}
-              {#if badge.key === key && (badge.key !== 'hideStatus' && (search.userList || badge.key !== 'title')) }
+              {#if badge.key === key && (badge.key !== 'hideStatus' && (search.userList || badge.key !== 'title')) && !(badge.key === 'sort' && badge.value === 'TRENDING_DESC')}
                 <div class='badge border-0 py-5 px-10 text-capitalize mr-10 text-white text-nowrap d-flex align-items-center mb-5' class:bg-light={!badge.key.includes('_not')} class:bg-danger-dark={badge.key.includes('_not')}>
-                  <svelte:component this={badge.key === 'genre' ? genreIcons[badge.value] || badgeDisplayNames[badge.key] : badgeDisplayNames[badge.key]} class='mr-5' size='1.8rem' />
-                  <div class='font-size-12'>{badge.key === 'sort' ? getSortDisplayName(badge.value) : (badge.key === 'format' || badge.key === 'format_not') ? getFormatDisplayName(badge.value) : (badge.key === 'hideMyAnime' ? 'Hide My Anime' : badge.key === 'hideSubs' ? 'Dubbed' : ('' + badge.value).replace(/_/g, ' ').toLowerCase())}</div>
-                  <button on:click={() => removeBadge(badge)} class='pointer bg-transparent border-0 text-white font-size-12 position-relative pl-0 pr-0 pt-0 x-filter d-flex align-items-center' title='Remove Filter' type='button'><X size='1.3rem' strokeWidth='3'/></button>
+                  <svelte:component this={badge.key === 'genre' ? genreIcons[badge.value] || badgeDisplayNames[badge.key] : badgeDisplayNames[badge.key]} class='mr-5 square-scale-18'/>
+                  <span>{badge.key === 'sort' ? getSortDisplayName(badge.value) : (badge.key === 'format' || badge.key === 'format_not') ? getFormatDisplayName(badge.value) : (badge.key === 'hideMyAnime' ? 'Hide My Anime' : badge.key === 'hideSubs' ? 'Dubbed' : ('' + badge.value).replace(/_/g, ' ').toLowerCase())}</span>
+                  <button on:click={() => removeBadge(badge)} class='pointer bg-transparent border-0 text-white position-relative pl-0 pr-0 pt-0 x-filter d-flex align-items-center' title='Remove Filter' type='button'><X size='1.3rem' strokeWidth='3'/></button>
                 </div>
               {/if}
             {/each}
