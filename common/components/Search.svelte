@@ -168,7 +168,7 @@
         <input
           bind:this={searchTextInput}
           type='search'
-          class='form-control bg-dark-light text-capitalize pl-35 rounded-1'
+          class='form-control bg-dark-light text-capitalize pl-35 rounded-1 text-truncate'
           autocomplete='off'
           bind:value={search.search}
           data-option='search'
