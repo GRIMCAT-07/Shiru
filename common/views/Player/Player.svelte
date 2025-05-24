@@ -1522,7 +1522,7 @@
       </button>
     {/if}
   </div>
-  <div class='bottom d-flex z-40 flex-column px-20 font-scale-24'>
+  <div class='bottom d-flex z-40 flex-column px-20'>
     <div class='w-full d-flex align-items-center h-20 mb-5 seekbar' tabindex='0' role='button' on:keydown={handleSeekbarKey}>
       <Seekbar
         accentColor='var(--accent-color)'

@@ -38,31 +38,37 @@
   let container
   let previewCard
   let focusTimeout
+  let blurTimeout
   function handleFocus() {
-    clearTimeout(focusTimeout)
+    clearTimeouts()
+    if (preview) return
     focusTimeout = setTimeout(() => {
       if (settings.value.cardPreview) preview = true
     }, 800)
   }
-
   function handleBlur() {
-    clearTimeout(focusTimeout)
-    focusTimeout = setTimeout(() => {
+    clearTimeouts()
+    blurTimeout = setTimeout(() => {
       const focused = document.activeElement
       if (container && !container.contains(focused) && (!previewCard || !previewCard.contains(focused))) {
         preview = false
       }
     })
   }
+  function clearTimeouts() {
+    clearTimeout(focusTimeout)
+    clearTimeout(blurTimeout)
+  }
 
-  onMount(() => container.addEventListener('focusout', handleBlur, { passive: true }))
+  onMount(() => container.addEventListener('focusout', handleBlur))
   onDestroy(() => {
     container.removeEventListener('focusout', handleBlur)
-    clearTimeout(focusTimeout)
+    clearTimeouts()
   })
 
   const { reactive, init } = createListener(['btn', 'scoring', 'sound'])
   $: init(preview)
+  $: if (preview) clearTimeout(focusTimeout)
 </script>
 
 <div bind:this={container} class='d-flex p-md-20 p-15 position-relative small-card-ct {$reactive ? `` : `not-reactive`}' use:hoverClick={[viewMedia, setHoverState, viewMedia]} on:focus={handleFocus}>

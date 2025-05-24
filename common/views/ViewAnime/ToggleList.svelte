@@ -1,7 +1,7 @@
 <script>
   import { SUPPORTS } from '@/modules/support.js'
   import { click } from '@/modules/click.js'
-  import { onDestroy, onMount, afterUpdate } from 'svelte'
+  import { onDestroy, afterUpdate } from 'svelte'
   import ToggleTitle from '@/views/ViewAnime/ToggleTitle.svelte'
   import ToggleFooter from '@/views/ViewAnime/ToggleFooter.svelte'
 
@@ -26,40 +26,45 @@
     if (!container) return
     const cards = Array.from(container.querySelectorAll('.small-card'))
     cards.forEach(card => card.classList.remove('first-in-row', 'last-in-row'))
-    const rows = new Map()
-    cards.forEach(card => {
-      const top = Math.round(card.getBoundingClientRect().top)
-      if (!rows.has(top)) rows.set(top, [])
-      rows.get(top).push(card)
-    })
-    rows.forEach(cardsInRow => {
-      if (cardsInRow.length > 0) {
-        cardsInRow[0].classList.add('first-in-row')
-        cardsInRow[cardsInRow.length - 1].classList.add('last-in-row')
+    if (SUPPORTS.isAndroid) {
+      if (cards.length > 0) {
+        cards[0].classList.add('first-in-row')
+        cards[cards.length > 1 ? cards.length - 2 : 0].classList.add('last-in-row')
       }
-    })
+    } else {
+      const rows = new Map()
+      cards.forEach(card => {
+        const top = Math.round(card.getBoundingClientRect().top)
+        if (!rows.has(top)) rows.set(top, [])
+        rows.get(top).push(card)
+      })
+      rows.forEach(cardsInRow => {
+        if (cardsInRow.length > 0) {
+          cardsInRow[0].classList.add('first-in-row')
+          cardsInRow[cardsInRow.length - 1].classList.add('last-in-row')
+        }
+      })
+    }
   }
 
-  function handleResize() {
+  function handleUpdate() {
     updateRowLength()
     updateRowMarkers()
   }
 
   let observer = null
-  afterUpdate(updateRowLength)
-  onMount(() => {
-    if (!SUPPORTS.isAndroid && container) {
-      observer = new ResizeObserver(handleResize)
+  $: {
+    if (container && !observer) {
+      observer = new ResizeObserver(handleUpdate)
       observer.observe(container)
-      window.addEventListener('resize', handleResize)
-      updateRowLength()
+      window.addEventListener('resize', handleUpdate)
     }
-  })
+  }
+  afterUpdate(() => handleUpdate())
   onDestroy(() => {
-    if (!SUPPORTS.isAndroid) {
-      observer?.disconnect()
-      window.removeEventListener('resize', handleResize)
-    }
+    observer?.disconnect()
+    observer = null
+    window.removeEventListener('resize', handleUpdate)
   })
 </script>
 
