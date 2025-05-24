@@ -469,6 +469,16 @@ This is pretty god awful causing noticeable visual stuttering, creating the impr
   }
 }
 
+
+.radius-left-0 {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+.radius-right-0 {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
 .rounded-10 {
   border-radius: 1rem;
 }

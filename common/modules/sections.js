@@ -1,5 +1,6 @@
 import { anilistClient, seasons, currentSeason, currentYear } from '@/modules/anilist.js'
 import { animeSchedule } from '@/modules/animeschedule.js'
+import { cache, caches } from '@/modules/cache.js'
 import { malDubs } from '@/modules/animedubs.js'
 import { writable } from 'simple-store-svelte'
 import { settings } from '@/modules/settings.js'
@@ -8,8 +9,17 @@ import Helper from '@/modules/helper.js'
 import Debug from 'debug'
 
 const debug = Debug('ui:sections')
+const lastSearched = cache.getEntry(caches.HISTORY, 'lastSearched')
 
 export const hasNextPage = writable(true)
+export const key = writable({})
+export const search = writable((!lastSearched?.clearNext && lastSearched) || { genre: [], genre_not: [], tag: [], tag_not: [], format: [], format_not: [], status: [], status_not: [] })
+search.subscribe(value => {
+  const searched = { ...value }
+  delete searched.load
+  delete searched.preview
+  cache.setEntry(caches.HISTORY, 'lastSearched', searched)
+})
 
 const hideStatus = ['CURRENT', 'REPEATING', 'COMPLETED', 'DROPPED']
 const hideMyAnime = settings.value.hideMyAnime

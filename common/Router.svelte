@@ -4,14 +4,14 @@
   import Settings from '@/views/Settings/Settings.svelte'
   import WatchTogether from '@/views/WatchTogether/WatchTogether.svelte'
   import Miniplayer from '@/views/Player/Miniplayer.svelte'
-  import Search, { search } from '@/views/Search.svelte'
+  import Search from '@/views/Search.svelte'
+  import { search, key } from '@/modules/sections.js'
   import AiringSchedule from '@/views/AiringSchedule.svelte'
 
   export let page = 'home'
   export let overlay = []
   export let playPage = false
 
-  $: $search = page === 'search' && $search.scheduleList ? { format: [], format_not: [], status: [], status_not: [] } : { format: [], format_not: [], status: [], status_not: [], ...$search }
   $: visible = !overlay.includes('torrent') && !overlay.includes('notifications') && !overlay.includes('profiles') && !overlay.includes('minimizetray') && !overlay.includes('trailer') && !playPage && !$media?.display
 </script>
 <div class='w-full h-full position-absolute overflow-hidden' class:invisible={!($media && (Object.keys($media).length > 0)) || (playPage && overlay.includes('viewanime')) || (!visible && (page !== 'player'))}>
@@ -24,7 +24,7 @@
 {:else if page === 'home'}
   <Home />
 {:else if page === 'search'}
-  <Search />
+  <Search search={search} key={key}/>
 {:else if page === 'schedule'}
   <AiringSchedule />
 {:else if page === 'watchtogether'}

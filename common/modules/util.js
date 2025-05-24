@@ -495,12 +495,16 @@ export const generalDefaults = {
  * @property {any} [lastMagnet]
  * @property {any} [lastBoosted]
  * @property {any} [lastSubtitle]
+ * @property {any} [lastSearched]
+ * @property {any} [lastSchedule]
  * @property {any} [animeEpisodeProgress]
  */
 export const historyDefaults = {
   lastMagnet: undefined,
   lastBoosted: undefined,
   lastSubtitle: undefined,
+  lastSearched: undefined,
+  lastSchedule: undefined,
   animeEpisodeProgress: []
 }
 

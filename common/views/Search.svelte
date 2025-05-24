@@ -1,20 +1,18 @@
-<script context='module'>
-  import { writable } from 'simple-store-svelte'
-  import SectionsManager from '@/modules/sections.js'
-
-  export const search = writable({ format: [], format_not: [], status: [], status_not: [] })
-
-  const items = writable([])
-  export const key = writable({})
-</script>
-
 <script>
   import Search, { searchCleanup } from '@/components/Search.svelte'
   import Card from '@/components/cards/Card.svelte'
   import { hasNextPage } from '@/modules/sections.js'
   import { debounce } from '@/modules/util.js'
   import { onDestroy, onMount } from 'svelte'
+  import { writable } from 'simple-store-svelte'
+  import SectionsManager from '@/modules/sections.js'
   import ErrorCard from '@/components/cards/ErrorCard.svelte'
+
+  const items = writable([])
+  export let key
+  export let search
+  export let clearNow = writable(false)
+  search?.subscribe((value) => $clearNow = value?.clearNow)
 
   let page = 0
   items.value = []
@@ -87,7 +85,7 @@
   onDestroy(() => {
     observer?.disconnect()
     window.removeEventListener('resize', updateRowMarkers)
-    if ($search.clearNext || $search.disableSearch) $search = { format: [], format_not: [], status: [], status_not: [] }
+    if ($search.disableSearch) $search = { format: [], format_not: [], status: [], status_not: [] }
   })
 
   onMount(() => {
@@ -101,7 +99,7 @@
 </script>
 
 <div class='bg-dark h-full w-full overflow-y-scroll d-flex flex-wrap flex-row root overflow-x-hidden justify-content-center align-content-start' bind:this={container} on:scroll={infiniteScroll} on:resize={updateRowMarkers}>
-  <Search bind:search={$search} on:input={update} />
+  <Search bind:search={$search} clearNow={$clearNow} on:input={update} />
   <div class='w-full d-grid d-md-flex flex-wrap flex-row px-40 justify-content-center align-content-start'>
     {#key $key}
       {#each $items as card}

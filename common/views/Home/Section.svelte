@@ -5,7 +5,7 @@
 <script>
   import Card from '@/components/cards/Card.svelte'
   import ErrorCard from '@/components/cards/ErrorCard.svelte'
-  import { search } from '@/views/Search.svelte'
+  import { search } from '@/modules/sections.js'
   import { page } from '@/App.svelte'
   import { click } from '@/modules/click.js'
   import { SUPPORTS } from '@/modules/support.js'

@@ -11,6 +11,7 @@
 
 <script>
   import { traceAnime, genreIcons, genreList, tagList } from '@/modules/anime.js'
+  import { currentYear } from '@/modules/anilist.js'
   import { settings } from '@/modules/settings.js'
   import { click } from '@/modules/click.js'
   import { page } from '@/App.svelte'
@@ -19,17 +20,24 @@
   import CustomDropdown from '@/components/CustomDropdown.svelte'
   import { BookUser, Type, Leaf, CalendarRange, MonitorPlay, MonitorUp, MonitorX, Tv, ArrowDownWideNarrow, Filter, FilterX, X, Tags, Hash, SlidersHorizontal, EyeOff, Mic, ImageUp, Search, Grid3X3, Grid2X2 } from 'lucide-svelte'
 
+  export let clearNow
   export let search
 
   let form
   let searchTextInput = null
-  const searchTags = {
-    headers: {
-      [genreList[0]]: 'Genres',
-      [tagList[0]]: 'Tags'
-    },
-    tags: [...toArray(search?.genre), ...toArray(search?.tag)],
-    tags_not: [...toArray(search?.genre_not), ...toArray(search?.tag_not)]
+  let searchTags = getTags()
+  $: if (clearNow) searchTags = getTags()
+
+  function getTags() {
+    delete search.clearNow
+    return {
+      headers: {
+        [genreList[0]]: 'Genres',
+        [tagList[0]]: 'Tags'
+      },
+      tags: [...toArray(search?.genre), ...toArray(search?.tag)],
+      tags_not: [...toArray(search?.genre_not), ...toArray(search?.tag_not)]
+    }
   }
 
   $: {
@@ -41,48 +49,28 @@
 
   $: sanitisedSearch = Object.entries(searchCleanup(search, true)).flatMap(
     ([key, value]) => {
-      if (Array.isArray(value)) {
-        return value.map((item) => ({ key, value: item }))
-      } else {
-        return [{ key, value }]
-      }
+      if (Array.isArray(value)) return value.map((item) => ({ key, value: item }))
+      else return [{ key, value }]
     }
   )
 
   function searchClear() {
-    const schedule = $page === 'schedule'
     search = {
-      ...(schedule ? search : { format: [] }),
-      title: '',
-      search: '',
+      scheduleList: ($page === 'schedule'),
       genre: [],
       genre_not: [],
       tag: [],
       tag_not: [],
-      season: '',
-      year: null,
       format: [],
       format_not: [],
       status: [],
       status_not: [],
-      sort: '',
-      hideSubs: false,
-      hideMyAnime: false,
-      disableHide: false,
-      hideStatus: '',
-      scheduleList: schedule,
-      userList: false,
-      missedList: true,
-      completedList: true,
-      planningList: true,
-      droppedList: true,
-      continueWatching: false
+      ...(($page === 'schedule') ? { load: search.load } : { season: '', sort: ''})
     }
     searchTags.tags = []
     searchTags.tags_not = []
     searchTextInput.focus()
     form.dispatchEvent(new Event('input', { bubbles: true }))
-    $page = schedule ? 'schedule' : 'search'
   }
 
   function getSortDisplayName(value) {
@@ -98,29 +86,21 @@
       delete search.load
       delete search.disableHide
       delete search.userList
-      delete search.scheduleList
       delete search.continueWatching
       delete search.completedList
       if (Helper.isUserSort(search)) {
         search.sort = ''
       }
-    } else if ((badge.key.startsWith('genre') || badge.key.startsWith('tag')) && !search.userList) {
-      delete search.title
-    } else if (badge.key === 'hideMyAnime') {
-      delete search.hideStatus
-    } 
+    } else if ((badge.key.startsWith('genre') || badge.key.startsWith('tag')) && !search.userList) delete search.title
+    else if (badge.key === 'hideMyAnime') delete search.hideStatus
     if (Array.isArray(search[badge.key])) {
       search[badge.key] = search[badge.key].filter((item) => item !== badge.value)
       if (badge.key.startsWith('tag') || badge.key.startsWith('genre')) {
         searchTags.tags = searchTags.tags.filter((item) => item !== badge.value)
         searchTags.tags_not = searchTags.tags_not.filter((item) => item !== badge.value)
       }
-      if (search[badge.key].length === 0) {
-        search[badge.key] = badge.key.includes('status') || badge.key.includes('format') ? [] : ''
-      }
-    } else {
-      search[badge.key] = ''
-    }
+      if (search[badge.key].length === 0) search[badge.key] = badge.key.includes('status') || badge.key.includes('format') ? [] : ''
+    } else search[badge.key] = ''
     form.dispatchEvent(new Event('input', { bubbles: true }))
   }
 
@@ -138,7 +118,9 @@
   function clearTags() { // cannot specify genre and tag filtering with user specific sorting options when using alternative authentication.
     if (!Helper.isAniAuth() && Helper.isUserSort(search)) {
       search.genre = []
+      search.genre_not = []
       search.tag = []
+      search.tag_not = []
       searchTags.tags = []
       searchTags.tags_not = []
     }
@@ -203,30 +185,26 @@
         <CustomDropdown id={`tags-input`} bind:form headers={searchTags.headers} options={[...toArray(genreList), ...toArray(tagList)]} bind:value={searchTags.tags} bind:altValue={searchTags.tags_not} constrainAlt={false} disabled={search.disableSearch || (!Helper.isAniAuth() && Helper.isUserSort(search))}/>
       </div>
     </div>
-    {#if !search.scheduleList}
-      <div class='col-lg col-4 p-10 d-flex {advancedSearch} flex-column justify-content-end'>
-        <div class='pb-10 font-weight-semi-bold d-flex align-items-center font-scale-24'>
-          <CalendarRange class='mr-10 block-scale-30'/>
-          <div>Season</div>
-        </div>
+    <div class='col-lg col-4 p-10 d-none z-5 {advancedSearch} flex-column justify-content-end' class:d-flex={!search.scheduleList}>
+      <div class='pb-10 font-weight-semi-bold d-flex align-items-center font-scale-24'>
+        <CalendarRange class='mr-10 block-scale-30'/>
+        <div>Season</div>
+      </div>
+      <div class='d-flex align-items-center'>
         <div class='input-group'>
-          <select class='form-control bg-dark-light border-right-dark' required bind:value={search.season} disabled={search.disableSearch}>
+          <select class='form-control bg-dark-light border-right-dark radius-right-0' required bind:value={search.season} disabled={search.disableSearch}>
             <option value selected>Any</option>
             <option value='WINTER'>Winter</option>
             <option value='SPRING'>Spring</option>
             <option value='SUMMER'>Summer</option>
             <option value='FALL'>Fall</option>
           </select>
-          <datalist id='search-year'>
-            {#each Array(new Date().getFullYear() - 1940 + 2) as _, i}
-              {@const year = new Date().getFullYear() + 2 - i}
-              <option>{year}</option>
-            {/each}
-          </datalist>
-          <input type='number' inputmode='numeric' pattern='[0-9]*' placeholder='Any' min='1940' max='2100' list='search-year' class='bg-dark-light form-control' disabled={search.disableSearch} bind:value={search.year} />
+        </div>
+        <div class='input-group z-5'>
+          <CustomDropdown id={`year-input`} class='radius-left-0' bind:form options={Array.from({ length: currentYear - 1940 + 2 }, (_, i) => currentYear + 1 - i)} bind:value={search.year} arrayValue={false} bind:disabled={search.disableSearch}/>
         </div>
       </div>
-    {/if}
+    </div>
     <div class='col p-10 d-flex {advancedSearch} flex-column justify-content-end'>
       <div class='pb-10 font-weight-semi-bold d-flex align-items-center font-scale-24'>
         <Tv class='mr-10 block-scale-30'/>
@@ -236,51 +214,49 @@
         <CustomDropdown id={`format-input`} bind:form options={{ TV: 'TV Show', MOVIE: 'Movie', TV_SHORT: 'TV Short', SPECIAL: 'Special', OVA: 'OVA', ONA: 'ONA' }} bind:value={search.format} bind:altValue={search.format_not} bind:disabled={search.disableSearch}/>
       </div>
     </div>
-    {#if !search.scheduleList}
-      <div class='col p-10 d-flex {advancedSearch} flex-column justify-content-end'>
-        <div class='pb-10 font-weight-semi-bold d-flex align-items-center font-scale-24'>
-          <MonitorPlay class='mr-10 block-scale-30'/>
-          <div>Status</div>
-        </div>
-        <div class='input-group z-5'>
-          <CustomDropdown id={`status-input`} bind:form options={{ RELEASING: 'Releasing', FINISHED: 'Finished', NOT_YET_RELEASED: 'Not Yet Released', CANCELLED: 'Cancelled' }} bind:value={search.status} bind:altValue={search.status_not} bind:disabled={search.disableSearch}/>
-        </div>
+    <div class='col p-10 d-none {advancedSearch} flex-column justify-content-end' class:d-flex={!search.scheduleList}>
+      <div class='pb-10 font-weight-semi-bold d-flex align-items-center font-scale-24'>
+        <MonitorPlay class='mr-10 block-scale-30'/>
+        <div>Status</div>
       </div>
-      <div class='col p-10 d-flex {advancedSearch} flex-column justify-content-end'>
-        <div class='pb-10 font-weight-semi-bold d-flex align-items-center font-scale-24'>
-          <ArrowDownWideNarrow class='mr-10 block-scale-30'/>
-          <div>Sort</div>
-        </div>
-        <div class='input-group'>
-          <select class='form-control bg-dark-light' required bind:value={search.sort} on:change={clearTags} disabled={search.disableSearch}>
-            {#if search.sort !== 'TRENDING_DESC'}
-              <option value selected>Trending</option>
-            {:else}
-              <option value='TRENDING_DESC' selected>Trending</option>
-            {/if}
-            <option value='POPULARITY_DESC'>Popularity</option>
-            <option value='TITLE_ROMAJI'>Title</option>
-            <option value='SCORE_DESC'>Score</option>
-            <option value='START_DATE_DESC'>Release Date</option>
-            {#if search.userList && search.title && !search.missedList}
-              {#if search.completedList}
-                <option value='FINISHED_ON_DESC'>Completed Date</option>
-              {/if}
-              {#if !search.planningList}
-                <option value='STARTED_ON_DESC'>Start Date</option>
-              {/if}
-              <option value='UPDATED_TIME_DESC'>Last Updated</option>
-              {#if !search.completedList && !search.planningList}
-                <option value='PROGRESS_DESC'>Your Progress</option>
-              {/if}
-              {#if search.completedList || search.droppedList}
-                <option value='USER_SCORE_DESC'>Your Score</option>
-              {/if}
-            {/if}
-          </select>
-        </div>
+      <div class='input-group z-5'>
+        <CustomDropdown id={`status-input`} bind:form options={{ RELEASING: 'Releasing', FINISHED: 'Finished', NOT_YET_RELEASED: 'Not Yet Released', CANCELLED: 'Cancelled' }} bind:value={search.status} bind:altValue={search.status_not} bind:disabled={search.disableSearch}/>
       </div>
-    {/if}
+    </div>
+    <div class='col p-10 d-none {advancedSearch} flex-column justify-content-end' class:d-flex={!search.scheduleList}>
+      <div class='pb-10 font-weight-semi-bold d-flex align-items-center font-scale-24'>
+        <ArrowDownWideNarrow class='mr-10 block-scale-30'/>
+        <div>Sort</div>
+      </div>
+      <div class='input-group'>
+        <select class='form-control bg-dark-light' required bind:value={search.sort} on:change={clearTags} disabled={search.disableSearch}>
+          {#if search.sort !== 'TRENDING_DESC'}
+            <option value selected>Trending</option>
+          {:else}
+            <option value='TRENDING_DESC' selected>Trending</option>
+          {/if}
+          <option value='POPULARITY_DESC'>Popularity</option>
+          <option value='TITLE_ROMAJI'>Title</option>
+          <option value='SCORE_DESC'>Score</option>
+          <option value='START_DATE_DESC'>Release Date</option>
+          {#if search.userList && search.title && !search.missedList}
+            {#if search.completedList}
+              <option value='FINISHED_ON_DESC'>Completed Date</option>
+            {/if}
+            {#if !search.planningList}
+              <option value='STARTED_ON_DESC'>Start Date</option>
+            {/if}
+            <option value='UPDATED_TIME_DESC'>Last Updated</option>
+            {#if !search.completedList && !search.planningList}
+              <option value='PROGRESS_DESC'>Your Progress</option>
+            {/if}
+            {#if search.completedList || search.droppedList}
+              <option value='USER_SCORE_DESC'>Your Score</option>
+            {/if}
+          {/if}
+        </select>
+      </div>
+    </div>
     <div class='col-auto p-10 d-none d-advanced-search-toggle'>
       <div class='align-self-end'>
         <button
@@ -326,21 +302,19 @@
         </button>
       </div>
     </div>
-    {#if !search.scheduleList}
-      <input type='file' class='d-none' id='search-image' accept='image/*' on:input|preventDefault|stopPropagation={handleFile} />
-      <div class='col-auto p-10 d-flex'>
-        <div class='align-self-end'>
-          <button class='btn btn-square bg-dark-light px-5 align-self-end border-0' type='button' title='Image Search'>
-            <label for='search-image' class='pointer mb-0 d-flex align-items-center justify-content-center'>
-              <ImageUp size='1.625rem' />
-            </label>
-          </button>
-        </div>
+    <input type='file' class='d-none' id='search-image' accept='image/*' on:input|preventDefault|stopPropagation={handleFile} />
+    <div class='col-auto p-10 d-none' class:d-flex={!search.scheduleList}>
+      <div class='align-self-end'>
+        <button class='btn btn-square bg-dark-light px-5 align-self-end border-0' type='button' title='Image Search'>
+          <label for='search-image' class='pointer mb-0 d-flex align-items-center justify-content-center'>
+            <ImageUp size='1.625rem' />
+          </label>
+        </button>
       </div>
-    {/if}
+    </div>
     <div class='col-auto p-10 d-flex'>
       <div class='align-self-end'>
-        <button class='btn btn-square bg-dark-light d-flex align-items-center justify-content-center px-5 align-self-end border-0' type='button' use:click={searchClear} disabled={(sanitisedSearch.length <= 0) && !search.clearNext} class:text-danger={!!sanitisedSearch?.length || search.disableSearch || search.clearNext}>
+        <button class='btn btn-square bg-dark-light d-flex align-items-center justify-content-center px-5 align-self-end border-0' type='button' title='Reset Filters' use:click={searchClear} disabled={(sanitisedSearch.length <= 0) && !search.clearNext} class:text-danger={!!sanitisedSearch?.length || search.disableSearch || search.clearNext}>
           {#if !!sanitisedSearch?.length || search.disableSearch || search.clearNext}
             <FilterX size='1.625rem' />
           {:else}

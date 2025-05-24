@@ -1,12 +1,21 @@
 <script context='module'>
   import SectionsManager from '@/modules/sections.js'
-  import Search, { search } from '@/views/Search.svelte'
+  import Search from '@/views/Search.svelte'
+  import { writable } from 'simple-store-svelte'
   import { anilistClient } from '@/modules/anilist.js'
   import { nextAiring } from '@/modules/anime.js'
   import { animeSchedule } from '@/modules/animeschedule.js'
+  import { cache, caches } from '@/modules/cache.js'
   import Helper from '@/modules/helper.js'
 
-  const vars = { scheduleList: true, format: ['TV'], format_not: [] }
+  const key = writable({})
+  const search = writable(cache.getEntry(caches.HISTORY, 'lastSchedule') || { scheduleList: true, format: ['TV'], format_not: [], genre: [], genre_not: [], tag: [], tag_not: [], status: [], status_not: [] })
+  search.subscribe(value => {
+    const searched = { ...value }
+    delete searched.load
+    delete searched.preview
+    cache.setEntry(caches.HISTORY, 'lastSchedule', searched)
+  })
 
   async function fetchAllScheduleEntries (variables) {
     const results = { data: { Page: { media: [], pageInfo: { hasNextPage: false } } } }
@@ -64,10 +73,7 @@
 </script>
 
 <script>
-  $search = {
-    ...vars,
-    load: (_, __, variables) => SectionsManager.wrapResponse(fetchAllScheduleEntries(variables), 150)
-  }
+  $search.load = (_, __, variables) => SectionsManager.wrapResponse(fetchAllScheduleEntries(variables), 150)
 </script>
 
-<Search />
+<Search key={key} search={search}/>

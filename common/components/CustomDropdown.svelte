@@ -10,17 +10,18 @@
     export let constrainAlt = true
     export let headers = null
     export let options
+    export let arrayValue = true
     export let displaySize = 20
     export let disabled = false
 
     function getOptions() {
-        if (Array.isArray(options) && options.every(item => typeof item === 'string')) return options
+        if (Array.isArray(options) && options.every(item => typeof item === 'string' || typeof item === 'number')) return options
         else if (typeof options === 'object' && options !== null) return Object.keys(options)
         throw new Error('Invalid list format')
     }
 
     function getOptionDisplay(option) {
-        if (Array.isArray(options) && options.every(item => typeof item === 'string')) return option
+        if (Array.isArray(options) && options.every(item => typeof item === 'string' || typeof item === 'number')) return String(option)
         else if (typeof options === 'object' && options !== null) return options.hasOwnProperty(option) ? options[option] : null
     }
 
@@ -39,26 +40,48 @@
         })
     }
 
+    function includes(value1, value2) {
+        return arrayValue ? value1?.includes(value2) : String(value1)?.includes(String(value2))
+    }
+
     let searchTextInput = ''
     function filterTags(event, trigger) {
-        const inputValue = event.target.value
+        const textValue = event.target.value
+        const isAlt = textValue.startsWith('!')
+        const inputValue = isAlt ? textValue.slice(1) : textValue
         let bestMatch = getOptions().find(item => getOptionDisplay(item)?.toLowerCase() === inputValue.toLowerCase())
         let found = false
         if ((trigger === 'keydown' && (event.key === 'Enter' || event.code === 'Enter')) || (trigger === 'input' && bestMatch)) {
             if (!bestMatch || inputValue.endsWith('*')) bestMatch = (inputValue.endsWith('*') && inputValue.slice(0, -1)) || getOptions().find(item => getOptionDisplay(item)?.toLowerCase().startsWith(inputValue.toLowerCase())) || getOptions().find(item => getOptionDisplay(item)?.toLowerCase().endsWith(inputValue.toLowerCase()))
-            if (bestMatch && (!value || !value.includes(bestMatch))) {
-                value = [...value, bestMatch]
-                if (altValue && constrainAlt) altValue = []
-                else if (altValue.includes(bestMatch)) altValue = altValue.filter(item => item !== bestMatch)
+            let targetValue = isAlt ? altValue : value
+            let oppositeValue = isAlt ? value : altValue
+            if (bestMatch && (!targetValue || !includes(targetValue, bestMatch))) {
+                if (isAlt) altValue = arrayValue ? [...targetValue, bestMatch] : bestMatch
+                else value = arrayValue ? [...targetValue, bestMatch] : bestMatch
+                if (oppositeValue && constrainAlt) {
+                    if (isAlt) value = arrayValue ? [] : null
+                    else altValue = arrayValue ? [] : null
+                }
+                else if (includes(oppositeValue, bestMatch)) {
+                    if (isAlt) value = arrayValue ? oppositeValue.filter(item => item !== bestMatch) : null
+                    else altValue = arrayValue ? oppositeValue.filter(item => item !== bestMatch) : null
+                }
                 searchTextInput = ''
                 found = true
                 setTimeout(() => form?.dispatchEvent(new Event('input', { bubbles: true })))
             } else if (bestMatch)  {
-                const tagIndex = value?.indexOf(bestMatch)
+                const tagIndex = targetValue?.indexOf(bestMatch)
                 if (tagIndex > -1) {
-                    value = [...value.slice(0, tagIndex), ...value.slice(tagIndex + 1)]
-                    if (altValue && constrainAlt) altValue = []
-                    else if (altValue.includes(bestMatch)) altValue = altValue.filter(item => item !== bestMatch)
+                    if (isAlt) altValue = arrayValue ? [...targetValue.slice(0, tagIndex), ...targetValue.slice(tagIndex + 1)] : bestMatch
+                    else value = arrayValue ? [...targetValue.slice(0, tagIndex), ...targetValue.slice(tagIndex + 1)] : bestMatch
+                    if (oppositeValue && constrainAlt) {
+                        if (isAlt) value = arrayValue ? [] : null
+                        else altValue = arrayValue ? [] : null
+                    }
+                    else if (includes(oppositeValue, bestMatch)) {
+                        if (isAlt) value = arrayValue ? oppositeValue.filter(item => item !== bestMatch) : null
+                        else altValue = arrayValue ? oppositeValue.filter(item => item !== bestMatch) : null
+                    }
                     searchTextInput = ''
                     found = true
                     setTimeout(() => form?.dispatchEvent(new Event('input', { bubbles: true })))
@@ -86,21 +109,6 @@
         if (startIndex !== -1) headerSections.push({header: headerLabel, start: startIndex, end: endIndex})
     }
 
-    function getHeader(option) {
-        const index = getOptions().indexOf(option)
-        if (index === -1) return null
-        for (const { header, start, end } of headerSections) {
-            if (index >= start && index < end) {
-                if (!shown.has(header)) {
-                    shown.add(header)
-                    return header
-                }
-                break
-            }
-        }
-        return null
-    }
-
     function toggleDropdown() {
         dropdown.update(state => {
             if (!state) createDropdownListener()
@@ -114,7 +122,7 @@
     <input
         id='search-{id}'
         type='search'
-        class='form-control text-capitalize custom-menu-{id} no-bubbles text-truncate'
+        class='form-control text-capitalize custom-menu-{id} no-bubbles text-truncate {$$restProps.class}'
         class:fix-border={!form}
         class:bg-dark={!form}
         class:bg-dark-light={form}
@@ -126,35 +134,35 @@
         on:input={(event) => filterTags(event, 'input')}
         use:click={() => toggleDropdown()}
         data-option='search'
-        placeholder={(Array.isArray(value) && value.length ? value.map((v) => getOptionDisplay(v) || v) : []).concat(Array.isArray(altValue) && altValue.length ? altValue.map((v) => getOptionDisplay(v) || v) : []).join(', ') || 'Any'}
+        placeholder={(Array.isArray(value) && value.length ? value.map((v) => getOptionDisplay(v) || v) : []).concat(Array.isArray(altValue) && altValue?.length ? altValue?.map((v) => '!' + (getOptionDisplay(v) || v)) : []).join(', ') || !arrayValue && ([value, (altValue ? '!' + altValue : '')].filter(Boolean).join(', ')) || 'Any'}
         list='sections-{id}'
     />
     {#if $dropdown}
         {@const searchInput = searchTextInput ? searchTextInput.toLowerCase() : null}
         <div class='custom-dropdown-menu position-absolute mh-300 overflow-y-auto w-full bg-dark custom-menu-{id}'>
             {#each headerSections?.length ? headerSections : [{ header: null, start: 0, end: displaySize }] as { header, start, end }}
-                {@const options = getOptions().slice(start, end).filter((val) => !searchInput || getOptionDisplay(val)?.toLowerCase().includes(searchInput)).sort((a, b) => ((value?.includes(a) ? -1 : 1) - (value?.includes(b) ? -1 : 1)) || ((altValue?.includes(a) ? 0 : 1) - (altValue?.includes(b) ? 0 : 1)))}
+                {@const options = getOptions().filter((val) => !searchInput || includes(getOptionDisplay(val)?.toLowerCase(), searchInput.startsWith('!') ? searchInput.slice(1) : searchInput)).sort((a, b) => ((includes(value, a) ? -1 : 1) - (includes(value, b) ? -1 : 1)) || ((includes(altValue, a) ? 0 : 1) - (includes(altValue, b) ? 0 : 1))).slice(start, end)}
                 {#if options.length}
                     {#if header}<span class='not-reactive font-weight-bold p-5'>{header}</span>{/if}
                     {#each options as option}
-                        <div class='custom-dropdown-item {!headers ? `text-center` : `pl-20`} pointer custom-menu-{id}' class:custom-dropdown-item-selected={value?.includes(option)} class:custom-dropdown-item-alt-selected={altValue?.includes(option)}
+                        <div class='custom-dropdown-item {!headers ? `text-center` : `pl-20`} not-reactive pointer custom-menu-{id}' class:custom-dropdown-item-selected={includes(value, option)} class:custom-dropdown-item-alt-selected={includes(altValue, option)}
                              use:click={() => {
-                                 if (value.includes(option)) value = value.filter(item => item !== option)
+                                 if (includes(value, option)) value = arrayValue ? value.filter(item => item !== option) : null
                                  else {
-                                     value = [...(Array.isArray(value) ? value : value ? [value] : []), option]
-                                     if (altValue && constrainAlt) altValue = []
-                                     else if (altValue.includes(option)) altValue = altValue.filter(item => item !== option)
+                                     value = arrayValue ? [...(Array.isArray(value) ? value : value ? [value] : []), option] : option
+                                     if (altValue && constrainAlt) altValue = arrayValue ? [] : null
+                                     else if (includes(altValue, option)) altValue = arrayValue ? altValue.filter(item => item !== option) : null
                                  }
                                  setTimeout(() => form?.dispatchEvent(new Event('input', { bubbles: true })))
                              }}
                              on:contextmenu={(event) => {
                                  event.preventDefault()
                                  if (altValue) {
-                                     if (altValue.includes(option)) altValue = altValue.filter(item => item !== option)
+                                     if (includes(altValue, option)) altValue = arrayValue ? altValue.filter(item => item !== option) : null
                                      else {
-                                         altValue = [...(Array.isArray(altValue) ? altValue : altValue ? [altValue] : []), option]
-                                         if (constrainAlt) value = []
-                                         else if (value.includes(option)) value = value.filter(item => item !== option)
+                                         altValue = arrayValue ? [...(Array.isArray(altValue) ? altValue : altValue ? [altValue] : []), option] : option
+                                         if (constrainAlt) value = arrayValue ? [] : null
+                                         else if (includes(value, option)) value = arrayValue ? value.filter(item => item !== option) : null
                                      }
                                      setTimeout(() => form?.dispatchEvent(new Event('input', { bubbles: true })))
                                  }

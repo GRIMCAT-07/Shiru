@@ -3,10 +3,9 @@ import { printError } from '@/modules/networking.js'
 import { anilistClient } from '@/modules/anilist.js'
 import _anitomyscript from 'anitomyscript'
 import { toast } from 'svelte-sonner'
-import SectionsManager from '@/modules/sections.js'
+import SectionsManager, { search, key } from '@/modules/sections.js'
 import { page } from '@/App.svelte'
 import clipboard from '@/modules/clipboard.js'
-import { search, key } from '@/views/Search.svelte'
 import { playAnime } from '@/views/TorrentSearch/TorrentModal.svelte'
 import { animeSchedule } from '@/modules/animeschedule.js'
 import { settings } from '@/modules/settings.js'
@@ -70,9 +69,8 @@ export async function traceAnime (image) { // WAIT lookup logic
   if (result?.length) {
     const ids = result.map(({ anilist }) => anilist)
     search.value = {
+      clearNow: true,
       clearNext: true,
-      season: "",
-      sort: "",
       load: (page = 1, perPage = 50, variables = {}) => {
         const res = anilistClient.searchIDS({ page, perPage, id: ids, ...SectionsManager.sanitiseObject(variables) }).then(async res => {
           for (const index in res.data?.Page?.media) {
