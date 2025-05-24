@@ -34,9 +34,9 @@ export default class App {
   mainWindow = new BrowserWindow({
     width: 1600,
     height: 900,
-    frame: process.platform === 'darwin',
+    frame: process.platform !== 'win32',
     titleBarStyle: 'hidden',
-    ...(process.platform !== 'darwin' ? { titleBarOverlay: {
+    ...(process.platform === 'win32' ? { titleBarOverlay: {
         color: 'rgba(47, 50, 65, 0)',
         symbolColor: '#eee',
         height: 28

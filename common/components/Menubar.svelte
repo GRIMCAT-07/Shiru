@@ -20,7 +20,7 @@
 </script>
 
 <div class='w-full z-101 navbar bg-transparent border-0 p-0 d-none draggable' class:d-flex={!SUPPORTS.isAndroid}>
-  <div class='window-controls h-28 d-none position-absolute top-0 right-0 h-full' class:d-flex={window.version?.platform !== 'darwin'}/>
+  <div class='window-controls h-28 d-none position-absolute top-0 right-0 h-full' class:d-flex={window.version?.platform === 'win32'}/>
 </div>
 <div class='position-absolute' class:right-0={SUPPORTS.isAndroid}>
   <img src='./logo_filled.png' class='z-102 position-absolute w-50 h-50 m-10 pointer d-none p-5' class:d-md-block={!SUPPORTS.isAndroid} class:mt-20={window.version?.platform === 'darwin'} alt='ico' use:click={home} />
