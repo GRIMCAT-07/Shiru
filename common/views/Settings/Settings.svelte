@@ -34,7 +34,7 @@
   }
 
   IPC.emit('discord-rpc', settings.value.enableRPC)
-  $: debug(`v${version} ${platformMap[window.version.platform] || 'dev'} ${window.version.arch || 'dev'}`, JSON.stringify(settings))
+  $: debug(`v${version} ${platformMap[window.version.platform] || 'dev'} ${window.version.arch || 'dev'} ${window.version.session}`, JSON.stringify(settings))
 </script>
 
 <script>
@@ -130,7 +130,7 @@
       </div>
       <p class='text-muted px-20 py-10 m-0 mt-md-auto'>Restart may be required for some settings to take effect.</p>
       <p class='text-muted px-20 pb-10 m-0'>If you don't know what settings do what, use defaults.</p>
-      <p class='text-muted px-20 m-0 mb-md-20'>v{version} {platformMap[window.version.platform] || 'dev'} {window.version.arch || 'dev'}</p>
+      <p class='text-muted px-20 m-0 mb-md-20'>v{version} {platformMap[window.version.platform] || 'dev'} {window.version.arch || 'dev'} {window.version.session}</p>
     </div>
     <Tab>
       <div class='root h-full w-full overflow-y-md-auto p-20'>

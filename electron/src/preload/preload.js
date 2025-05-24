@@ -17,7 +17,8 @@ contextBridge.exposeInMainWorld('IPC', {
 })
 contextBridge.exposeInMainWorld('version', {
   arch: process.arch,
-  platform: process.platform
+  platform: process.platform,
+  session: process.env.XDG_SESSION_TYPE || ''
 })
 
 ipcRenderer.once('port', ({ ports }) => {

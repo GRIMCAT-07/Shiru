@@ -18,6 +18,7 @@ declare global {
     version: {
       platform: string
       arch: string
+      session: string
     }
   }
   interface EventTarget {
