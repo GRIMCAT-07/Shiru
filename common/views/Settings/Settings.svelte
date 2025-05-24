@@ -34,6 +34,7 @@
   }
 
   IPC.emit('discord-rpc', settings.value.enableRPC)
+  $: debug(`v${version} ${platformMap[window.version.platform] || 'dev'} ${window.version.arch || 'dev'}`, JSON.stringify(settings))
 </script>
 
 <script>

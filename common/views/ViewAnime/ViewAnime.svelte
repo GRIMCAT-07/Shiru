@@ -32,6 +32,8 @@
       if (overlay.includes('viewanime') && !$view) overlay = overlay.filter(item => item !== 'viewanime')
     })
   }
+
+  $: mediaList = []
   function back () {
     if (mediaList.length > 1) {
       const prevMedia = mediaList[mediaList.length - 2]
@@ -42,18 +44,14 @@
   function saveMedia () {
     if (mediaList.length > 0) {
       const lastMedia = mediaList[mediaList.length - 1]
-      if (media !== lastMedia) {
-        mediaList.push(media)
-      }
-    } else {
-      mediaList.push(media)
-    }
+      if (media !== lastMedia) mediaList = [...mediaList, media]
+    } else mediaList = [...mediaList, media]
   }
+
   let modal
   let container = null
   let scrollTags = null
   let scrollGenres = null
-  let mediaList = []
   let staticMedia
   $: media = mediaCache.value[$view?.id] || $view
   $: {
@@ -186,7 +184,7 @@
 <div class='modal modal-full z-50' class:show={staticMedia} on:keydown={checkClose} tabindex='-1' role='button' bind:this={modal}>
   <div class='h-full modal-content bg-very-dark p-0 overflow-y-auto position-relative' bind:this={container}>
     {#if staticMedia}
-      <button class='close back pointer z-30 bg-dark top-20 left-0 position-fixed' class:d-none={!((mediaList.length > 1) && !SUPPORTS.isAndroid)} use:click={back}>
+      <button class='close back pointer z-30 bg-dark top-20 left-0 position-fixed' class:d-none={(mediaList.length <= 1) || SUPPORTS.isAndroid} use:click={back}>
         <ArrowLeft size='1.8rem' />
       </button>
       <button class='close pointer z-30 bg-dark top-20 right-0 position-fixed' type='button' use:click={() => close()}> &times; </button>
@@ -318,40 +316,42 @@
                 <div class='ml-auto pl-20 font-size-12 more text-muted text-nowrap pr-20' use:click={() => { episodeOrder = !episodeOrder }}>Reverse</div>
               </div>
             {/if}
-            <div class='col-lg-5 col-12 d-flex d-lg-none flex-column pl-lg-20 overflow-x-hidden h-600 mt-20'>
-              <EpisodeList bind:episodeList={episodeList} mobileList={true} {media} {episodeOrder} bind:userProgress bind:watched episodeCount={getMediaMaxEp(media)} {play} />
+            <div class='col-lg-5 col-12 d-lg-none flex-column pl-lg-20 overflow-x-hidden h-600 mt-20'>
+              <EpisodeList bind:episodeList={episodeList} mobileList={true} media={staticMedia} {episodeOrder} bind:userProgress bind:watched episodeCount={getMediaMaxEp(media)} {play} />
             </div>
-            <ToggleList list={ staticMedia.relations?.edges?.filter(({ node, relationType }) => relationType !== 'CHARACTER' && node.type === 'ANIME' && node.format !== 'MUSIC' && !(settings.value.adult === 'none' && node.isAdult) && !(settings.value.adult !== 'hentai' && node.genres?.includes('Hentai'))).sort((a, b) => (a.node.seasonYear || Infinity) - (b.node.seasonYear || Infinity)) } promise={searchIDS} let:item let:promise title='Relations'>
-              {#await promise}
-                <div class='small-card'>
-                  <SkeletonCard />
-                </div>
-              {:then res }
-                {#if res}
+            <div class='d-lg-block'>
+              <ToggleList list={ staticMedia.relations?.edges?.filter(({ node, relationType }) => relationType !== 'CHARACTER' && node.type === 'ANIME' && node.format !== 'MUSIC' && !(settings.value.adult === 'none' && node.isAdult) && !(settings.value.adult !== 'hentai' && node.genres?.includes('Hentai'))).sort((a, b) => (a.node.seasonYear || Infinity) - (b.node.seasonYear || Infinity)) } promise={searchIDS} let:item let:promise title='Relations'>
+                {#await promise}
                   <div class='small-card'>
-                    <SmallCard data={item.node} type={item.relationType.replace(/_/g, ' ').toLowerCase()} />
+                    <SkeletonCard />
                   </div>
+                {:then res }
+                  {#if res}
+                    <div class='small-card'>
+                      <SmallCard data={item.node} type={item.relationType.replace(/_/g, ' ').toLowerCase()} />
+                    </div>
+                  {/if}
+                {/await}
+              </ToggleList>
+              {#await recommendations then res}
+                {@const media = res?.data?.Media}
+                {#if media}
+                  <ToggleList list={ media.recommendations?.edges?.filter(({ node }) => node.mediaRecommendation && !(settings.value.adult === 'none' && node.mediaRecommendation.isAdult) && !(settings.value.adult !== 'hentai' && node.mediaRecommendation.genres?.includes('Hentai'))).sort((a, b) => b.node.rating - a.node.rating) } promise={searchIDS} let:item let:promise title='Recommendations'>
+                    {#await promise}
+                      <div class='small-card'>
+                        <SkeletonCard />
+                      </div>
+                    {:then res}
+                      {#if res}
+                        <div class='small-card'>
+                          <SmallCard data={item.node.mediaRecommendation} type={item.node.rating} />
+                        </div>
+                      {/if}
+                    {/await}
+                  </ToggleList>
                 {/if}
               {/await}
-            </ToggleList>
-            {#await recommendations then res}
-              {@const media = res?.data?.Media}
-              {#if media}
-                <ToggleList list={ media.recommendations?.edges?.filter(({ node }) => node.mediaRecommendation && !(settings.value.adult === 'none' && node.mediaRecommendation.isAdult) && !(settings.value.adult !== 'hentai' && node.mediaRecommendation.genres?.includes('Hentai'))).sort((a, b) => b.node.rating - a.node.rating) } promise={searchIDS} let:item let:promise title='Recommendations'>
-                  {#await promise}
-                    <div class='small-card'>
-                      <SkeletonCard />
-                    </div>
-                  {:then res}
-                    {#if res}
-                      <div class='small-card'>
-                        <SmallCard data={item.node.mediaRecommendation} type={item.node.rating} />
-                      </div>
-                    {/if}
-                  {/await}
-                </ToggleList>
-              {/if}
-            {/await}
+            </div>
           </div>
         </div>
         <div class='col-lg-5 col-12 d-none d-lg-flex flex-column pl-lg-20' bind:this={rightColumn}>

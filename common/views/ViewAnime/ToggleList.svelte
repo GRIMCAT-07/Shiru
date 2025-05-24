@@ -1,22 +1,27 @@
 <script>
   import { SUPPORTS } from '@/modules/support.js'
   import { click } from '@/modules/click.js'
-  import { onDestroy, onMount } from 'svelte'
+  import { onDestroy, onMount, afterUpdate } from 'svelte'
   import ToggleTitle from '@/views/ViewAnime/ToggleTitle.svelte'
   import ToggleFooter from '@/views/ViewAnime/ToggleFooter.svelte'
 
-  export let list = null
+  export let title
+  export let promise
+  export let list
 
-  $: showMore = !list
+  let showMore = false
   function toggleList() {
     showMore = !showMore
   }
 
-  export let title = 'Relations'
-  export let promise = null
-
-  let observer = null
   let container = null
+  let previewLength = 4
+  function updateRowLength() {
+    if (!container || SUPPORTS.isAndroid) return
+    const firstItem = container.querySelector('.small-card')
+    if (firstItem) previewLength = Math.floor((container.offsetWidth) / (firstItem.offsetWidth)) || 1
+  }
+
   function updateRowMarkers() {
     if (!container) return
     const cards = Array.from(container.querySelectorAll('.small-card'))
@@ -35,25 +40,34 @@
     })
   }
 
-  if (!SUPPORTS.isAndroid) {
-    onDestroy(() => {
-      observer?.disconnect()
-      window.removeEventListener('resize', updateRowMarkers)
-    })
-    onMount(() => {
-      if (container) {
-        observer = new ResizeObserver(updateRowMarkers)
-        observer.observe(container)
-      }
-      window.addEventListener('resize', updateRowMarkers)
-    })
+  function handleResize() {
+    updateRowLength()
+    updateRowMarkers()
   }
+
+  let observer = null
+  afterUpdate(updateRowLength)
+  onMount(() => {
+    if (!SUPPORTS.isAndroid && container) {
+      observer = new ResizeObserver(handleResize)
+      observer.observe(container)
+      window.addEventListener('resize', handleResize)
+      updateRowLength()
+    }
+  })
+  onDestroy(() => {
+    if (!SUPPORTS.isAndroid) {
+      observer?.disconnect()
+      window.removeEventListener('resize', handleResize)
+    }
+  })
 </script>
+
 {#if list?.length}
-  {@const canToggle = !SUPPORTS.isAndroid && list.length > 4}
-    <span class='d-flex align-items-end mt-20' aria-hidden='true' class:pointer={canToggle} class:not-reactive={!(canToggle)} use:click={toggleList}>
-      <ToggleTitle title={title} class={canToggle ? `more` : ``}></ToggleTitle>
-    </span>
+  {@const canToggle = !SUPPORTS.isAndroid && list.length > previewLength}
+  <span class='d-flex align-items-end mt-20' aria-hidden='true' class:pointer={canToggle} class:not-reactive={!canToggle} use:click={toggleList}>
+    <ToggleTitle title={title} class={canToggle ? `more` : ``}/>
+  </span>
   <div class='pt-10 text-capitalize d-flex gallery'
        class:justify-content-center={list.length <= 2 || !SUPPORTS.isAndroid}
        class:justify-content-start={list.length > 2 && SUPPORTS.isAndroid}
@@ -61,11 +75,11 @@
        class:flex-row={SUPPORTS.isAndroid}
        class:flex-wrap={!SUPPORTS.isAndroid}
        bind:this={container}>
-    {#each SUPPORTS.isAndroid ? list : list.slice(0, showMore ? 100 : 4) as item}
+    {#each SUPPORTS.isAndroid ? list : (showMore ? list : list.slice(0, previewLength)) as item}
       <slot {item} {promise} />
     {/each}
   </div>
-  <ToggleFooter {showMore} {toggleList} size={!SUPPORTS.isAndroid && list.length} />
+  <ToggleFooter {showMore} {toggleList} size={!SUPPORTS.isAndroid && list.length} rowSize={previewLength} />
 {/if}
 
 <style>

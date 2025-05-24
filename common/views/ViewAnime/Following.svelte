@@ -21,7 +21,7 @@
   {@const following = [...new Map(res?.data?.Page?.mediaList.filter(item => !Helper.isAuthorized() || item.user.id !== Helper.getUser().id).map(item => [item.user.name, item])).values()]}
   {#if following?.length}
     <span class='d-flex align-items-end mt-20' aria-hidden='true' class:pointer={following.length > 4} class:not-reactive={!(following.length > 4)} use:click={toggleList}>
-      <ToggleTitle title={'Following'} class={following.length > 4 ? `more` : ``}></ToggleTitle>
+      <ToggleTitle title={'Following'} class={following.length > 4 ? `more` : ``}/>
     </span>
     <div class='px-15 pt-5 flex-column'>
       {#each following.slice(0, showMore ? 100 : 4) as friend}
