@@ -21,7 +21,9 @@ export default class App {
       : join(__dirname, '/logo_filled.png')  // macOS & Linux
   trayLogo = process.platform === 'win32'
       ? join(__dirname, '/logo_filled.ico')  // Windows
-      : join(__dirname, '/tray_logo_filled.png')  // macOS & Linux
+      : process.platform === 'darwin'
+      ? join(__dirname, '/tray_logo_filled.png') // macOS
+      : join(__dirname, '/logo_filled.png')  // Linux
 
   webtorrentWindow = new BrowserWindow({
     show: development,
