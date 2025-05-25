@@ -5,6 +5,8 @@ export const store = new Store(app.getPath('userData'), 'player.json', { angle: 
 export const development = process.env.NODE_ENV?.trim() === 'development'
 
 const flags = [
+  // fix for gpu crashing issue with wayland, this fix primarily targets intel iris... probably safe...? Doesn't work on wayland without this regardless.
+  ...(process.env.XDG_SESSION_TYPE?.toLowerCase() === 'wayland' ? [['in-process-gpu']] : []),
   // not sure if safe?
   ['disable-gpu-sandbox'], ['disable-direct-composition-video-overlays'], ['double-buffer-compositing'], ['enable-zero-copy'], ['ignore-gpu-blocklist'],
   ['force_high_performance_gpu'],
