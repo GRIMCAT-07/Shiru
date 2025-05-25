@@ -19,6 +19,9 @@ export default class App {
   logo = process.platform === 'win32'
       ? join(__dirname, '/logo_filled.ico')  // Windows
       : join(__dirname, '/logo_filled.png')  // macOS & Linux
+  trayLogo = process.platform === 'win32'
+      ? join(__dirname, '/logo_filled.ico')  // Windows
+      : join(__dirname, '/tray_logo_filled.png')  // macOS & Linux
 
   webtorrentWindow = new BrowserWindow({
     show: development,
@@ -58,7 +61,7 @@ export default class App {
   protocol = new Protocol(this.mainWindow)
   updater = new Updater(this.mainWindow, this.webtorrentWindow)
   dialog = new Dialog(this.webtorrentWindow)
-  tray = new Tray(this.logo)
+  tray = new Tray(this.trayLogo)
   imageDir = join(app.getPath('userData'), 'Cache', 'Image_Data')
   debug = new Debug()
   close = false
@@ -114,7 +117,7 @@ export default class App {
     this.tray.on('click', () => this.showAndFocus())
 
     fs.rmSync(this.imageDir, { recursive: true, force: true })
-    ipcMain.on('notification-unread', async (e, notificationCount) => this.setOverlayIcon(notificationCount))
+    ipcMain.on('notification-unread', async (e, notificationCount) => this.setTrayIcon(notificationCount))
     ipcMain.on('notification', async (e, opts) => {
       opts.icon &&= await this.getImage(opts.id, opts.icon)
       opts.heroImg &&= await this.getImage(opts.id, opts.heroImg, true)
@@ -288,9 +291,9 @@ export default class App {
   }
 
   notificationCount = 0
-  setOverlayIcon(notificationCount, verify) {
+  setTrayIcon(notificationCount, verify) {
     if (!verify) this.notificationCount = notificationCount
-    const baseIcon = nativeImage.createFromPath(this.logo)
+    const baseIcon = nativeImage.createFromPath(this.trayLogo)
     if (this.notificationCount <= 0 || !this.notificationCount) {
       this.tray.setImage(baseIcon)
       this.mainWindow.setOverlayIcon(null, '')
@@ -329,6 +332,6 @@ export default class App {
       this.mainWindow.moveTop()
     }
     this.mainWindow.focus()
-    this.setOverlayIcon(0, true)
+    this.setTrayIcon(0, true)
   }
 }
