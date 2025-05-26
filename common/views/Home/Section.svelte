@@ -7,7 +7,7 @@
   import ErrorCard from '@/components/cards/ErrorCard.svelte'
   import { search } from '@/modules/sections.js'
   import { page } from '@/App.svelte'
-  import { click } from '@/modules/click.js'
+  import { click, dragScroll } from '@/modules/click.js'
   import { SUPPORTS } from '@/modules/support.js'
   import { ChevronLeft, ChevronRight } from 'lucide-svelte'
 
@@ -36,13 +36,29 @@
   }
   const preview = opts.preview
 
+  let activeScroll = false
+  function scrolling(duration = 1000) {
+    activeScroll = true
+    setTimeout(() => {
+      activeScroll = false
+    }, duration)
+  }
+
   let scrollContainer
   function scrollCarousel(direction) {
+    if (activeScroll) return
     const maxScrollLeft = scrollContainer.scrollWidth - scrollContainer.clientWidth
     const scrollAmount = scrollContainer.offsetWidth
-    if (direction === 'right' && (scrollContainer.scrollLeft + 1) >= maxScrollLeft) scrollContainer.scrollLeft = 0
-    else if (direction === 'left' && scrollContainer.scrollLeft <= 0) scrollContainer.scrollLeft = maxScrollLeft
-    else scrollContainer.scrollBy({ left: direction === 'right' ? scrollAmount : -scrollAmount, behavior: 'smooth' })
+    if (direction === 'right' && (scrollContainer.scrollLeft + 1) >= maxScrollLeft) {
+      scrolling()
+      scrollContainer.scrollTo({ left: 0, behavior: 'smooth' })
+    } else if (direction === 'left' && scrollContainer.scrollLeft <= 0) {
+      scrolling()
+      scrollContainer.scrollTo({ left: maxScrollLeft, behavior: 'smooth' })
+    } else {
+      scrolling(500)
+      scrollContainer.scrollBy({ left: direction === 'right' ? scrollAmount : -scrollAmount, behavior: 'smooth' })
+    }
   }
 </script>
 
@@ -52,7 +68,7 @@
   <div class='pr-5 pl-5 ml-10 font-size-12 glow text-muted pointer btn d-none align-items-center justify-content-center' class:d-flex={!SUPPORTS.isAndroid} aria-hidden='true' use:click={() => scrollCarousel('right')}><ChevronRight strokeWidth='3' size='2rem' /></div>
 </span>
 <div class='position-relative'>
-  <div class='pb-10 w-full d-flex flex-row justify-content-start gallery' bind:this={scrollContainer}>
+  <div class='pb-10 w-full d-flex flex-row justify-content-start gallery' use:dragScroll bind:this={scrollContainer}>
     {#each $preview || fakecards as card}
       <Card {card} variables={{...opts.variables, section: true}} />
     {/each}
@@ -96,7 +112,6 @@
   .gallery {
     overflow-x: scroll;
     flex-shrink: 0;
-    scroll-behavior: smooth;
   }
   .mv-10 {
     margin-top: -15rem !important;

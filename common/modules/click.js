@@ -154,7 +154,7 @@ export function hoverClick (node, [cb = noop, hoverUpdate = noop, rcb = noop]) {
 
 /**
  * Adds drag event listener to the specified node.
- * @param {HTMLElement} node - The node to attach the click event listener to.
+ * @param {HTMLElement} node - The node to attach the drag event listener to.
  * @param {Function} [dp=noop] - The callback function to be executed on drag.
  */
 export function drag (node, dp = noop) {
@@ -188,6 +188,63 @@ export function drag (node, dp = noop) {
     if (isDragging && hasMoved) dp(endX - startX)
     isDragging = false
   })
+}
+
+/**
+ * Handles smooth scrolling an element via drag scroll.
+ * @param {HTMLElement} node - The node to attach the drag scroll event listener to.
+ */
+export function dragScroll(node) {
+  let dragging = false
+  let activePointer = null
+  let threshold = 50
+  let movedX = 0
+  let movedY = 0
+  let startX = 0
+  let startY = 0
+  const controller = new AbortController()
+  const opts = { signal: controller.signal }
+  node.addEventListener('pointerleave', () => {
+    if (dragging && activePointer) {
+      try { node.releasePointerCapture(activePointer) } catch {}
+    }
+    dragging = false
+  }, opts)
+  node.addEventListener('click', () => dragging = false, opts)
+  node.addEventListener('mouseleave', () => dragging = false, opts)
+  node.addEventListener('pointerdown', e => activePointer = e.pointerId, opts) // capture this pointer, works great for hiding preview cards.
+  node.addEventListener('mouseup', () => {
+    if (dragging && activePointer) try { node.releasePointerCapture(activePointer) } catch {}
+    dragging = false
+  }, opts)
+  node.addEventListener('mousedown', e => {
+    const target = e.target
+    if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target.isContentEditable) return // Do not drag if user clicks an input, textarea, or editable content.
+    dragging = true
+    movedX = 0
+    movedY = 0
+    startX = e.clientX
+    startY = e.clientY
+  }, opts)
+  node.addEventListener('mousemove', e => {
+    if (!dragging) return true
+    if (isMouseLeave(node, e.clientX, e.clientY)) {
+      if (activePointer) try { node.releasePointerCapture(activePointer) } catch {}
+      dragging = false
+    }
+    movedX += Math.abs(e.clientX - startX)
+    movedY += Math.abs(e.clientY - startY)
+    node.scrollBy(startX - e.clientX, startY - e.clientY)
+    startX = e.clientX
+    startY = e.clientY
+    node.style.cursor = 'grabbing'
+    if (movedX > threshold || movedY > threshold) try { node.setPointerCapture(activePointer) } catch {}
+  }, opts)
+  function isMouseLeave(node, x, y) {
+    const rect = node.getBoundingClientRect()
+    return x < rect.left || x > rect.right || y < rect.top || y > rect.bottom
+  }
+  return { destroy: () => controller.abort() }
 }
 
 const Directions = { up: 1, right: 2, down: 3, left: 4 }
