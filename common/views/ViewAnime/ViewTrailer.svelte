@@ -58,7 +58,7 @@
     aspect-ratio: 16/9;
   }
   .wm-calc {
-    max-width: min(max(50vw, 100rem), calc(70vh * (16 / 9)));
+    max-width: min(max(70vw, 100rem), calc(75vh * (16 / 9)));
   }
   .title {
     display: inline-block;

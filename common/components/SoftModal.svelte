@@ -27,7 +27,7 @@
   }
   .modal-soft {
     background-color: rgba(0,0,0,0.85);
-    transition: opacity .1s ease-in-out, visibility .1s ease-in-out;
+    transition: opacity .2s ease-in-out, visibility .2s ease-in-out;
   }
   .modal-soft.show {
     visibility: visible;
@@ -40,7 +40,7 @@
   .modal-soft-dialog {
     width: 100%;
     height: 100%;
-    transition: transform .1s ease-in-out;
+    transition: transform .2s ease-in-out;
     transform-origin: bottom center;
   }
   .modal-soft-dialog.show {
