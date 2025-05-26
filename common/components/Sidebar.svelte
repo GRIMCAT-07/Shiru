@@ -31,6 +31,7 @@
 </script>
 
 <div class='sidebar z-30 d-md-block' class:animated={$settings.expandingSidebar}>
+  <div class='position-absolute bg-dark traffic-lights' class:br-10={!$settings.expandingSidebar} class:d-none={window.version?.platform !== 'darwin'}/>
   <div class='sidebar-overlay z--1 pointer-events-none h-full position-absolute' />
   <div class='sidebar-menu h-full d-flex flex-column m-0 pb-5 animate' class:br-10={!$settings.expandingSidebar}>
     {#if !SUPPORTS.isAndroid}
@@ -96,6 +97,11 @@
 </div>
 
 <style>
+  .traffic-lights {
+    width: 10rem;
+    height: 3.5rem;
+    border-bottom-right-radius: 4rem;
+  }
   .sidebar .animate :global(.donate) {
     animation: pink_glow 1s ease-in-out infinite alternate;
   }
