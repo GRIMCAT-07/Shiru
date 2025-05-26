@@ -51,7 +51,7 @@ if (SUPPORTS.isAndroid) {
  * @param {HTMLElement} node - The node to attach the click event listener to.
  * @param {Function} [cb=noop] - The callback function to be executed on click.
  */
-export function click (node, cb = noop) {
+export function click(node, cb = noop) {
   node.tabIndex = 0
   node.role = 'button'
   node.addEventListener('click', e => {
@@ -80,7 +80,7 @@ export function click (node, cb = noop) {
  * @param {HTMLElement} node - The node to attach the click event listener to.
  * @param {Function} [hoverUpdate=noop] - The callback function to be executed on hover.
  */
-export function hoverExit (node, hoverUpdate = noop) {
+export function hoverExit(node, hoverUpdate = noop) {
   node.tabIndex = 0
   node.role = 'button'
   node.addEventListener('pointerleave', e => {
@@ -95,7 +95,7 @@ export function hoverExit (node, hoverUpdate = noop) {
  * @param {Function} [hoverUpdate=noop] - The callback function to be executed on hover.
  * @param {Function} [rcb=noop] - The callback function to be executed on right-click (alt click).
  */
-export function hoverClick (node, [cb = noop, hoverUpdate = noop, rcb = noop]) {
+export function hoverClick(node, [cb = noop, hoverUpdate = noop, rcb = noop]) {
   let pointerType = 'touch'
   node.tabIndex = 0
   node.role = 'button'
@@ -157,7 +157,7 @@ export function hoverClick (node, [cb = noop, hoverUpdate = noop, rcb = noop]) {
  * @param {HTMLElement} node - The node to attach the drag event listener to.
  * @param {Function} [dp=noop] - The callback function to be executed on drag.
  */
-export function drag (node, dp = noop) {
+export function drag(node, dp = noop) {
   let startX = 0
   let endX = 0
   let isDragging = false
@@ -231,6 +231,7 @@ export function dragScroll(node) {
     if (isMouseLeave(node, e.clientX, e.clientY)) {
       if (activePointer) try { node.releasePointerCapture(activePointer) } catch {}
       dragging = false
+      return true
     }
     movedX += Math.abs(e.clientX - startX)
     movedY += Math.abs(e.clientY - startY)
@@ -257,7 +258,7 @@ const DirectionKeyMap = { ArrowDown: 'down', ArrowUp: 'up', ArrowLeft: 'left', A
  * @param {Object} relative - The relative point.
  * @returns {number} - The direction between the two points.
  */
-function getDirection (anchor, relative) {
+function getDirection(anchor, relative) {
   return Math.round((Math.atan2(relative.y - anchor.y, relative.x - anchor.x) * 180 / Math.PI + 180) / 90) || 4
 }
 
@@ -267,7 +268,7 @@ function getDirection (anchor, relative) {
  * @param {Object} relative - The relative point.
  * @returns {number} - The distance between the two points.
  */
-function getDistance (anchor, relative) {
+function getDistance(anchor, relative) {
   return Math.hypot(relative.x - anchor.x, relative.y - anchor.y)
 }
 
@@ -276,7 +277,7 @@ function getDistance (anchor, relative) {
  * @param {Element} [element=document.body] - The element to search within.
  * @returns {Element[]} - An array of keyboard-focusable elements.
  */
-function getKeyboardFocusableElements (element = document.body) {
+function getKeyboardFocusableElements(element = document.body) {
   return [...element.querySelectorAll('a[href], button:not([disabled]), fieldset:not([disabled]), input:not([disabled]), optgroup:not([disabled]), option:not([disabled]), select:not([disabled]), textarea:not([disabled]), details, [tabindex]:not([tabindex="-1"], [disabled]), [contenteditable], [controls]')].filter(
     el => !el.getAttribute('aria-hidden')
   )
@@ -287,7 +288,7 @@ function getKeyboardFocusableElements (element = document.body) {
  * @param {Element} element - The element to get the position of.
  * @returns {ElementPosition} - The position of the element.
  */
-function getElementPosition (element) {
+function getElementPosition(element) {
   const { x, y, width, height, top, left, bottom, right } = element.getBoundingClientRect()
   const inViewport = isInViewport({ top, left, bottom, right, width, height })
   return { element, x: x + width * 0.5, y: y + height * 0.5, inViewport }
@@ -297,7 +298,7 @@ function getElementPosition (element) {
  * Gets the positions of all focusable elements.
  * @returns {ElementPosition[]} - An array of element positions.
  */
-function getFocusableElementPositions () {
+function getFocusableElementPositions() {
   const elements = []
   for (const element of getKeyboardFocusableElements(document.querySelector('.modal.show') ?? document.body)) {
     const position = getElementPosition(element)
@@ -311,11 +312,11 @@ function getFocusableElementPositions () {
  * @param {Object} rect - The coordinates of the element.
  * @returns {boolean} - True if the element is within the viewport, false otherwise.
  */
-function isInViewport ({ top, left, bottom, right, width, height }) {
+function isInViewport({ top, left, bottom, right, width, height }) {
   return top + height >= 0 && left + width >= 0 && bottom - height <= window.innerHeight && right - width <= window.innerWidth
 }
 
-// function isVisible ({ top, left, bottom, right }, element) {
+// function isVisible({ top, left, bottom, right }, element) {
 //   for (const [x, y] of [[left, top], [right, top], [left, bottom], [right, bottom]]) {
 //     if (document.elementFromPoint(x, y)?.isSameNode(element)) return true
 //   }
@@ -328,7 +329,7 @@ function isInViewport ({ top, left, bottom, right, width, height }) {
  * @param {string} direction
  * @returns {ElementPosition[]}
  */
-function getElementsInDesiredDirection (keyboardFocusable, currentElement, direction) {
+function getElementsInDesiredDirection(keyboardFocusable, currentElement, direction) {
   // first try finding visible elements in desired direction
   return keyboardFocusable.filter(position => {
     // in order of computation cost
@@ -346,7 +347,7 @@ function getElementsInDesiredDirection (keyboardFocusable, currentElement, direc
  * Navigates using D-pad keys.
  * @param {string} [direction='up'] - The direction to navigate.
  */
-function navigateDPad (direction = 'up') {
+function navigateDPad(direction = 'up') {
   const keyboardFocusable = getFocusableElementPositions()
   const currentElement = !document.activeElement || document.activeElement === document.body ? keyboardFocusable[0] : getElementPosition(document.activeElement)
 
