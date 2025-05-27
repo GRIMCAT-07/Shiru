@@ -186,7 +186,7 @@
 </script>
 
 
-<button type='button' id='list-btn' title='List Editor' class='btn scoring-btn { viewAnime ? "bg-dark btn-lg font-size-20" : (previewAnime ? "btn-square" : "bg-dark-light") + " font-size-16" } btn-square ml-10 shadow-none border-0 d-flex align-items-center justify-content-center' use:click={() => toggleModal({ toggle: !$showModal })} disabled={!Helper.isAuthorized()}>
+<button type='button' id='list-btn' title='List Editor' class='btn scoring-btn {viewAnime ? `bg-dark btn-lg` : previewAnime ? `btn-square` : `bg-dark-light`} font-size-{viewAnime ? `20` : `16`} btn-square ml-10 shadow-none border-0 d-flex align-items-center justify-content-center' use:click={() => toggleModal({ toggle: !$showModal })} disabled={!Helper.isAuthorized()}>
   {#if media?.mediaListEntry}
     <PencilLine size='1.7rem' />
   {:else}
@@ -194,7 +194,7 @@
   {/if}
 </button>
 {#if Helper.isAuthorized()}
-  <div class='modal scoring position-absolute bg-dark shadow-lg rounded-3 p-20 z-30 {$showModal ? "visible" : "invisible"} {!previewAnime && !viewAnime ? "banner w-auto h-auto" : (!previewAnime ? "viewAnime w-auto h-auto" : "previewAnime")}' use:click={() => {}}>
+  <div class='modal scoring position-absolute bg-dark shadow-lg rounded-3 p-20 z-30 {$showModal ? `visible` : `invisible`} {!previewAnime && !viewAnime ? `banner` : !previewAnime ? `viewAnime` : `previewAnime`} {(!previewAnime || !viewAnime) ? `w-auto h-auto` : ``}' use:click={() => {}}>
     <div class='d-flex justify-content-between align-items-center mb-2'>
       <h5 class='font-weight-bold'>List Editor</h5>
       <button type='button' class='btn btn-square d-flex align-items-center justify-content-center' use:click={() => toggleModal({ toggle: false })}><X size='1.7rem' strokeWidth='3'/></button>
@@ -202,8 +202,8 @@
     <div class='modal-body'>
       <div class='form-group mb-15'>
         <label class='d-block mb-5' for='status'>Status</label>
-        <select class='form-control bg-dark-light' id='status' bind:value={status}>
-          <option value selected disabled hidden>Any</option>
+        <select class='form-control bg-dark-light' class:noList={status?.includes('NOT IN LIST')} id='status' required bind:value={status}>
+          <option value='NOT IN LIST' selected disabled hidden>Not on List</option>
           <option value='CURRENT'>Watching</option>
           <option value='PLANNING'>Planning</option>
           <option value='COMPLETED'>Completed</option>
@@ -274,14 +274,17 @@
   .banner {
     top: auto;
     left: auto;
-    margin-top: 2rem;
-    margin-left: 14.5rem;
+    margin-top: 2.5rem;
+    margin-left: 30.5rem;
   }
   .visible {
     animation: 0.15s ease 0s 1 load-in;
   }
   .invisible {
     animation: load-out 0.15s ease-out forwards;
+  }
+  .noList {
+    color: var(--dm-input-placeholder-text-color) !important;
   }
   @keyframes load-in {
     from {
