@@ -394,8 +394,8 @@
       {/each}
     {/await}
   {/if}
-  {#if !$results?.torrents?.length}
-    {#each Array.from({ length: 10 }) as _}
+  {#if !$results?.resolved}
+    {#each Array.from({ length: $results?.torrents?.length ? Math.max(15 - $results.torrents.length, 0) : 15 }) as _}
       <TorrentSkeletonCard />
     {/each}
   {/if}
