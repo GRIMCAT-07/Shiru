@@ -24,7 +24,7 @@
   }
 </script>
 
-<div class='d-flex px-md-20 py-10 position-relative justify-content-center' use:click={viewMedia}>
+<div class='d-flex px-md-20 py-10 position-relative justify-content-center full-card-ct' use:click={viewMedia}>
   <div class='card m-0 p-0 pointer full-card' style:--color={media.coverImage.color || '#1890ff'}>
     <div class='row h-full'>
       <div class='img-col d-inline-block position-relative col-3 col-md-4'>

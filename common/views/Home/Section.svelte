@@ -1,5 +1,8 @@
 <script context='module'>
-  const fakecards = Array.from({ length: 15 }, () => ({ data: new Promise(() => {}) }))
+  const defaultLength = 15
+  const overflowLength = 1
+  const loadableLength = 50
+  const fakecards = Array.from({ length: loadableLength }, () => ({ data: new Promise(() => {}) }))
 </script>
 
 <script>
@@ -9,57 +12,89 @@
   import { page } from '@/App.svelte'
   import { click, dragScroll } from '@/modules/click.js'
   import { SUPPORTS } from '@/modules/support.js'
+  import { onDestroy, afterUpdate } from 'svelte'
   import { ChevronLeft, ChevronRight } from 'lucide-svelte'
 
   export let lastEpisode = false
   export let opts
 
+  let visibleLength = 0
+  const preview = opts.preview
   function deferredLoad (element) {
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) {
-        if (!opts.preview.value) opts.preview.value = opts.load(1, 50, { ...opts.variables })
+        if (!opts.preview.value) opts.preview.value = opts.load(1, loadableLength, { ...opts.variables })
         observer.unobserve(element)
       }
     }, { threshold: 0 })
     observer.observe(element)
-
     return { destroy () { observer.unobserve(element) } }
   }
 
   function _click () {
-    $search = {
-      ...opts.variables,
-      load: opts.load,
-      title: opts.title,
-    }
+    $search = { ...opts.variables, load: opts.load, title: opts.title }
     $page = 'search'
   }
-  const preview = opts.preview
 
   let activeScroll = false
   function scrolling(duration = 1000) {
     activeScroll = true
-    setTimeout(() => {
-      activeScroll = false
-    }, duration)
+    setTimeout(() => activeScroll = false, duration)
   }
 
   let scrollContainer
+  let previewLength = defaultLength
   function scrollCarousel(direction) {
     if (activeScroll) return
-    const maxScrollLeft = scrollContainer.scrollWidth - scrollContainer.clientWidth
-    const scrollAmount = scrollContainer.offsetWidth
-    if (direction === 'right' && (scrollContainer.scrollLeft + 1) >= maxScrollLeft) {
+    if (direction === 'right' && (scrollContainer.scrollLeft + 2) >= (scrollContainer.scrollWidth - scrollContainer.clientWidth)) {
       scrolling()
       scrollContainer.scrollTo({ left: 0, behavior: 'smooth' })
     } else if (direction === 'left' && scrollContainer.scrollLeft <= 0) {
-      scrolling()
-      scrollContainer.scrollTo({ left: maxScrollLeft, behavior: 'smooth' })
+      visibleLength = loadableLength
+      setTimeout(() => {
+        scrolling()
+        scrollContainer.scrollTo({left: (scrollContainer.scrollWidth - scrollContainer.clientWidth), behavior: 'smooth'})
+      })
     } else {
-      scrolling(500)
-      scrollContainer.scrollBy({ left: direction === 'right' ? scrollAmount : -scrollAmount, behavior: 'smooth' })
+      visibleLength = Math.min((visibleLength || previewLength) + previewLength, loadableLength)
+      setTimeout(() => {
+        scrolling(500)
+        const scrollAmount = scrollContainer.offsetWidth
+        scrollContainer.scrollBy({ left: direction === 'right' ? scrollAmount : -scrollAmount, behavior: 'smooth' })
+      })
     }
   }
+
+  function handleScroll() {
+    if (scrollContainer && ((scrollContainer.scrollWidth - scrollContainer.clientWidth) - scrollContainer.scrollLeft < 100)) visibleLength = Math.min((visibleLength || previewLength) + overflowLength, loadableLength)
+  }
+
+  let timeout
+  function handleUpdate() {
+    clearTimeout(timeout)
+    timeout = setTimeout(() => {
+      if (!scrollContainer) return
+      const cardItem = scrollContainer.querySelector('.small-card-ct, .full-card-ct, .episode-card')
+      if (cardItem) previewLength = (Math.floor((scrollContainer.offsetWidth) / (cardItem.offsetWidth)) || defaultLength) + overflowLength
+    }, 15)
+  }
+
+  let observer = null
+  $: {
+    if (scrollContainer && !observer) {
+      observer = new ResizeObserver(handleUpdate)
+      observer.observe(scrollContainer)
+      window.addEventListener('resize', handleUpdate)
+      scrollContainer.addEventListener('scroll', handleScroll)
+    }
+  }
+  afterUpdate(handleUpdate)
+  onDestroy(() => {
+    observer?.disconnect()
+    observer = null
+    window.removeEventListener('resize', handleUpdate)
+    scrollContainer.removeEventListener('scroll', handleScroll)
+  })
 </script>
 
 <span class='d-flex px-20 align-items-end text-decoration-none' class:mv-10={lastEpisode} use:deferredLoad>
@@ -69,7 +104,7 @@
 </span>
 <div class='position-relative'>
   <div class='pb-10 w-full d-flex flex-row justify-content-start gallery' use:dragScroll bind:this={scrollContainer}>
-    {#each $preview || fakecards as card}
+    {#each ($preview || fakecards).slice(0, visibleLength || previewLength) as card}
       <Card {card} variables={{...opts.variables, section: true}} />
     {/each}
     {#if $preview?.length}
@@ -112,6 +147,7 @@
   .gallery {
     overflow-x: scroll;
     flex-shrink: 0;
+    min-height: 25rem;
   }
   .mv-10 {
     margin-top: -15rem !important;

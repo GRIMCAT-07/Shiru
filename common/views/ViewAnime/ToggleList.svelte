@@ -60,7 +60,7 @@
       window.addEventListener('resize', handleUpdate)
     }
   }
-  afterUpdate(() => handleUpdate())
+  afterUpdate(handleUpdate)
   onDestroy(() => {
     observer?.disconnect()
     observer = null
