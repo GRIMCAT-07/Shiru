@@ -116,6 +116,7 @@
             return !state
         })
     }
+    $: displayedOptions = 0
 </script>
 
 <div class='custom-dropdown w-full'>
@@ -140,9 +141,9 @@
     {#if $dropdown}
         {@const searchInput = searchTextInput ? searchTextInput.toLowerCase() : null}
         <div class='custom-dropdown-menu position-absolute mh-300 overflow-y-auto w-full bg-dark custom-menu-{id}'>
-            {#each headerSections?.length ? headerSections : [{ header: null, start: 0, end: displaySize }] as { header, start, end }}
-                {@const options = getOptions().filter((val) => !searchInput || includes(getOptionDisplay(val)?.toLowerCase(), searchInput.startsWith('!') ? searchInput.slice(1) : searchInput)).sort((a, b) => ((includes(value, a) ? -1 : 1) - (includes(value, b) ? -1 : 1)) || ((includes(altValue, a) ? 0 : 1) - (includes(altValue, b) ? 0 : 1))).slice(start, end)}
-                {#if options.length}
+            {#each headerSections?.length ? headerSections : [{ header: null, start: 0, end: getOptions()?.length || 1 }] as { header, start, end }}
+                {@const options = getOptions().slice(start, end).filter((val) => !searchInput || includes(getOptionDisplay(val)?.toLowerCase(), searchInput.startsWith('!') ? searchInput.slice(1) : searchInput)).sort((a, b) => ((includes(value, a) ? -1 : 1) - (includes(value, b) ? -1 : 1)) || ((includes(altValue, a) ? 0 : 1) - (includes(altValue, b) ? 0 : 1))).slice(0, ((headerSections?.length ? end : displaySize) - displayedOptions))}
+                {#if options.length > 0}
                     {#if header}<span class='not-reactive font-weight-bold p-5'>{header}</span>{/if}
                     {#each options as option}
                         <div class='custom-dropdown-item {!headers ? `text-center` : `pl-20`} not-reactive pointer custom-menu-{id}' class:custom-dropdown-item-selected={includes(value, option)} class:custom-dropdown-item-alt-selected={includes(altValue, option)}
@@ -170,7 +171,8 @@
                             <span class='not-reactive'>{getOptionDisplay(option)}</span>
                         </div>
                     {/each}
-                 {/if}
+                    {(displayedOptions += options.length) && ''}
+                {/if}
             {/each}
         </div>
     {/if}
