@@ -70,7 +70,7 @@
 
 {#if list?.length}
   {@const canToggle = !SUPPORTS.isAndroid && list.length > previewLength}
-  <span class='d-flex align-items-end mt-20' aria-hidden='true' class:pointer={canToggle} class:not-reactive={!canToggle} use:click={toggleList}>
+  <span class='d-flex align-items-end mt-20' aria-hidden='true' tabindex='-1' class:pointer={canToggle} class:not-reactive={!canToggle} use:click={toggleList}>
     <ToggleTitle title={title} class={canToggle ? `more` : ``}/>
   </span>
   <div class='pt-10 text-capitalize d-flex gallery'

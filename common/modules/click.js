@@ -52,7 +52,7 @@ if (SUPPORTS.isAndroid) {
  * @param {Function} [cb=noop] - The callback function to be executed on click.
  */
 export function click(node, cb = noop) {
-  node.tabIndex = 0
+  if (!node.hasAttribute('tabindex')) node.tabIndex = 0
   node.role = 'button'
   node.addEventListener('click', e => {
     e.stopPropagation()
@@ -81,7 +81,7 @@ export function click(node, cb = noop) {
  * @param {Function} [hoverUpdate=noop] - The callback function to be executed on hover.
  */
 export function hoverExit(node, hoverUpdate = noop) {
-  node.tabIndex = 0
+  if (!node.hasAttribute('tabindex')) node.tabIndex = 0
   node.role = 'button'
   node.addEventListener('pointerleave', e => {
     hoverUpdate()
@@ -97,7 +97,7 @@ export function hoverExit(node, hoverUpdate = noop) {
  */
 export function hoverClick(node, [cb = noop, hoverUpdate = noop, rcb = noop]) {
   let pointerType = 'touch'
-  node.tabIndex = 0
+  if (!node.hasAttribute('tabindex')) node.tabIndex = 0
   node.role = 'button'
   node.addEventListener('pointerenter', e => {
     if (e.pointerType !== 'touch') {
