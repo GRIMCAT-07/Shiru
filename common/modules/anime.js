@@ -597,7 +597,6 @@ export const tagList = [
   'Slapstick',
   'Software Development',
   'Snowscape',
-  'Space',
   'Space Opera',
   'Spearplay',
   'Stop Motion',
