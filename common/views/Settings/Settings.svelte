@@ -47,11 +47,12 @@
   import AppSettings from '@/views/Settings/AppSettings.svelte'
   import ExtensionSettings from '@/views/Settings/ExtensionSettings.svelte'
   import { profileView } from '@/components/Profiles.svelte'
+  import { SUPPORTS } from '@/modules/support.js'
   import Helper from '@/modules/helper.js'
   import { AppWindow, Puzzle, User, Heart, LogIn, Logs, Play, Rss, LayoutDashboard } from 'lucide-svelte'
 
   export let playPage = false
-  const safeTop = window.version?.platform === 'win32' || window.version?.platform === 'darwin' ? '18px' : '0px'
+  const safeTop = !SUPPORTS.isAndroid ? '18px' : '0px'
 
   const groups = {
     player: {
