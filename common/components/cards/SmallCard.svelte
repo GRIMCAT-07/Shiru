@@ -60,10 +60,16 @@
     clearTimeout(blurTimeout)
   }
 
-  onMount(() => container.addEventListener('focusout', handleBlur))
+  let airingInterval
+  $: airingSince = $page === 'schedule' && airingAt(media, _variables)
+  onMount(() => {
+    container.addEventListener('focusout', handleBlur)
+    if ($page === 'schedule') airingInterval = setInterval(() => airingSince = airingAt(media, _variables))
+  })
   onDestroy(() => {
     container.removeEventListener('focusout', handleBlur)
     clearTimeouts()
+    clearTimeout(airingInterval)
   })
 
   const { reactive, init } = createListener(['btn', 'scoring', 'sound'])
@@ -78,10 +84,10 @@
   <div class='item small-card d-flex flex-column pointer'>
     {#if $page === 'schedule'}
       <div class='w-full text-center pb-10'>
-        {#if airingAt(media, _variables)}
+        {#if airingSince}
           {episode(media, _variables)}&nbsp;
           <span class='font-weight-bold text-light'>
-            {airingAt(media, _variables)}
+            {airingSince}
           </span>
         {:else}
           &nbsp;

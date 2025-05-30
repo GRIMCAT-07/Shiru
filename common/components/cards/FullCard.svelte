@@ -1,5 +1,6 @@
 <script>
   import { getContext } from 'svelte'
+  import { onMount, onDestroy } from 'svelte'
   import { airingAt, episode, formatMap, getKitsuMappings, getMediaMaxEp, statusColorMap } from '@/modules/anime.js'
   import { click } from '@/modules/click.js'
   import { page } from '@/App.svelte'
@@ -22,6 +23,11 @@
   function viewMedia () {
     $view = media
   }
+
+  let airingInterval
+  $: airingSince = $page === 'schedule' && airingAt(media, _variables)
+  onMount(() => { if ($page === 'schedule') airingInterval = setInterval(() => airingSince = airingAt(media, _variables)) })
+  onDestroy(() => clearTimeout(airingInterval))
 </script>
 
 <div class='d-flex px-md-20 py-10 position-relative justify-content-center full-card-ct' use:click={viewMedia}>
@@ -85,10 +91,10 @@
           </div>
           {#if $page === 'schedule'}
             <div class='d-flex align-items-center pt-5 text-white'>
-              {#if airingAt(media, _variables)}
-                { episode(media, _variables) }&nbsp;
+              {#if airingSince}
+                {episode(media, _variables)}&nbsp;
                 <span class='font-weight-bold text-white d-inline'>
-                  { airingAt(media, _variables) }
+                  {airingSince}
                 </span>
               {:else}
                 &nbsp;

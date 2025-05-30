@@ -12,6 +12,7 @@
   import { settings } from '@/modules/settings.js'
   import { mediaCache } from '@/modules/cache.js'
   import { Play, RefreshCwOff } from 'lucide-svelte'
+  import { onDestroy, onMount } from 'svelte'
   export let data
   export let section = false
 
@@ -54,6 +55,11 @@
   $: progress = liveAnimeEpisodeProgress(media?.id, data?.episode)
   $: watched = media?.mediaListEntry?.status === 'COMPLETED'
   $: completed = !watched && media?.mediaListEntry?.progress >= data?.episode
+
+  let sinceInterval
+  $: timeSince = since(data?.date)
+  onMount(() => (sinceInterval = setInterval(() => timeSince = since(data?.date), 60_000)))
+  onDestroy(() => clearInterval(sinceInterval))
 </script>
 
 <div class='d-flex p-20 pb-10 position-relative episode-card' class:mb-150={section} use:hoverExit={() => prompt.set(false)} use:hoverClick={[setClickState, setHoverState, viewMedia]} role='none'>
@@ -140,7 +146,7 @@
               </div>
             {/if}
             <div class='text-muted font-size-12 title overflow-hidden'>
-              {since(data.date)}
+              {timeSince}
             </div>
           {:else if data.similarity}
             {#if settings.value.cardAudio}
