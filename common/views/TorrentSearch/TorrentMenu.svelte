@@ -121,6 +121,7 @@
 
   let countdown = 5
   let timeoutHandle
+  const maxEpisode = 10000
 
   /**
    * @param {ReturnType<typeof getBest>} promise
@@ -221,8 +222,12 @@
 
   function episodeInput ({ target }) {
     const episode = Number(target.value)
-    if (episode || episode === 0) {
-      search.episode = episode
+    const episodeValue = episode > maxEpisode ? maxEpisode : episode
+    if (search.episode === episodeValue) {
+      target.value = episodeValue
+    } else if (episode || episode === 0) {
+      search.episode = episodeValue
+      if (episode > maxEpisode) target.value = maxEpisode
     }
   }
 
@@ -317,9 +322,9 @@
         </span>
         </button>
       </div>
-      <div class='d-flex align-items-center mr-5' style='width: calc(40px + {(String(search.episode).length <= 10 ? String(search.episode).length : 10) * 7}px) !important' title='Episode'>
+      <div class='d-flex align-items-center mr-5' style='width: calc(5.2rem + {(String(search.episode).length <= 10 ? String(search.episode).length : 10) * 1}rem) !important' title='Episode'>
         <Clapperboard size='2.75rem' class='position-absolute z-10 text-dark-light pl-10 pointer-events-none' />
-        <input type='number' inputmode='numeric' pattern='[0-9]*' class='form-control bg-dark pl-40 control' placeholder='5' value={search.episode} on:input={episodeInput} disabled={(!search.episode && search.episode !== 0) || movie} />
+        <input type='number' inputmode='numeric' pattern='[0-9]*' max={maxEpisode} class='form-control bg-dark pl-40 control' placeholder='5' value={search.episode} on:input={episodeInput} disabled={(!search.episode && search.episode !== 0) || movie} />
       </div>
     </div>
     <div class='col-12 col-sm-6 d-flex align-items-center mt-5 justify-content-center mt-sm-0 justify-content-sm-end'>
