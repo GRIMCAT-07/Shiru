@@ -1,5 +1,4 @@
 <script context='module'>
-  import { click } from '@/modules/click.js'
   import { settings } from '@/modules/settings.js'
   import { capitalize } from '@/modules/util.js'
   import IPC from '@/modules/ipc.js'
@@ -19,8 +18,12 @@
     win32: 'Windows'
   }
   let version = '1.0.0'
-  IPC.on('version', data => (version = data))
+  IPC.on('version', data => {
+    version = data
+    debug(`v${version} ${platformMap[window.version.platform] || 'dev'} ${window.version.arch || 'dev'} ${capitalize(window.version.session) || ''}`, JSON.stringify(settings))
+  })
   IPC.emit('version')
+  IPC.emit('discord-rpc', settings.value.enableRPC)
 
   let changeLog = getChanges()
   window.addEventListener('online', () => changeLog = getChanges())
@@ -33,9 +36,6 @@
       return {}
     }
   }
-
-  IPC.emit('discord-rpc', settings.value.enableRPC)
-  $: debug(`v${version} ${platformMap[window.version.platform] || 'dev'} ${window.version.arch || 'dev'} ${capitalize(window.version.session)}`, JSON.stringify(settings))
 </script>
 
 <script>
@@ -48,9 +48,10 @@
   import ExtensionSettings from '@/views/Settings/ExtensionSettings.svelte'
   import { profileView } from '@/components/Profiles.svelte'
   import Helper from '@/modules/helper.js'
-  import { AppWindow, Puzzle, User, Heart, LogIn, Logs, Play, Rss, Settings } from 'lucide-svelte'
+  import { AppWindow, Puzzle, User, Heart, LogIn, Logs, Play, Rss, LayoutDashboard } from 'lucide-svelte'
 
   export let playPage = false
+  const safeTop = window.version?.platform === 'win32' || window.version?.platform === 'darwin' ? '18px' : '0px'
 
   const groups = {
     player: {
@@ -71,11 +72,24 @@
     },
     app: {
       name: 'App',
-      icon: Settings
+      icon: LayoutDashboard
     },
     changelog: {
       name: 'Changelog',
       icon: Logs
+    },
+    login: {
+      name: 'Login',
+      user: Helper.getUser() && Helper.getUserAvatar(),
+      userName: 'Profiles',
+      icon: LogIn,
+      action: () => ($profileView = true),
+    },
+    donate: {
+      name: 'Donate',
+      icon: Heart,
+      action: () => IPC.emit('open', 'https://github.com/sponsors/RockinChaos/'),
+      sidebar: true
     }
   }
   function pathListener (data) {
@@ -86,9 +100,59 @@
     $settings.playerPath = data
   }
 
-  function loginButton () {
-    $profileView = true
+  function markdownToHtml(text) {
+    const cleaned = text.replace(/<[^>]+>.*?<\/[^>]+>/gs, '').replace(/<[^>]+>/gs, '').replace(/(## Preview:|# Preview:)/g, '').trim()
+    let htmlOutput = ''
+    let listStack = []
+    let inList = false
+    let lastLevel = 0
+
+    const closeList = (level) => {
+      while (level < lastLevel && listStack.length > 0) {
+        htmlOutput += listStack.pop()
+        lastLevel--
+      }
+    }
+
+    const openList = (level) => {
+      while (level > lastLevel) {
+        htmlOutput += '<ul>'
+        listStack.push('</ul>')
+        lastLevel++
+      }
+    }
+
+    cleaned.split('\n').forEach(line => {
+      if (!line.trim()) return
+      const match = line.match(/^(\s*)([-*])\s+(.*)/)
+      if (match) {
+        const [, spaces, , content] = match
+        const level = Math.floor(spaces.length / 2)
+        closeList(level)
+        openList(level)
+        if (!inList) {
+          htmlOutput += '<ul>'
+          listStack.push('</ul>')
+          inList = true
+          lastLevel = 0
+        }
+        htmlOutput += `<li>${content.trim()}</li>`
+      }
+      else {
+        closeList(0)
+        if (inList) {
+          htmlOutput += listStack.pop()
+          inList = false
+          lastLevel = 0
+        }
+        htmlOutput += `<p>${line.trim()}</p>`
+      }
+    })
+    closeList(0)
+    if (inList) htmlOutput += listStack.pop()
+    return htmlOutput
   }
+
   onDestroy(() => {
     IPC.off('path', pathListener)
     IPC.off('player', playerListener)
@@ -99,167 +163,154 @@
 </script>
 
 <Tabs>
-  <div class='d-flex w-full h-full position-relative settings root flex-md-row flex-column overflow-y-auto overflow-y-md-hidden' style='padding-top: var(--safe-area-top)'>
-    <div class='d-flex flex-column flex-row h-full w-md-300 bg-dark position-relative px-20 px-md-0 flex-basis-0-md-custom'>
-      <div class='px-20 py-15 font-size-24 font-weight-semi-bold'>Settings</div>
-      {#each Object.values(groups) as group}
-        <TabLabel>
-          <div class='px-20 py-10 d-flex align-items-center'>
-            <svelte:component this={group.icon} class='pr-10 d-inline-flex' size='3.1rem' fill={group.icon === Play ? 'currentColor' : 'transparent'} />
-            <div class='font-size-16 line-height-normal'>{group.name}</div>
-          </div>
-        </TabLabel>
-      {/each}
-      <div class='pointer my-5 rounded' tabindex='0' role='button' use:click={() => IPC.emit('open', 'https://github.com/sponsors/RockinChaos/')}>
-        <div class='px-20 py-10 d-flex align-items-center'>
-          <Heart class='pr-10 d-inline-flex' size='3.1rem' />
-          <div class='font-size-16 line-height-normal'>Donate</div>
-        </div>
+  <div class='d-flex w-full h-full position-relative settings root flex-md-row flex-column' style='padding-top: max(var(--safe-area-top), {safeTop})'>
+    <div class='d-flex flex-column h-lg-full bg-dark position-absolute position-lg-relative bb-10 w-full w-lg-300 z-10 flex-lg-shrink-0'>
+      <div class='px-20 py-15 font-size-24 font-weight-semi-bold position-absolute d-none d-lg-block' style='margin-top: calc(-1 * max(var(--safe-area-top), {safeTop}))'>Settings</div>
+      <div class='mt-lg-15 py-10 d-flex flex-lg-column flex-row justify-content-center justify-content-lg-start align-items-center align-items-lg-start'>
+        {#each Object.values(groups) as group}
+          <TabLabel name={group.user ? group.userName : group.name} action={group.action} sidebar={group.sidebar} let:active>
+            {#if group.user}
+              <span class='flex-shrink-0 p-5 m-5 rounded d-flex align-items-center'><img src={Helper.getUserAvatar()} class='h-30 w-30 rounded' alt='logo' /></span>
+              <div class='font-size-16 line-height-normal d-none d-sm-block mr-10 text-truncate' style='color: {active ? `currentColor` : `#5e6061`}'>{group.userName}</div>
+            {:else}
+              <svelte:component this={group.icon} size='3.6rem' stroke-width='2.5' class='flex-shrink-0 p-5 m-5 rounded' color={active ? 'currentColor' : '#5e6061'} fill={group.icon === Play ? (active ? 'currentColor' : '#5e6061') : 'transparent'} />
+              <div class='font-size-16 line-height-normal d-none d-sm-block mr-10 text-truncate' style='color: {active ? `currentColor` : `#5e6061`}'>{group.name}</div>
+            {/if}
+          </TabLabel>
+        {/each}
       </div>
-      <div class='pointer my-5 rounded' use:click={loginButton}>
-        <div class='px-20 py-10 d-flex align-items-center'>
-          {#if Helper.getUser()}
-            <span class='rounded mr-10'>
-              <img src={Helper.getUserAvatar()} class='h-30 w-30 rounded' alt='logo' />
-            </span>
-            <div class='font-size-16 login-image-text'>Profiles</div>
-          {:else}
-            <LogIn class='pr-10 d-inline-flex' size='3.1rem' />
-            <div class='font-size-16 line-height-normal'>Login</div>
-          {/if}
-        </div>
+      <div class='d-none d-lg-block mt-auto'>
+        <p class='text-muted px-20 py-10 m-0'>Restart may be required for some settings to take effect.</p>
+        <p class='text-muted px-20 pb-10 m-0'>If you don't know what settings do what, use defaults.</p>
+        <p class='text-muted px-20 m-0 mb-lg-20'>{version ? `v${version}` : ``} {platformMap[window.version.platform] || 'dev'} {window.version.arch || 'dev'} {capitalize(window.version.session) || ''}</p>
       </div>
-      <p class='text-muted px-20 py-10 m-0 mt-md-auto'>Restart may be required for some settings to take effect.</p>
-      <p class='text-muted px-20 pb-10 m-0'>If you don't know what settings do what, use defaults.</p>
-      <p class='text-muted px-20 m-0 mb-md-20'>v{version} {platformMap[window.version.platform] || 'dev'} {window.version.arch || 'dev'} {capitalize(window.version.session)}</p>
     </div>
-    <Tab>
-      <div class='root h-full w-full overflow-y-md-auto p-20'>
-        <PlayerSettings bind:settings={$settings} bind:playPage />
-        <!-- spacing element to make space for miniplayer on mobile -->
-        <div class='h-250' />
-      </div>
-    </Tab>
-    <Tab>
-      <div class='root h-full w-full overflow-y-md-auto p-20'>
-        <TorrentSettings bind:settings={$settings} />
-        <div class='h-250' />
-      </div>
-    </Tab>
-    <Tab>
-      <div class='root h-full w-full overflow-y-md-auto p-20'>
-        <InterfaceSettings bind:settings={$settings} />
-        <div class='h-250' />
-      </div>
-    </Tab>
-    <Tab>
-      <div class='root h-full w-full overflow-y-md-auto p-20'>
-        <ExtensionSettings bind:settings={$settings} />
-        <div class='h-250' />
-      </div>
-    </Tab>
-    <Tab>
-      <div class='root h-full w-full overflow-y-md-auto p-20'>
-        <AppSettings {version} bind:settings={$settings} />
-        <div class='h-250' />
-      </div>
-    </Tab>
-    <Tab>
-      <div class='root my-20 px-20 overflow-y-md-auto w-full'>
-        <div class='h-300 row px-20 px-sm-0'>
-          <div class='col-sm-3 d-none d-sm-flex' />
-          <div class='col-sm-6 d-flex justify-content-center flex-column'>
-            <h1 class='font-weight-bold text-white title'>Changelog</h1>
-            <div class='font-size-18 text-muted'>New updates and improvements to Shiru.</div>
-          </div>
+    <div class='mt-75 mt-lg-0 w-full overflow-y-auto overflow-y-md-hidden'>
+      <div class='shadow-overlay d-lg-none' />
+      <Tab>
+        <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
+          <PlayerSettings bind:settings={$settings} bind:playPage />
+          <div class='pb-10 d-md-none'/>
         </div>
-        {#await changeLog}
-          {#each Array(5) as _}
-            <hr class='my-20' />
-            <div class='row py-20 px-20 px-sm-0'>
-              <div class='col-sm-3 my-20 order-last order-sm-first '>
-                <div class='skeloader rounded w-100 h-10 bg-very-dark'>
-                  <div class='skeleloader-swipe' />
+      </Tab>
+      <Tab>
+        <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
+          <TorrentSettings bind:settings={$settings} />
+          <div class='pb-10 d-md-none'/>
+        </div>
+      </Tab>
+      <Tab>
+        <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
+          <InterfaceSettings bind:settings={$settings} />
+          <div class='pb-10 d-md-none'/>
+        </div>
+      </Tab>
+      <Tab>
+        <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
+          <ExtensionSettings bind:settings={$settings} />
+          <div class='pb-10 d-md-none'/>
+        </div>
+      </Tab>
+      <Tab>
+        <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
+          <AppSettings {version} bind:settings={$settings} />
+          <div class='pb-10 d-md-none'/>
+        </div>
+      </Tab>
+      <Tab>
+        <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
+          <div class='column px-20 px-sm-0'>
+            <h1 class='font-weight-bold text-white font-scale-40'>Changelog</h1>
+            <div class='font-size-18 text-muted'>New updates and improvements to Shiru.</div>
+            <div class='font-size-14 text-muted'>Your current App Version is <b>v{version}</b></div>
+          </div>
+          {#await changeLog}
+            {#each Array(5) as _}
+              <hr class='my-20' />
+              <div class='row py-20 px-20 px-sm-0'>
+                <div class='col-sm-3 my-20 order-first text-white'>
+                  <div class='skeloader rounded w-100 h-10 bg-very-dark mb-10 mb-sm-0'>
+                    <div class='skeleloader-swipe' />
+                  </div>
+                </div>
+                <div class='col-sm-9'>
+                  <div class='skeloader rounded w-150 h-25 bg-very-dark mb-10'>
+                    <div class='skeleloader-swipe' />
+                  </div>
+                  <div class='skeloader rounded w-250 h-10 bg-very-dark mt-20'>
+                    <div class='skeleloader-swipe' />
+                  </div>
+                  <div class='skeloader rounded w-200 h-10 bg-very-dark mt-15'>
+                    <div class='skeleloader-swipe' />
+                  </div>
                 </div>
               </div>
-              <div class='col-sm-9'>
-                <div class='skeloader rounded w-150 h-25 bg-very-dark mb-10'>
-                  <div class='skeleloader-swipe' />
+            {/each}
+          {:then changelog}
+            {#each changelog.slice(0, 5) as { version, date, body }}
+              <hr class='my-20' />
+              <div class='row py-20 px-20 px-sm-0 position-relative text-wrap text-break'>
+                <div class='col-sm-3 order-first text-white mb-10 mb-sm-0'>
+                  <div class='position-sticky top-0 pt-20'>
+                    {new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </div>
                 </div>
-                <div class='skeloader rounded w-250 h-10 bg-very-dark mt-20'>
-                  <div class='skeleloader-swipe' />
-                </div>
-                <div class='skeloader rounded w-200 h-10 bg-very-dark mt-15'>
-                  <div class='skeleloader-swipe' />
-                </div>
-              </div>
-            </div>
-          {/each}
-        {:then changelog}
-          {#each changelog as { version, date, body }}
-            <hr class='my-20' />
-            <div class='row py-20 px-20 px-sm-0 position-relative text-wrap text-break' tabindex='0' role='button'>
-              <div class='col-sm-3 order-last order-sm-first text-white'>
-                <div class='position-sticky top-0 pt-20'>
-                  {new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                <div class='col-sm-9 pre-wrap text-muted'>
+                  <h2 class='mt-0 font-weight-bold text-white font-scale-34'>{version}</h2>
+                  <div class='ml-10'>{@html markdownToHtml(body)}</div>
                 </div>
               </div>
-              <div class='col-sm-9 pre-wrap text-muted'>
-                <h2 class='mt-0 font-weight-bold text-white'>{version}</h2>{body.replace(/<[^>]+>.*?<\/[^>]+>/gs, '').replace(/<[^>]+>/gs, '').replace('## Preview:', '').replace('# Preview:', '').replace(/\r\n\s*\r\n+/g, '\r\n\r\n').replaceAll('- ', '').trim()}</div>
-            </div>
-          {/each}
-        {:catch}
-          {#each Array(5) as _}
-            <hr class='my-20' />
-            <div class='row py-20 px-20 px-sm-0'>
-              <div class='col-sm-3 my-20 order-last order-sm-first '>
-                <div class='skeloader rounded w-100 h-10 bg-very-dark'>
-                  <div class='skeleloader-swipe' />
+            {/each}
+          {:catch e}
+            {#each Array(5) as _}
+              <hr class='my-20' />
+              <div class='row py-20 px-20 px-sm-0'>
+                <div class='col-sm-3 my-20 order-first '>
+                  <div class='skeloader rounded w-100 h-10 bg-very-dark mb-10 mb-sm-0'>
+                    <div class='skeleloader-swipe' />
+                  </div>
+                </div>
+                <div class='col-sm-9'>
+                  <div class='skeloader rounded w-150 h-25 bg-very-dark mb-10'>
+                    <div class='skeleloader-swipe' />
+                  </div>
+                  <div class='skeloader rounded w-250 h-10 bg-very-dark mt-20'>
+                    <div class='skeleloader-swipe' />
+                  </div>
+                  <div class='skeloader rounded w-200 h-10 bg-very-dark mt-15'>
+                    <div class='skeleloader-swipe' />
+                  </div>
                 </div>
               </div>
-              <div class='col-sm-9'>
-                <div class='skeloader rounded w-150 h-25 bg-very-dark mb-10'>
-                  <div class='skeleloader-swipe' />
-                </div>
-                <div class='skeloader rounded w-250 h-10 bg-very-dark mt-20'>
-                  <div class='skeleloader-swipe' />
-                </div>
-                <div class='skeloader rounded w-200 h-10 bg-very-dark mt-15'>
-                  <div class='skeleloader-swipe' />
-                </div>
-              </div>
-            </div>
-          {/each}
-        {/await}
-        <div class='h-250 d-md-none' />
-      </div>
-    </Tab>
+            {/each}
+          {/await}
+        </div>
+      </Tab>
+    </div>
   </div>
 </Tabs>
 
 <style>
+  .mt-75 {
+    margin-top: 7.5rem;
+  }
   .settings :global(select.form-control:invalid) {
     color: var(--dm-input-placeholder-text-color);
-  }
-  .login-image-text {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
   }
   .settings :global(input:not(:focus):invalid) {
     box-shadow: 0 0 0 0.2rem var(--danger-color) !important;
   }
-
-  .flex-basis-0-md-custom {
-    flex-basis: 0%;
+  .shadow-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1.2rem;
+    box-shadow: 0 1.2rem 1.2rem #131416;
+    pointer-events: none;
+    margin-top: -1.6rem;
+    z-index: 1;
   }
-
-  @media (min-width: 769px) {
-    .flex-basis-0-md-custom  {
-      flex-basis: auto;
-    }
-  }
-  .title {
-    font-size: 5rem
+  .bb-10 {
+    border-bottom: .10rem rgba(182, 182, 182, 0.13) solid !important;
   }
 </style>

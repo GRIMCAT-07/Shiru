@@ -266,6 +266,14 @@ a[href]:active, button:not([disabled]):active:not([data-sonner-toast] > button),
   margin-top: 0.3rem;
 }
 
+.mt-70 {
+  margin-top: 7rem;
+}
+
+.mt-100 {
+  margin-top: 10rem;
+}
+
 .h-10 {
   height: 1rem !important;
 }

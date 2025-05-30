@@ -16,6 +16,9 @@
 .font-scale-24 {
   font-size: 2.4rem;
 }
+.font-scale-34 {
+  font-size: 3.4rem;
+}
 .font-scale-40 {
   font-size: 4rem;
 }
@@ -47,6 +50,9 @@
   }
   .font-scale-24 {
     font-size: 1.8rem !important;
+  }
+  .font-scale-34 {
+    font-size: 2.8rem !important;
   }
   .font-scale-40 {
     font-size: 2.4rem !important;

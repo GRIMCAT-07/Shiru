@@ -285,7 +285,7 @@
     <Search size='2.6rem' strokeWidth='2.5' class='position-absolute z-10 text-dark-light h-full pl-10 pointer-events-none' />
     <input
       type='search'
-      class='form-control bg-dark pl-40 pr-30 rounded-3 h-40'
+      class='form-control bg-dark pl-40 pr-30 rounded-3 h-40 text-truncate'
       autocomplete='off'
       data-option='search'
       placeholder='Filter torrents by text, or manually specify one by pasting a magnet link or torrent file' bind:value={searchText} />

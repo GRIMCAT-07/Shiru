@@ -14,6 +14,7 @@
 
     export let active = false
     export let padding = '1rem'
+    export let page = 'home'
     const tmppadding = padding
     $: resize = !$isMobile
     $: minwidth = $isMobile ? '25rem' : '35rem'
@@ -103,8 +104,7 @@
         node.addEventListener('touchend', resizeEnd)
     }
 </script>
-<div class='miniplayer-container {position} {$$restProps.class}'
-     class:mt-20={active && (position.match(/top/i) || draggingPos.match(/top/i))} class:active class:animate={!dragging} class:custompos={!position}
+<div class='miniplayer-container {active && (position.match(/top/i) || draggingPos.match(/top/i)) ? page === `settings` ? `mt-100 mt-lg-20` : `mt-20` : ``} {position} {$$restProps.class}' class:active class:animate={!dragging} class:custompos={!position}
      style:--left={left} style:--top={top} style:--height={height} style:--width={width} style:--padding={padding} style:--maxwidth={maxwidth} style:--minwidth={minwidth}
      role='group' bind:this={container} on:dragstart|preventDefault|self>
     <div class='resize resize-{position ? (position.match(/top/i) ? `b` : `t`) + (position.match(/left/i) ? `r` : `l`) : `tl`}' class:d-none={!resize || !active} use:resizable />

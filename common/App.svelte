@@ -94,7 +94,7 @@
   <Sidebar bind:page={$page} bind:playPage={$playPage} />
   <Navbar bind:page={$page} bind:playPage={$playPage} />
   <div class='overflow-hidden content-wrapper h-full'>
-    <Toaster visibleToasts={2} position='top-right' theme='dark' richColors duration={10000} closeButton />
+    <Toaster visibleToasts={2} position='top-right' theme='dark' richColors duration={10000} closeButton toastOptions={{class: $page === 'settings' ? 'mt-70 mt-lg-0' : ''}} />
     <Profiles bind:overlay={$overlay} />
     <Notifications bind:overlay={$overlay} />
     <ViewAnime bind:overlay={$overlay} />

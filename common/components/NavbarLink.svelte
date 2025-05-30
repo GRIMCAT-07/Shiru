@@ -7,6 +7,7 @@
   export let page
   export let _page = ''
   export let css = ''
+  export let text = ''
   export let icon = ''
   export let nowPlaying = false
   export let overlay = ''
@@ -15,7 +16,7 @@
   }
 </script>
 
-<div class='navbar-link navbar-link-with-icon pointer overflow-hidden mx-auto {css}' use:click={() => { handleOverlays(); _click() } } on:contextmenu|preventDefault={() => { if (rbClick) { handleOverlays(); rbClick() } } }>
+<div class='navbar-link navbar-link-with-icon pointer overflow-hidden mx-auto {css}' title={text} use:click={() => { handleOverlays(); _click() } } on:contextmenu|preventDefault={() => { if (rbClick) { handleOverlays(); rbClick() } } }>
   <span class='rounded d-flex'>
     <slot active={(page === _page && overlay !== 'active') || (overlay === 'active' && nowPlaying)}>{icon}</slot>
   </span>
@@ -36,6 +37,22 @@
     background: #fff;
     color: var(--dark-color);
   }
+
+  .navbar-link:hover > span {
+    background: #fff;
+    color: var(--dark-color);
+  }
+
+  .navbar-link:focus-visible > span {
+    background: #fff;
+    color: var(--dark-color);
+  }
+
+  .navbar-link:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
   .navbar-link {
     font-size: 1.4rem;
     padding: 0.75rem;
