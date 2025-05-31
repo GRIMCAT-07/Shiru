@@ -233,7 +233,6 @@
   })
 </script>
 
-<div bind:this={container} class='episode-list overflow-y-auto overflow-x-hidden' on:scroll={handleScroll}>
 <div bind:this={container} class='episode-list overflow-y-auto overflow-x-hidden {$$restProps.class}' on:scroll={handleScroll}>
   {#await (episodeLoad || mobileWait(() => episodeList?.length > 0 || !episodeList)?.then(() => episodeList))}
     {#each Array.from({ length: Math.max(Math.min(episodeCount || 0, maxEpisodes), 1) }) as _}
