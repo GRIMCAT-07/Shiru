@@ -6,8 +6,6 @@
   import { createListener } from '@/modules/util.js'
   import { hoverClick } from '@/modules/click.js'
   import AudioLabel from '@/views/ViewAnime/AudioLabel.svelte'
-
-  import { page } from '@/App.svelte'
   import { anilistClient, currentYear } from '@/modules/anilist.js'
   import { settings } from '@/modules/settings.js'
   import { mediaCache } from '@/modules/cache.js'
@@ -20,9 +18,7 @@
   let _variables = variables
 
   let media
-  $: if (data && !media) {
-    media = mediaCache.value[data?.id]
-  }
+  $: if (data && !media) media = mediaCache.value[data?.id]
   mediaCache.subscribe((value) => { if (value && (JSON.stringify(value[media?.id]) !== JSON.stringify(media))) media = value[media?.id] })
   const view = getContext('view')
   function viewMedia() {
@@ -61,10 +57,10 @@
   }
 
   let airingInterval
-  $: airingSince = $page === 'schedule' && airingAt(media, _variables)
+  $: airingSince = _variables?.scheduleList && airingAt(media, _variables)
   onMount(() => {
     container.addEventListener('focusout', handleBlur)
-    if ($page === 'schedule') airingInterval = setInterval(() => airingSince = airingAt(media, _variables))
+    if (_variables?.scheduleList) airingInterval = setInterval(() => airingSince = airingAt(media, _variables))
   })
   onDestroy(() => {
     container.removeEventListener('focusout', handleBlur)
@@ -82,7 +78,7 @@
     <PreviewCard {media} {type} bind:element={previewCard}/>
   {/if}
   <div class='item small-card d-flex flex-column pointer'>
-    {#if $page === 'schedule'}
+    {#if _variables?.scheduleList}
       <div class='w-full text-center pb-10'>
         {#if airingSince}
           {episode(media, _variables)}&nbsp;

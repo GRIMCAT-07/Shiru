@@ -3,7 +3,6 @@
   import { onMount, onDestroy } from 'svelte'
   import { airingAt, episode, formatMap, getKitsuMappings, getMediaMaxEp, statusColorMap } from '@/modules/anime.js'
   import { click } from '@/modules/click.js'
-  import { page } from '@/App.svelte'
   import AudioLabel from '@/views/ViewAnime/AudioLabel.svelte'
   import { anilistClient, seasons } from '@/modules/anilist.js'
   import { mediaCache } from '@/modules/cache.js'
@@ -13,9 +12,7 @@
   let _variables = variables
 
   let media
-  $: if (data && !media) {
-    media = mediaCache.value[data?.id]
-  }
+  $: if (data && !media) media = mediaCache.value[data?.id]
   mediaCache.subscribe((value) => { if (value && (JSON.stringify(value[media?.id]) !== JSON.stringify(media))) media = value[media?.id] })
   $: maxEp = getMediaMaxEp(media)
 
@@ -25,8 +22,8 @@
   }
 
   let airingInterval
-  $: airingSince = $page === 'schedule' && airingAt(media, _variables)
-  onMount(() => { if ($page === 'schedule') airingInterval = setInterval(() => airingSince = airingAt(media, _variables)) })
+  $: airingSince = _variables?.scheduleList && airingAt(media, _variables)
+  onMount(() => { if (_variables?.scheduleList) airingInterval = setInterval(() => airingSince = airingAt(media, _variables)) })
   onDestroy(() => clearTimeout(airingInterval))
 </script>
 
@@ -89,7 +86,7 @@
               {/if}
             {/if}
           </div>
-          {#if $page === 'schedule'}
+          {#if _variables?.scheduleList}
             <div class='d-flex align-items-center pt-5 text-white'>
               {#if airingSince}
                 {episode(media, _variables)}&nbsp;
