@@ -859,9 +859,14 @@
   }
 
   function resetImmerse () {
-    clearTimeout(immerseTimeout)
-    immersed = false
-    if (!paused || miniplayer) immerseTimeout = setTimeout(immersePlayer, (paused ? 5 : 1) * 1000)
+    let immersion = immersed
+    setTimeout(() => {
+      if (immersion === immersed) {
+        clearTimeout(immerseTimeout)
+        immersed = false
+        if (!paused || miniplayer) immerseTimeout = setTimeout(immersePlayer, (paused ? 5 : 1) * 1000)
+      }
+    })
   }
 
   function toggleImmerse () {
@@ -1476,7 +1481,7 @@
     <div class='w-full h-full position-absolute toggle-immerse d-none' on:dblclick={toggleFullscreen} on:click|self={toggleImmerse} />
     <div class='w-full h-full position-absolute mobile-focus-target d-none' use:click={() => { page = 'player'; window.dispatchEvent(new Event('overlay-check')) }} />
     <!-- eslint-disable-next-line svelte/valid-compile -->
-    <span class='icon ctrl h-full align-items-center justify-content-end w-150 mw-full mr-auto' class:mb-50={!miniplayer} on:click={rewind}>
+    <span class='icon ctrl align-items-center justify-content-end w-150 mw-full mr-auto' class:mb-50={!miniplayer} on:click={rewind}>
       <Rewind size='3rem' />
     </span>
     <!-- miniplayer buttons -->
@@ -1512,7 +1517,7 @@
       {/if}
     </div>
     <!-- eslint-disable-next-line svelte/valid-compile -->
-    <span class='icon ctrl h-full align-items-center w-150 mw-full ml-auto' class:mb-50={!miniplayer} on:click={forward}>
+    <span class='icon ctrl align-items-center w-150 mw-full ml-auto' class:mb-50={!miniplayer} on:click={forward}>
       <FastForward size='3rem' />
     </span>
     <div class='position-absolute bufferingDisplay' />
@@ -1865,6 +1870,7 @@
   .immersed .middle .ctrl,
   .immersed .top,
   .immersed .bottom, .immersed .skip {
+    pointer-events: none;
     opacity: 0;
   }
   :fullscreen .ctrl[data-name='toggleCast'] {
