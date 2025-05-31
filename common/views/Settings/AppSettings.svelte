@@ -74,6 +74,7 @@
       duration: 5000
     })
   }
+  setTimeout(IPC.emit('update'), 15000)
   setInterval(() => IPC.emit('update'), 300000)
 
   IPC.on('log-contents', log => {
