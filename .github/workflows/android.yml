@@ -6,10 +6,10 @@ on:
     workflows: ["Electron Build and Release"]
     types:
       - completed
-    status: success
 
 jobs:
   release:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     defaults:
       run:
