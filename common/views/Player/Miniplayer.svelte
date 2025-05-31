@@ -36,7 +36,7 @@
         let timeout = null
         function dragStart (e) {
             clearTimeout(timeout)
-            padding = '0px'
+            padding = '0rem'
             const { pointerId, offsetX, offsetY } = e
             const bounds = container.getBoundingClientRect()
             const relativeBounds = container.offsetParent.getBoundingClientRect()
@@ -85,8 +85,6 @@
         node.addEventListener('pointerup', dragEnd)
         node.addEventListener('touchend', dragEnd)
     }
-
-    /** TODO: Implement resize arrow on each corner based on miniplayer position. Currently it is always top left, which isn't very intuitive if the miniplayer is on the left side of the screen. */
     function resizable (node) {
         function resizeStart ({ pointerId }) {
             document.body.addEventListener('pointermove', handleResize)
@@ -150,6 +148,7 @@
     .active.custompos {
         top: clamp(var(--padding), var(--top), 100% - var(--height) - var(--padding)) !important;
         left: clamp(var(--padding), var(--left), 100% - var(--width) - var(--padding)) !important;
+        height: var(--height) !important;
     }
     .active.top {
         top: var(--padding) !important
