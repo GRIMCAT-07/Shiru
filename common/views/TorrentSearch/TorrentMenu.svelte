@@ -358,10 +358,10 @@
     <ErrorCard promise={errors} />
   </div>
 {:else}
-  {#if $results?.torrents?.length && (!best || !Object.values(best)?.length)}
+  {#if $results?.torrents?.length && !$results?.resolved && (!best || !Object.values(best)?.length)}
     <TorrentSkeletonCard />
   {:else if $results?.torrents?.length}
-    <TorrentCard type='best' countdown={$settings.rssAutoplay && $results?.resolved ? countdown : -1} result={best} {play} media={search.media} episode={search.episode} />
+    {#if best}<TorrentCard type='best' countdown={$settings.rssAutoplay && $results?.resolved ? countdown : -1} result={best} {play} media={search.media} episode={search.episode} />{/if}
     {#if lastMagnet}
       {#each filterResults(lookup, searchText) as result}
         {#if ((result.link === lastMagnet.link) || (result.hash === lastMagnet.hash)) && result.seeders > 1 && ((best?.link !== lastMagnet.link) && (best?.hash !== lastMagnet.hash)) }
