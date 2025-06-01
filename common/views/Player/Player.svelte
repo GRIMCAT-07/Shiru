@@ -858,13 +858,18 @@
     immerseTimeout = undefined
   }
 
-  function resetImmerse () {
-    let immersion = immersed
+  let immerseToken = 0
+  function resetImmerse() {
+    clearTimeout(immerseTimeout)
+    const token = ++immerseToken
+    const wasImmersed = immersed
     setTimeout(() => {
-      if (immersion === immersed) {
-        clearTimeout(immerseTimeout)
-        immersed = false
-        if (!paused || miniplayer) immerseTimeout = setTimeout(immersePlayer, (paused ? 5 : 1) * 1000)
+      if (token !== immerseToken || wasImmersed !== immersed) return
+      immersed = false
+      if (!paused || miniplayer) {
+        immerseTimeout = setTimeout(() => {
+          if (token === immerseToken) immersePlayer()
+        }, (paused ? 5 : 1.5) * 1000)
       }
     })
   }
@@ -1890,7 +1895,7 @@
     animation: spin 1s linear infinite;
     opacity: 0;
     visibility: hidden;
-    transition: 0.5s opacity ease 0.2s;
+    transition: 0.2s opacity ease 0s;
     filter: drop-shadow(0 0 8px #000);
   }
 
@@ -1953,7 +1958,7 @@
     filter: drop-shadow(0 0 8px #000);
   }
   .skip {
-    transition: 0.5s opacity ease 0.2s;
+    transition: 0.2s opacity ease 0s;
     background: #ececec;
   }
   .skip:hover {
@@ -1962,11 +1967,11 @@
 
   .bottom {
     background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.6) 25%, rgba(0, 0, 0, 0.4) 50%, rgba(0, 0, 0, 0.1) 75%, transparent);
-    transition: 0.5s opacity ease 0.2s;
+    transition: 0.2s opacity ease 0s;
   }
   .top {
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.4) 25%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0.1) 75%, transparent);
-    transition: 0.5s opacity ease 0.2s;
+    transition: 0.2s opacity ease 0s;
   }
   .mr-40 {
     margin-right: 4rem !important;
