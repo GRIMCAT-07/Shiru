@@ -214,7 +214,10 @@ export function dragScroll(node) {
   node.addEventListener('mouseleave', () => dragging = false, opts)
   node.addEventListener('pointerdown', e => activePointer = e.pointerId, opts) // capture this pointer, works great for hiding preview cards.
   node.addEventListener('mouseup', () => {
-    if (dragging && activePointer) try { node.releasePointerCapture(activePointer) } catch {}
+    if (dragging && activePointer) {
+      node.style.removeProperty('cursor')
+      try { node.releasePointerCapture(activePointer) } catch {}
+    }
     dragging = false
   }, opts)
   node.addEventListener('mousedown', e => {

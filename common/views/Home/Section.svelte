@@ -148,6 +148,7 @@
     overflow-x: scroll;
     flex-shrink: 0;
     min-height: 25rem;
+    cursor: grab;
   }
   .mv-10 {
     margin-top: -15rem !important;
