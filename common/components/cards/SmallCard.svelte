@@ -2,7 +2,7 @@
   import { getContext } from 'svelte'
   import { onMount, onDestroy } from 'svelte'
   import PreviewCard from '@/components/cards/PreviewCard.svelte'
-  import { episode, airingAt, getKitsuMappings, formatMap, statusColorMap } from '@/modules/anime.js'
+  import { airingAt, getAiringInfo, getKitsuMappings, formatMap, statusColorMap } from '@/modules/anime.js'
   import { createListener } from '@/modules/util.js'
   import { hoverClick } from '@/modules/click.js'
   import AudioLabel from '@/views/ViewAnime/AudioLabel.svelte'
@@ -57,10 +57,12 @@
   }
 
   let airingInterval
-  $: airingSince = _variables?.scheduleList && airingAt(media, _variables)
+  let _airingAt = null
+  $: airingInfo = getAiringInfo(_airingAt)
   onMount(() => {
     container.addEventListener('focusout', handleBlur)
-    if (_variables?.scheduleList) airingInterval = setInterval(() => airingSince = airingAt(media, _variables))
+    _airingAt = media && _variables?.scheduleList && airingAt(media, _variables)
+    if (_airingAt) airingInterval = setInterval(() => airingInfo = getAiringInfo(_airingAt), 60_000)
   })
   onDestroy(() => {
     container.removeEventListener('focusout', handleBlur)
@@ -77,20 +79,17 @@
   {#if preview}
     <PreviewCard {media} {type} bind:element={previewCard}/>
   {/if}
-  <div class='item small-card d-flex flex-column pointer'>
-    {#if _variables?.scheduleList}
+  <div class='item load-in small-card d-flex flex-column pointer {airingInfo?.episode.match(/our for/i) ? `airing` : ``}'>
+    {#if airingInfo}
       <div class='w-full text-center pb-10'>
-        {#if airingSince}
-          {episode(media, _variables)}&nbsp;
-          <span class='font-weight-bold text-light'>
-            {airingSince}
-          </span>
-        {:else}
-          &nbsp;
-        {/if}
+        {airingInfo.episode}&nbsp;
+        <span class='font-weight-bold {airingInfo.episode.match(/our for/i) ? `text-success-subtle` : `text-light`}'>
+            {airingInfo.time}
+        </span>
       </div>
     {/if}
     <div class='d-inline-block position-relative'>
+      <span class="airing-badge rounded-10 font-weight-semi-bold text-light bg-success-subtle" class:d-none={!airingInfo?.episode?.match(/our for/i)}>AIRING</span>
       <img loading='lazy' src={media.coverImage.extraLarge || ''} alt='cover' class='cover-img w-full rounded' style:--color={media.coverImage.color || '#1890ff'} />
       {#if !_variables?.scheduleList}
         <AudioLabel {media} />
@@ -129,6 +128,28 @@
 </div>
 
 <style>
+  .airing::before {
+    content: '';
+    position: absolute;
+    inset: -1.3rem;
+    border-radius: .4rem;
+    pointer-events: none;
+    animation: airing-pulse 3.5s infinite;
+  }
+  @keyframes airing-pulse {
+    0%   { box-shadow: 0 0 0 0 var(--success-color-subtle); opacity: 0.9; }
+    25%  { box-shadow: 0 0 0 .7rem var(--dark-color); opacity: 0.6; }
+    40% { box-shadow: 0 0 0 0 var(--dark-color); opacity: 0.4; }
+    100% { box-shadow: 0 0 0 0 var(--dark-color); opacity: 0; }
+  }
+  .airing-badge {
+    position: absolute;
+    top: -1rem;
+    right: -1rem;
+    font-size: 1rem;
+    padding: .35rem .9rem;
+    box-shadow: 0 .2rem .5rem rgba(0,0,0,0.2);
+  }
   .small-card-ct:hover {
     z-index: 30;
     /* fixes transform scaling on click causing z-index issues */
@@ -144,7 +165,6 @@
     aspect-ratio: 230/331;
   }
   .item {
-    animation: 0.3s ease 0s 1 load-in;
     width: 100%;
     aspect-ratio: 152/296;
   }

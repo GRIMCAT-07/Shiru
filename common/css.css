@@ -242,6 +242,9 @@ a[href]:active, button:not([disabled]):active:not([data-sonner-toast] > button),
   z-index: 102;
 }
 
+.text-success-subtle {
+  color: var(--success-color-subtle);
+}
 .text-dark-light {
   color: var(--gray-color-light);
 }

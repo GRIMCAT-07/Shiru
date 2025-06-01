@@ -219,7 +219,7 @@ export async function hasZeroEpisode(media, existingMappings) { // really wish t
   const mappings = existingMappings || (await getAniMappings(media.id)) || {}
   const hasZeroEpisode = media.streamingEpisodes?.filter((ep) => { const match = (/Episode (\d+(\.\d+)?) - /).exec(ep.title); return match ? Number.isInteger(parseFloat(match[1])) && Number(parseFloat(match[1])) === 0 : false})
   const zeroAsFirstEpisode = /episode\s*0/i.test(mappings?.episodes?.[1]?.title?.en || mappings?.episodes?.[1]?.title?.jp) // The first episode is titled as Episode 0 so this is likely a Prologue, fixes issues with series like `Fate/stay night: Unlimited Blade Works`
-  // no clue what fixed Mushoku but this initial part seems to allow "Episode 0 : Guardian Fits" to properly be mapped to season 2 part 1, ensure when making changes this doesn't appear on season 1 part 1.
+  // no clue what fixed Mushoku but this initial part seems to allow 'Episode 0 : Guardian Fits' to properly be mapped to season 2 part 1, ensure when making changes this doesn't appear on season 1 part 1.
   if (hasZeroEpisode?.length > 0 && ((media.episodes >= media.streamingEpisodes?.length) || zeroAsFirstEpisode)) {
     return [{...hasZeroEpisode[0], title: hasZeroEpisode[0]?.title?.replace('Episode 0 - ', '')}]
   } else if (!(media.episodes && media.episodes === mappings?.episodeCount && media.status === 'FINISHED')) {
@@ -754,16 +754,22 @@ export async function getEpisodeMetadataForMedia (media) {
   return promiseData
 }
 
+export function getAiringInfo(airingAt) {
+  if (!airingAt) return null
+  const airingIn = (airingAt.time.getTime() - Date.now()) / 1000
+  return { time: countdown(airingIn), episode: airingAt.episode.replace('{suffix}', (airingIn <= 0 ? 'out for' : 'in')) }
+}
+
 export function episode(media, variables) {
   const entry = variables?.hideSubs && animeSchedule.dubAiring.value?.find(entry => entry.media?.media?.id === media.id)
   const nodes = variables?.hideSubs ? entry?.media?.media?.airingSchedule?.nodes : media?.airingSchedule?.nodes
 
-  if (!nodes || nodes.length === 0) return `Episode 1 in`
+  if (!nodes || nodes.length === 0) return `Episode 1 {suffix}`
   if (entry?.delayedIndefinitely && nodes[0]) return `Episode ${nodes[0].episode} is`
-  if (nodes.length === 1) return `Episode ${nodes[0].episode} in`
+  if (nodes.length === 1) return `Episode ${nodes[0].episode} {suffix}`
 
-  let firstEpisode = nextAiring(nodes, variables)?.episode
   let lastEpisode = nodes[0].episode
+  const firstEpisode = nextAiring(nodes, variables)?.episode
   for (let i = 1; i < nodes.length; i++) {
     if (new Date(nodes[i].airingAt).getTime() !== new Date(nodes[i - 1].airingAt).getTime() && new Date(variables?.hideSubs ? nodes[i].airingAt : (nodes[i].airingAt * 1000)) > new Date() && new Date(variables?.hideSubs ? nodes[i].airingAt : (nodes[i - 1].airingAt * 1000)) > new Date()) {
       lastEpisode = nodes[i - 1].episode
@@ -772,7 +778,7 @@ export function episode(media, variables) {
     if (i === nodes.length - 1) lastEpisode = nodes[i].episode
   }
 
-  return `Episode ${firstEpisode === lastEpisode ? `${firstEpisode}` : `${firstEpisode} ~ ${lastEpisode}`} in`
+  return `Episode ${firstEpisode === lastEpisode ? `${firstEpisode}` : `${firstEpisode} ~ ${lastEpisode}`} {suffix}`
 }
 
 export function airingAt(media, variables) {
@@ -780,10 +786,10 @@ export function airingAt(media, variables) {
     const entry = animeSchedule.dubAiring.value.find((entry) => entry.media?.media?.id === media.id)
     if (entry?.delayedIndefinitely) return 'Suspended'
     const airingAt = nextAiring(entry?.media?.media?.airingSchedule?.nodes, variables)?.airingAt
-    return airingAt ? countdown((new Date(airingAt).getTime() / 1000) - Date.now() / 1000) : null
+    return airingAt ? { time: new Date(airingAt), episode: episode(media, variables) } : null
   }
   const airingAt = nextAiring(media.airingSchedule?.nodes, variables)?.airingAt
-  return airingAt ? countdown( (new Date(airingAt).getTime()) - Date.now() / 1000) : null
+  return airingAt ? { time: new Date(airingAt * 1000), episode: episode(media, variables) } : null
 }
 
 export function nextAiring(nodes, variables) {

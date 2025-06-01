@@ -46,17 +46,33 @@ export function stringToHex(str) {
   return `#${[(hash >> 16) & 0xff, (hash >> 8) & 0xff, hash & 0xff].map(x => x.toString(16).padStart(2, '0')).join('')}`
 }
 
-export function countdown (s) {
-  const d = Math.floor(s / (3600 * 24))
-  s -= d * 3600 * 24
+/**
+ * Converts a number of seconds into a human-readable countdown string.
+ *
+ * The output includes:
+ * - Days (`d`) if present
+ * - Hours (`h`) if days or hours are present
+ * - Minutes (`m`) if days, hours, or minutes are present
+ *
+ * Examples:
+ * - countdown(3661) → '1h 1m'
+ * - countdown(86461) → '1d 0h 1m'
+ *
+ * @param {number} s - The number of seconds (can be negative for a reverse countdown)
+ * @returns {string} A formatted time string like '2h 5m'
+ */
+export function countdown(s) {
+  s = Math.floor(Math.abs(s))
+  const d = Math.floor(s / 86400)
+  s -= d * 86400
   const h = Math.floor(s / 3600)
   s -= h * 3600
   const m = Math.floor(s / 60)
-  s -= m * 60
   const tmp = []
-  if (d) tmp.push(d + 'd')
-  if (d || h) tmp.push(h + 'h')
-  if (d || h || m) tmp.push(m + 'm')
+  if (d) tmp.push(`${d}d`)
+  if (d || h) tmp.push(`${h}h`)
+  if (d || h || m) tmp.push(`${m}m`)
+  if (!d && !h && !m) tmp.push('1m') // Best not to show seconds if we don't update the time every second.
   return tmp.join(' ')
 }
 
@@ -176,7 +192,7 @@ export function getRandomInt(min, max) {
 /**
  * Retrieves a nested value from an object using a dot-separated path.
  * @param {Object} obj - The object to retrieve the value from.
- * @param {string} path - The dot-separated path (e.g., "title.userPreferred").
+ * @param {string} path - The dot-separated path (e.g., 'title.userPreferred').
  * @returns {*} - The value at the specified path or undefined.
  */
 function getNestedValue(obj, path) {
@@ -186,7 +202,7 @@ function getNestedValue(obj, path) {
 /**
  * Sets a nested value in an object using a dot-separated path.
  * @param {Object} obj - The object to modify.
- * @param {string} path - The dot-separated path (e.g., "title.userPreferred").
+ * @param {string} path - The dot-separated path (e.g., 'title.userPreferred').
  * @param {*} value - The value to set.
  */
 function setNestedValue(obj, path, value) {
