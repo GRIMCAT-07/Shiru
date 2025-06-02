@@ -39,9 +39,9 @@ export default class App {
   mainWindow = new BrowserWindow({
     width: 1600,
     height: 900,
-    frame: process.platform !== 'win32',
+    frame: process.platform === 'darwin',
     titleBarStyle: 'hidden',
-    ...(process.platform === 'win32' ? { titleBarOverlay: {
+    ...(process.platform !== 'darwin' ? { titleBarOverlay: {
         color: 'rgba(47, 50, 65, 0)',
         symbolColor: '#eee',
         height: 28
@@ -81,6 +81,10 @@ export default class App {
     ipcMain.on('ui-devtools', ({ sender }) => sender.openDevTools())
     ipcMain.on('window-hide', () => this.mainWindow.hide())
     ipcMain.on('window-show', () => this.showAndFocus())
+    ipcMain.on('minimize', () => this.mainWindow?.minimize())
+    ipcMain.on('maximize', () => this.mainWindow?.isMaximized() ? this.mainWindow.unmaximize() : this.mainWindow.maximize())
+    this.mainWindow.on('maximize', () => this.mainWindow.webContents.send('isMaximized', true))
+    this.mainWindow.on('unmaximize', () => this.mainWindow.webContents.send('isMaximized', false))
 
     this.mainWindow.on('closed', () => this.destroy())
     this.webtorrentWindow.on('closed', () => this.destroy())
