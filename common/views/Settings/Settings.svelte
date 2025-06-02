@@ -45,6 +45,7 @@
   import TorrentSettings from '@/views/Settings/TorrentSettings.svelte'
   import InterfaceSettings from '@/views/Settings/InterfaceSettings.svelte'
   import AppSettings from '@/views/Settings/AppSettings.svelte'
+  import ChangelogSk from '@/components/skeletons/ChangelogSk.svelte'
   import ExtensionSettings from '@/views/Settings/ExtensionSettings.svelte'
   import { profileView } from '@/components/Profiles.svelte'
   import { SUPPORTS } from '@/modules/support.js'
@@ -227,17 +228,7 @@
           </div>
           {#await changeLog}
             {#each Array(5) as _}
-              <hr class='my-20' />
-              <div class='row py-20 px-20 px-sm-0'>
-                <div class='col-sm-3 my-20 order-first text-white'>
-                  <div class='skeloader rounded w-100 h-10 bg-very-dark mb-10 mb-sm-0'/>
-                </div>
-                <div class='col-sm-9'>
-                  <div class='skeloader rounded w-150 h-25 bg-very-dark mb-10'/>
-                  <div class='skeloader rounded w-250 h-10 bg-very-dark mt-20'/>
-                  <div class='skeloader rounded w-200 h-10 bg-very-dark mt-15'/>
-                </div>
-              </div>
+              <ChangelogSk />
             {/each}
           {:then changelog}
             {#each changelog.slice(0, 5) as { version, date, body }}
@@ -256,17 +247,7 @@
             {/each}
           {:catch e}
             {#each Array(5) as _}
-              <hr class='my-20' />
-              <div class='row py-20 px-20 px-sm-0'>
-                <div class='col-sm-3 my-20 order-first '>
-                  <div class='skeloader rounded w-100 h-10 bg-very-dark mb-10 mb-sm-0'/>
-                </div>
-                <div class='col-sm-9'>
-                  <div class='skeloader rounded w-150 h-25 bg-very-dark mb-10'/>
-                  <div class='skeloader rounded w-250 h-10 bg-very-dark mt-20'/>
-                  <div class='skeloader rounded w-200 h-10 bg-very-dark mt-15'/>
-                </div>
-              </div>
+              <ChangelogSk />
             {/each}
           {/await}
         </div>
