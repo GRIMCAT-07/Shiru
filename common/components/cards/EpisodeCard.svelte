@@ -57,8 +57,8 @@
   $: completed = !watched && media?.mediaListEntry?.progress >= data?.episode
 
   let sinceInterval
-  $: timeSince = since(data?.date)
-  onMount(() => (sinceInterval = setInterval(() => timeSince = since(data?.date), 60_000)))
+  $: timeSince = data?.date && since(data?.date)
+  onMount(() => (sinceInterval = setInterval(() => timeSince = data?.date && since(data?.date), 60_000)))
   onDestroy(() => clearInterval(sinceInterval))
 </script>
 

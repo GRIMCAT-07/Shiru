@@ -32,7 +32,7 @@
   }
 
   function _click () {
-    $search = { ...opts.variables, load: opts.load, title: opts.title }
+    $search = { ...opts.variables, load: opts.load, title: opts.title, clearNext: true }
     $page = 'search'
   }
 

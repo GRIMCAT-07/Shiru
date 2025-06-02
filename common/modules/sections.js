@@ -13,12 +13,14 @@ const lastSearched = cache.getEntry(caches.HISTORY, 'lastSearched')
 
 export const hasNextPage = writable(true)
 export const key = writable({})
-export const search = writable((!lastSearched?.clearNext && lastSearched) || { genre: [], genre_not: [], tag: [], tag_not: [], format: [], format_not: [], status: [], status_not: [] })
+export const search = writable(lastSearched || { genre: [], genre_not: [], tag: [], tag_not: [], format: [], format_not: [], status: [], status_not: [] })
 search.subscribe(value => {
-  const searched = { ...value }
-  delete searched.load
-  delete searched.preview
-  cache.setEntry(caches.HISTORY, 'lastSearched', searched)
+  if (!value.clearNext) {
+    const searched = {...value}
+    delete searched.load
+    delete searched.preview
+    cache.setEntry(caches.HISTORY, 'lastSearched', searched)
+  }
 })
 
 const hideStatus = ['CURRENT', 'REPEATING', 'COMPLETED', 'DROPPED']
