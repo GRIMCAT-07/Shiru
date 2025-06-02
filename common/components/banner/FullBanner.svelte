@@ -55,8 +55,8 @@
 
 {#key currentStatic}
   <div class='position-absolute h-full w-full overflow-hidden z--1'>
-    <object class='img-cover position-absolute h-full w-full' data={currentStatic.bannerImage || (currentStatic.trailer?.id && `https://i.ytimg.com/vi/${currentStatic.trailer?.id}/maxresdefault.jpg`) || currentStatic.coverImage?.extraLarge || ' '} class:banner-rotated={!(currentStatic.bannerImage || currentStatic.trailer?.id) && settings.value.adult === 'hentai' && settings.value.hentaiBanner}>
-      <object class='img-cover position-absolute h-full w-full' data={(currentStatic.trailer?.id && `https://i.ytimg.com/vi/${currentStatic.trailer?.id}/hqdefault.jpg`) || currentStatic.coverImage?.extraLarge || ' '}>
+    <object class='img-cover position-absolute h-full w-full' data={currentStatic.bannerImage || (currentStatic.trailer?.id && `https://i.ytimg.com/vi/${currentStatic.trailer?.id}/maxresdefault.jpg`) || currentStatic.coverImage?.extraLarge || ' '} class:banner-rotated={!(currentStatic.bannerImage || currentStatic.trailer?.id) && settings.value.adult === 'hentai' && settings.value.hentaiBanner} title='banner'>
+      <object class='img-cover position-absolute h-full w-full' data={(currentStatic.trailer?.id && `https://i.ytimg.com/vi/${currentStatic.trailer?.id}/hqdefault.jpg`) || currentStatic.coverImage?.extraLarge || ' '} title='banner'>
         <img class='img-cover position-absolute h-full w-full' src={currentStatic.coverImage?.extraLarge || ' '} alt='banner'> <!-- trailer no longer exists... fallback to cover image. -->
       </object>
     </object>

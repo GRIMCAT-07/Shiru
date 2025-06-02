@@ -271,8 +271,8 @@
     <div class='position-absolute top-0 left-0 w-full h-full z--1'>
       <div class='position-absolute w-full h-full overflow-hidden' >
         {#await ((search.media.bannerImage || search.media.trailer?.id) && search.media) || getKitsuMappings(search.media.id) then banner}
-          <object class='w-full h-full img-cover' draggable='false' data={banner?.bannerImage || (banner.trailer?.id && `https://i.ytimg.com/vi/${banner.trailer?.id}/maxresdefault.jpg`) || banner?.included?.[0]?.attributes?.coverImage?.original || banner?.included?.[0]?.attributes?.coverImage?.large || banner?.included?.[0]?.attributes?.coverImage?.small || banner?.included?.[0]?.attributes?.coverImage?.tiny || ' '}>
-            <object class='w-full h-full img-cover' draggable='false' data={(banner.trailer?.id && `https://i.ytimg.com/vi/${banner.trailer?.id}/hqdefault.jpg`) || ' '}>
+          <object class='w-full h-full img-cover' draggable='false' data={banner?.bannerImage || (banner.trailer?.id && `https://i.ytimg.com/vi/${banner.trailer?.id}/maxresdefault.jpg`) || banner?.included?.[0]?.attributes?.coverImage?.original || banner?.included?.[0]?.attributes?.coverImage?.large || banner?.included?.[0]?.attributes?.coverImage?.small || banner?.included?.[0]?.attributes?.coverImage?.tiny || ' '} title='banner'>
+            <object class='w-full h-full img-cover' draggable='false' data={(banner.trailer?.id && `https://i.ytimg.com/vi/${banner.trailer?.id}/hqdefault.jpg`) || ' '} title='banner'>
               <img class='w-full h-full img-cover' draggable='false' src={' '} alt='banner'> <!-- trailer no longer exists... hide all images. -->
             </object>
           </object>

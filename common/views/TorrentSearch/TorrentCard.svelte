@@ -129,11 +129,11 @@
   <div class='position-absolute top-0 left-0 w-full h-full'>
     <div class='position-absolute w-full h-full overflow-hidden' class:image-border={type === 'default'} >
       {#await getEpisodeMetadataForMedia(media) then metadata}
-        <object class='img-cover w-full h-full' data={metadata?.[episode]?.image || ' '}>
-          <object class='img-cover w-full h-full' data={media.bannerImage || (media.trailer?.id && `https://i.ytimg.com/vi/${media.trailer?.id}/maxresdefault.jpg`) || ' '}>
-            <object class='img-cover w-full h-full' data={(media.trailer?.id && `https://i.ytimg.com/vi/${media.trailer?.id}/hqdefault.jpg`) || ' '}>
+        <object class='img-cover w-full h-full' data={metadata?.[episode]?.image || ' '} title='banner'>
+          <object class='img-cover w-full h-full' data={media.bannerImage || (media.trailer?.id && `https://i.ytimg.com/vi/${media.trailer?.id}/maxresdefault.jpg`) || ' '} title='banner'>
+            <object class='img-cover w-full h-full' data={(media.trailer?.id && `https://i.ytimg.com/vi/${media.trailer?.id}/hqdefault.jpg`) || ' '} title='banner'>
               {#await getKitsuMappings(media.id) then banner} <!-- final attempt when trailer is missing -->
-                <object class='img-cover w-full h-full' draggable='false' data={banner?.included?.[0]?.attributes?.coverImage?.original || banner?.included?.[0]?.attributes?.coverImage?.large || banner?.included?.[0]?.attributes?.coverImage?.small || banner?.included?.[0]?.attributes?.coverImage?.tiny || ' '}>
+                <object class='img-cover w-full h-full' draggable='false' data={banner?.included?.[0]?.attributes?.coverImage?.original || banner?.included?.[0]?.attributes?.coverImage?.large || banner?.included?.[0]?.attributes?.coverImage?.small || banner?.included?.[0]?.attributes?.coverImage?.tiny || ' '} title='banner'>
                   <img class='img-cover w-full h-full' draggable='false' src={' '} alt='banner'> <!-- nothing found on kitsu... hide all images. -->
                 </object>
               {/await}

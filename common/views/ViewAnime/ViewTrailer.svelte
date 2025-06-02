@@ -27,9 +27,9 @@
     <button type='button' class='btn btn-square bg-transparent shadow-none border-0 d-flex align-items-center justify-content-center ml-auto mr-5' use:click={close}><X size='1.7rem' strokeWidth='3'/></button>
   </div>
   <div class='pointer-events-auto ratio-16-9 position-relative w-full wm-calc'>
-    <object class='ratio-16-9 img-cover w-full h-full rounded-bottom-6' data={`https://i.ytimg.com/vi/${$trailer.id}/hqdefault.jpg` || $trailer.media.bannerImage || $trailer.media.coverImage?.extraLarge || ' '} class:d-none={!hide}>
-      <object class='ratio-16-9 img-cover w-full h-full rounded-bottom-6' data={$trailer.media.bannerImage || $trailer.media.coverImage?.extraLarge || ' '}>
-        <img class='ratio-16-9 img-cover w-full h-full rounded-bottom-6' src={$trailer.media.coverImage?.extraLarge || ' '} alt='banner'> <!-- trailer no longer exists... fallback to cover image. -->
+    <object class='ratio-16-9 img-cover w-full h-full rounded-bottom-6' data={`https://i.ytimg.com/vi/${$trailer.id}/hqdefault.jpg` || $trailer.media.bannerImage || $trailer.media.coverImage?.extraLarge || ' '} class:d-none={!hide} title='preview'>
+      <object class='ratio-16-9 img-cover w-full h-full rounded-bottom-6' data={$trailer.media.bannerImage || $trailer.media.coverImage?.extraLarge || ' '} title='preview'>
+        <img class='ratio-16-9 img-cover w-full h-full rounded-bottom-6' src={$trailer.media.coverImage?.extraLarge || ' '} alt='preview'> <!-- trailer no longer exists... fallback to cover image. -->
       </object>
     </object>
     <iframe

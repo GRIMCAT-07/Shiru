@@ -256,9 +256,6 @@
   .w-480 {
     width: 48rem;
   }
-  .mt-7 {
-    margin-top: .7rem;
-  }
   textarea {
     min-height: 6.6rem;
   }

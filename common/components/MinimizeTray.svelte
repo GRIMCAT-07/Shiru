@@ -83,7 +83,4 @@
   .w-130 {
     width: 13rem;
   }
-  span.align-middle {
-    margin-top: .2rem !important;
-  }
 </style>
