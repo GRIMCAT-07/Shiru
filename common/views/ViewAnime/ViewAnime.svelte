@@ -68,6 +68,7 @@
     return searchIDS.length > 0 ? anilistClient.searchAllIDS({ page: 1, perPage: 50, id: searchIDS }) : Promise.resolve([])
   })()
   $: staticMedia && (modal?.focus(), setOverlay(), saveMedia(), (container && container.scrollTo({top: 0, behavior: 'smooth'})))
+  $: staticMedia && (overlay.length === 1 && overlay.includes('viewanime') && modal?.focus())
   $: !staticMedia && close()
   $: {
     if (staticMedia) {

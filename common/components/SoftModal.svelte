@@ -8,7 +8,7 @@
   }
 
   let modal
-  $: showModal && modal?.focus()
+  $: showModal && requestAnimationFrame(() => requestAnimationFrame(() => modal?.focus()))
 </script>
 
 <div class='modal-soft position-absolute d-flex align-items-center justify-content-center z-50 w-full h-full' class:hide={!showModal} class:show={showModal} id={id}>
@@ -48,5 +48,8 @@
   }
   .modal-soft-dialog.hide {
     transform: scale(0.95);
+  }
+  .modal-soft-dialog:focus-visible {
+    box-shadow: unset !important;
   }
 </style>
