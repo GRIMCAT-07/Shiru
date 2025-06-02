@@ -279,9 +279,11 @@
   }
   .visible {
     animation: 0.15s ease 0s 1 load-in;
+    will-change: transform, opacity;
   }
   .invisible {
     animation: load-out 0.15s ease-out forwards;
+    will-change: transform, opacity;
   }
   .noList {
     color: var(--dm-input-placeholder-text-color) !important;

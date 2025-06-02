@@ -388,13 +388,6 @@ img[src=''], img[src=' '] {
   box-shadow: none !important;
 }
 
-/*
-This is pretty god awful causing noticeable visual stuttering, creating the impression of lag.
-.root {
-  animation: 0.3s ease 0s 1 load-in;
-}
-*/
-
 .content-visibility-auto {
   content-visibility: auto;
 }
@@ -404,49 +397,48 @@ This is pretty god awful causing noticeable visual stuttering, creating the impr
   width: 100% !important;
 }
 
-@keyframes skeleloader {
-  from {
-    background-position-x: 200%;
-  }
-
-  to {
-    background-position-x: -100%;
-  }
-}
-@keyframes load-in {
-  from {
-    transform: translateY(1.2rem) scale(0.95);
-  }
-
-  to {
-    transform: none
-  }
-}
-
 .favourite {
   animation: favourite_glow 1s ease-in-out infinite alternate;
+  will-change: drop-shadow;
 }
 @keyframes favourite_glow {
-  from {
-    filter: drop-shadow(0 0 1.5rem var(--tertiary-color));
-  }
-  to {
-    filter: drop-shadow(0 0 0.4rem var(--tertiary-color));
-  }
+  from { filter: drop-shadow(0 0 1.5rem var(--tertiary-color)) }
+  to { filter: drop-shadow(0 0 0.4rem var(--tertiary-color)) }
+}
+
+.load-in {
+  animation: .4s ease 0s 1 load-in;
+  will-change: transform;
+}
+@keyframes load-in {
+  0% { transform: translateY(1.5rem) scale(0.98) }
+  60% { transform: translateY(-0.25rem) scale(1.015) }
+  100% { transform: none }
+}
+
+@keyframes skeleton-swipe {
+  0% { transform: translateX(-100%) }
+  100% { transform: translateX(100%) }
 }
 
 .skeloader {
   position: relative;
   overflow: hidden;
+  background-color: hsl(var(--dark-color-hsl));
 }
 
-.skeloader .skeleloader-swipe {
-  height: 100%;
+.skeloader::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  background: linear-gradient(to right, transparent 0%, hsl(var(--dark-color-hsl)) 50%, transparent 100%);
-  background-repeat: no-repeat;
-  background-size: 200% 100%;
-  animation: skeleloader 1s infinite cubic-bezier(0.4, 0, 0.2, 1);
+  height: 100%;
+  background: linear-gradient(to right, transparent 0%, hsla(var(--dark-color-hsl), 0.5) 50%, transparent 100%);
+  animation: skeleton-swipe 1s infinite;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+  pointer-events: none;
 }
 
 .align-content-start {
@@ -456,6 +448,7 @@ This is pretty god awful causing noticeable visual stuttering, creating the impr
 .cover-img {
   object-fit: cover;
 }
+
 .pre-wrap {
   white-space: pre-wrap
 }

@@ -104,9 +104,11 @@
   }
   .sidebar .animate :global(.donate) {
     animation: pink_glow 1s ease-in-out infinite alternate;
+    will-change: drop-shadow;
   }
   .sidebar .animate :global(.notify) {
     animation: purple_glow 1s ease-in-out infinite alternate, bell_shake 10s infinite;
+    will-change: drop-shadow;
   }
   :global(.update) {
     color: #47cb6a;

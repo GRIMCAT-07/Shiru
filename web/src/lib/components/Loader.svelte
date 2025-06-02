@@ -39,6 +39,7 @@
   }
   .animate {
     animation: 2s transition ease forwards;
+    will-change: width, background-position;
   }
   .text {
     font-size: clamp(0px, 10rem, 15vw);

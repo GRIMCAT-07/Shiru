@@ -66,7 +66,7 @@
   {#if preview}
     <EpisodePreviewCard {data} bind:prompt={$prompt} />
   {/if}
-  <div class='item d-flex flex-column h-full pointer content-visibility-auto' class:opacity-half={completed}>
+  <div class='item load-in d-flex flex-column h-full pointer content-visibility-auto' class:opacity-half={completed}>
     <div class='image h-200 w-full position-relative rounded overflow-hidden d-flex justify-content-between align-items-end text-white' class:bg-black={episodeThumbnail === ' '}>
       <img loading='lazy' src={episodeThumbnail} alt='cover' class='cover-img w-full h-full position-absolute' class:cover-rotated={!(data.episodeData?.image || media?.bannerImage) && media?.genres?.includes('Hentai')} style:--color={media?.coverImage?.color || '#1890ff'} referrerpolicy='no-referrer' />
       {#if data.episodeData?.video}
@@ -194,7 +194,6 @@
     width:100%; height:100%;
   }
   .item {
-    animation: 0.3s ease 0s 1 load-in;
     width: 36rem;
     contain-intrinsic-height: 25.7rem;
   }

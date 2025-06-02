@@ -219,6 +219,7 @@
   .glow {
     border: .1rem solid;
     animation: glowPulse 1s ease-in-out infinite alternate;
+    will-change: drop-shadow;
     transition: border-color 0.5s, drop-shadow 0.5s, transform 0.2s ease;
   }
   @keyframes glowPulse {

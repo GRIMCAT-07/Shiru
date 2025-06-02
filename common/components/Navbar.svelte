@@ -77,9 +77,11 @@
 <style>
   .navbar .animate :global(.donate) {
     animation: pink_glow 1s ease-in-out infinite alternate;
+    will-change: drop-shadow;
   }
   .navbar .animate :global(.notify) {
     animation: purple_glow 1s ease-in-out infinite alternate, bell_shake 10s infinite;
+    will-change: drop-shadow;
   }
   .navbar :global(.donate):active {
     color: #fa68b6 !important;

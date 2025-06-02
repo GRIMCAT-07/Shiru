@@ -37,6 +37,7 @@
   .donate .material-symbols-outlined {
     width: 5.4rem;
     animation: glow 1s ease-in-out infinite alternate;
+    will-change: text-shadow;
     font-variation-settings: 'FILL' 1;
     color: #fa68b6;
     text-shadow: 0 0 1rem #fa68b6;

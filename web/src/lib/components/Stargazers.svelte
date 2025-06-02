@@ -49,6 +49,7 @@
 
   .text-nowrap {
     animation: animateRow1 200s linear infinite;
+    will-change: transform;
     width: -moz-max-content;
     width: max-content;
   }

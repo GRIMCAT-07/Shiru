@@ -159,6 +159,7 @@
   }
   .progress-badge.active .progress-content {
     animation: fill 15s linear;
+    will-change: width;
   }
 
   @keyframes fill {
@@ -190,6 +191,7 @@
   }
   .banner, img {
     animation: fadeIn ease .8s;
+    will-change: opacity;
   }
   .banner-rotated {
     width: 100vh !important;

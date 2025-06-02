@@ -126,6 +126,7 @@
     border-radius: .4rem;
     pointer-events: none;
     animation: airing-pulse 7.5s infinite;
+    will-change: box-shadow, opacity;
   }
   @keyframes airing-pulse {
     0%   { box-shadow: 0 0 0 0 var(--success-color-subtle); opacity: 0.9; }

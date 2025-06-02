@@ -193,6 +193,7 @@
   }
   .absolute-container {
     animation: 0.3s ease 0s 1 load-in;
+    will-change: transform, opacity;
     left: -100%;
     right: -100%;
   }
