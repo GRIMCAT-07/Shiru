@@ -110,7 +110,7 @@
 
 <script>
   import TorrentCard from '@/views/TorrentSearch/TorrentCard.svelte'
-  import TorrentSkeletonCard from '@/views/TorrentSearch/TorrentSkeletonCard.svelte'
+  import TorrentCardSk from '@/components/skeletons/TorrentCardSk.svelte'
   import ErrorCard from '@/components/cards/ErrorCard.svelte'
   import { onDestroy } from 'svelte'
   import { writable } from 'simple-store-svelte'
@@ -359,7 +359,7 @@
   </div>
 {:else}
   {#if $results?.torrents?.length && !$results?.resolved && (!best || !Object.values(best)?.length)}
-    <TorrentSkeletonCard />
+    <TorrentCardSk />
   {:else if $results?.torrents?.length}
     {#if best}<TorrentCard type='best' countdown={$settings.rssAutoplay && $results?.resolved ? countdown : -1} result={best} {play} media={search.media} episode={search.episode} />{/if}
     {#if lastMagnet}
@@ -392,7 +392,7 @@
     {#await queries then queries}
       {#each queries as [key, extension] (key)}
         {#await extension.promise}
-          <TorrentSkeletonCard name={extension.name} icon={extension.icon || 'none'} />
+          <TorrentCardSk name={extension.name} icon={extension.icon || 'none'} />
         {:then resolved}
           {addResults(resolved, { name: extension.name, icon: extension.icon })}
         {/await}
@@ -401,7 +401,7 @@
   {/if}
   {#if !$results?.resolved}
     {#each Array.from({ length: $results?.torrents?.length ? Math.max(15 - $results.torrents.length, 0) : 15 }) as _}
-      <TorrentSkeletonCard />
+      <TorrentCardSk />
     {/each}
   {/if}
 {/if}

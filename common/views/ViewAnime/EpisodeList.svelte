@@ -38,7 +38,7 @@
   import { liveAnimeProgress } from '@/modules/animeprogress.js'
   import { episodesList } from '@/modules/episodes.js'
   import { getAniMappings, hasZeroEpisode, durationMap } from '@/modules/anime.js'
-  import EpisodeSkeletonCard from '@/views/ViewAnime/EpisodeListSkeleton.svelte'
+  import EpisodeListSk from '@/components/skeletons/EpisodeListSk.svelte'
   import AudioLabel from '@/views/ViewAnime/AudioLabel.svelte'
 
   export let media
@@ -239,7 +239,7 @@
   {#await (episodeLoad || mobileWait(() => episodeList?.length > 0 || !episodeList)?.then(() => episodeList))}
     {#each Array.from({ length: Math.max(Math.min(episodeCount || 0, maxEpisodes), 1) }) as _}
       <div class='w-full px-20 my-20 content-visibility-auto scale h-150'>
-        <EpisodeSkeletonCard />
+        <EpisodeListSk />
       </div>
     {/each}
   {:then _}
@@ -249,7 +249,7 @@
           {#await Promise.all([title, filler, dubAiring])}
             {#each Array.from({length: Math.min(episodeCount || 0, maxEpisodes)}) as _, index}
               <div class='w-full px-20 content-visibility-auto scale h-150' class:my-20={!mobileList || index !== 0}>
-                <EpisodeSkeletonCard/>
+                <EpisodeListSk/>
               </div>
             {/each}
           {:then [title, filler, dubAiring]}

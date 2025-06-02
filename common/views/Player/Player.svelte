@@ -1893,6 +1893,7 @@
     width: 40px;
     height: 40px;
     animation: spin 1s linear infinite;
+    will-change: transform;
     opacity: 0;
     visibility: hidden;
     transition: 0.2s opacity ease 0s;

@@ -1,6 +1,6 @@
 <script>
   import FullBanner from '@/components/banner/FullBanner.svelte'
-  import SkeletonBanner from '@/components/banner/SkeletonBanner.svelte'
+  import BannerSk from '@/components/skeletons/BannerSk.svelte'
   import ErrorCard from '@/components/cards/ErrorCard.svelte'
   import { settings } from '@/modules/settings.js'
   export let data
@@ -25,7 +25,7 @@
   <!-- really shit and hacky way of fixing scroll position jumping when banner changes height -->
   <div class='position-absolute top-0 transparent h-450 opacity-0'>.</div>
   {#await data}
-    <SkeletonBanner />
+    <BannerSk />
   {:then res}
     {#if !res.errors}
       <FullBanner mediaList={shuffleAndFilter(res?.data?.Page?.media?.filter(media => media))} />

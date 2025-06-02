@@ -19,7 +19,7 @@
   import Following from '@/views/ViewAnime/Following.svelte'
   import IPC from '@/modules/ipc.js'
   import SmallCard from '@/components/cards/SmallCard.svelte'
-  import SkeletonCard from '@/components/cards/SkeletonCard.svelte'
+  import SmallCardSk from '@/components/skeletons/SmallCardSk.svelte'
   import Helper from '@/modules/helper.js'
   import { ArrowLeft, Clapperboard, TvMinimalPlay, ExternalLink, Users, Heart, Play, Share2, Timer, TrendingUp, Tv, Hash, ArrowDown01, ArrowUp10 } from 'lucide-svelte'
 
@@ -323,7 +323,7 @@
               <ToggleList list={ staticMedia.relations?.edges?.filter(({ node, relationType }) => relationType !== 'CHARACTER' && node.type === 'ANIME' && node.format !== 'MUSIC' && !(settings.value.adult === 'none' && node.isAdult) && !(settings.value.adult !== 'hentai' && node.genres?.includes('Hentai'))).sort((a, b) => (a.node.seasonYear || Infinity) - (b.node.seasonYear || Infinity)) } promise={searchIDS} let:item let:promise title='Relations'>
                 {#await promise}
                   <div class='small-card'>
-                    <SkeletonCard />
+                    <SmallCardSk />
                   </div>
                 {:then res }
                   {#if res}
@@ -339,7 +339,7 @@
                   <ToggleList list={ media.recommendations?.edges?.filter(({ node }) => node.mediaRecommendation && !(settings.value.adult === 'none' && node.mediaRecommendation.isAdult) && !(settings.value.adult !== 'hentai' && node.mediaRecommendation.genres?.includes('Hentai'))).sort((a, b) => b.node.rating - a.node.rating) } promise={searchIDS} let:item let:promise title='Recommendations'>
                     {#await promise}
                       <div class='small-card'>
-                        <SkeletonCard />
+                        <SmallCardSk />
                       </div>
                     {:then res}
                       {#if res}
