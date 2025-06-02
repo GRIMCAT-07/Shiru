@@ -28,19 +28,24 @@
 
   export let page
   export let playPage
+
+  let _status = status.value
+  $: statusTransition = false
+  $: {
+    if (_status !== $status) {
+      statusTransition = true
+      setTimeout(() => (statusTransition = false), 3000)
+      _status = $status
+    }
+  }
 </script>
 
 <div class='sidebar z-30 d-md-block' class:animated={$settings.expandingSidebar}>
   <div class='position-absolute bg-dark traffic-lights' class:br-10={!$settings.expandingSidebar} class:d-none={window.version?.platform !== 'darwin'}/>
   <div class='sidebar-overlay z--1 pointer-events-none h-full position-absolute' />
   <div class='sidebar-menu h-full d-flex flex-column m-0 pb-5 animate' class:br-10={!$settings.expandingSidebar}>
-    {#if !SUPPORTS.isAndroid}
-      <div class='status-transition w-50 m-10 p-5 mb-0 top-0 flex-shrink-0 pointer-events-none {$status === `offline` ? `h-80` : `h-50`}'/>
-      <SidebarLink click={() => { $profileView = !$profileView }} icon='login' text={Helper.getUser() ? 'Profiles' : 'Login'} css='{!SUPPORTS.isAndroid ? `mt-auto` : ``}' {page} overlay={!$notifyView && !$actionPrompt && $profileView && 'profile'} nowPlaying={$view} image={Helper.getUserAvatar()}>
-        <LogIn size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' />
-      </SidebarLink>
-    {/if}
-    <SidebarLink click={() => { page = 'home'; if ($view) $view = null }} _page='home' text='Home' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
+    <div class='w-50 m-10 p-5 mb-0 top-0 flex-shrink-0 pointer-events-none {_status === `offline` ? `h-80` : `h-50`}' class:status-transition={statusTransition} class:d-none={SUPPORTS.isAndroid}/>
+    <SidebarLink click={() => { page = 'home'; if ($view) $view = null }} _page='home' text='Home' css='{!SUPPORTS.isAndroid ? `mt-auto` : ``}' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
       <Home size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
     </SidebarLink>
     <SidebarLink click={() => { page = 'search'; if ($view) $view = null }} _page='search' icon='search' text='Search' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
@@ -93,6 +98,11 @@
     <SidebarLink click={() => { page = 'settings' }} _page='settings' icon='settings' text='Settings' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
       <Settings size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
     </SidebarLink>
+    {#if !SUPPORTS.isAndroid}
+      <SidebarLink click={() => { $profileView = !$profileView }} icon='login' text={Helper.getUser() ? 'Profiles' : 'Login'} {page} overlay={!$notifyView && !$actionPrompt && $profileView && 'profile'} nowPlaying={$view} image={Helper.getUserAvatar()}>
+        <LogIn size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' />
+      </SidebarLink>
+    {/if}
   </div>
 </div>
 

@@ -20,7 +20,7 @@
   </Miniplayer>
 </div>
 {#if page === 'settings'}
-  <Settings bind:playPage />
+  <Settings bind:playPage bind:overlay />
 {:else if page === 'home'}
   <Home />
 {:else if page === 'search'}

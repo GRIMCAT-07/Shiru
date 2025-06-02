@@ -136,7 +136,7 @@
 }
 
 .status-transition {
-  transition: height .3s ease 2s;
+  transition: height, padding .3s ease 2s;
 }
 
 .scrollbar-none {
@@ -455,6 +455,9 @@ img[src=''], img[src=' '] {
 
 .p-4 {
   padding: 0.4rem;
+}
+.p-40 {
+  padding: 3rem;
 }
 
 .px-40 {

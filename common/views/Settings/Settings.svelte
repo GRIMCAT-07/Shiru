@@ -1,6 +1,7 @@
 <script context='module'>
   import { settings } from '@/modules/settings.js'
   import { capitalize } from '@/modules/util.js'
+  import { status } from '@/modules/networking.js'
   import IPC from '@/modules/ipc.js'
   import Debug from 'debug'
   const debug = Debug('ui:settings-view')
@@ -49,11 +50,11 @@
   import ExtensionSettings from '@/views/Settings/ExtensionSettings.svelte'
   import { profileView } from '@/components/Profiles.svelte'
   import { SUPPORTS } from '@/modules/support.js'
-  import Helper from '@/modules/helper.js'
-  import { AppWindow, Puzzle, User, Heart, LogIn, Logs, Play, Rss, LayoutDashboard } from 'lucide-svelte'
+  import { AppWindow, Puzzle, User, Heart, Logs, Play, Rss, LayoutDashboard } from 'lucide-svelte'
 
+  export let overlay = []
   export let playPage = false
-  const safeTop = !SUPPORTS.isAndroid ? '18px' : '0px'
+  $: safeTop = !SUPPORTS.isAndroid && $status !== 'offline' ? '18px' : '0px'
 
   const groups = {
     player: {
@@ -72,6 +73,11 @@
       name: 'Extensions',
       icon: Puzzle
     },
+    login: {
+      name: 'Profiles',
+      icon: User,
+      action: () => ($profileView = true),
+    },
     app: {
       name: 'App',
       icon: LayoutDashboard
@@ -79,13 +85,6 @@
     changelog: {
       name: 'Changelog',
       icon: Logs
-    },
-    login: {
-      name: 'Login',
-      user: Helper.getUser() && Helper.getUserAvatar(),
-      userName: 'Profiles',
-      icon: LogIn,
-      action: () => ($profileView = true),
     },
     donate: {
       name: 'Donate',
@@ -165,19 +164,15 @@
 </script>
 
 <Tabs>
-  <div class='d-flex w-full h-full position-relative settings root flex-md-row flex-column' style='padding-top: max(var(--safe-area-top), {safeTop})'>
+  <div class='d-flex w-full h-full position-relative settings root flex-md-row flex-column status-transition' style='padding-top: max(var(--safe-area-top), {safeTop})'>
     <div class='d-flex flex-column h-lg-full bg-dark position-absolute position-lg-relative bb-10 w-full w-lg-300 z-10 flex-lg-shrink-0'>
-      <div class='px-20 py-15 font-size-24 font-weight-semi-bold position-absolute d-none d-lg-block' style='margin-top: calc(-1 * max(var(--safe-area-top), {safeTop}))'>Settings</div>
-      <div class='mt-lg-15 py-10 d-flex flex-lg-column flex-row justify-content-center justify-content-lg-start align-items-center align-items-lg-start'>
+      <div class='px-20 py-5 font-size-24 font-weight-semi-bold position-absolute d-none d-lg-block'>Settings</div>
+      <div class='mt-lg-20 py-lg-20 py-10 d-flex flex-lg-column flex-row justify-content-center justify-content-lg-start align-items-center align-items-lg-start'>
         {#each Object.values(groups) as group}
-          <TabLabel name={group.user ? group.userName : group.name} action={group.action} sidebar={group.sidebar} let:active>
-            {#if group.user}
-              <span class='flex-shrink-0 p-5 m-5 rounded d-flex align-items-center'><img src={Helper.getUserAvatar()} class='h-30 w-30 rounded' alt='logo' /></span>
-              <div class='font-size-16 line-height-normal d-none d-sm-block mr-10 text-truncate' style='color: {active ? `currentColor` : `#5e6061`}'>{group.userName}</div>
-            {:else}
-              <svelte:component this={group.icon} size='3.6rem' stroke-width='2.5' class='flex-shrink-0 p-5 m-5 rounded' color={active ? 'currentColor' : '#5e6061'} fill={group.icon === Play ? (active ? 'currentColor' : '#5e6061') : 'transparent'} />
-              <div class='font-size-16 line-height-normal d-none d-sm-block mr-10 text-truncate' style='color: {active ? `currentColor` : `#5e6061`}'>{group.name}</div>
-            {/if}
+          <TabLabel name={group.name} action={group.action} sidebar={group.sidebar} let:active>
+            {@const isActive = (!overlay?.length && active || (group.name === 'Profiles' && (overlay?.includes(group.name.toLowerCase()))))}
+            <svelte:component this={group.icon} size='3.6rem' stroke-width='2.5' class='flex-shrink-0 p-5 m-5 rounded' color={isActive ? 'currentColor' : '#5e6061'} fill={group.icon === Play ? (isActive ? 'currentColor' : '#5e6061') : 'transparent'} />
+            <div class='font-size-16 line-height-normal d-none d-sm-block mr-10 text-truncate' style='color: {isActive ? `currentColor` : `#5e6061`}'>{group.name}</div>
           </TabLabel>
         {/each}
       </div>
@@ -213,6 +208,7 @@
           <div class='pb-10 d-md-none'/>
         </div>
       </Tab>
+      <Tab/> <!-- Skip Profile Tab -->
       <Tab>
         <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
           <AppSettings {version} bind:settings={$settings} />
@@ -252,6 +248,7 @@
           {/await}
         </div>
       </Tab>
+      <Tab/> <!-- Skip Donate Tab -->
     </div>
   </div>
 </Tabs>
