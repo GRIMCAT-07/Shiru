@@ -375,7 +375,7 @@
       <TorrentCard {result} {play} media={search.media} episode={search.episode} />
     {/if}
   {/each}
-  {#if lookupHidden?.length && $results?.resolved}
+  {#if lookupHidden?.length && $results?.resolved && filterResults(lookupHidden, searchText)?.length}
     <button type='button' class='mb-10 control h-50 btn w-full p-5 rounded-3 d-flex align-items-center font-size-16 font-weight-semi-bold overflow-hidden' class:bg-dark={!viewHidden} class:bg-primary={viewHidden} use:click={()=> { viewHidden = !viewHidden }}>
       <span class='ml-20'>{lookupHidden?.length} Unseeded Result{lookupHidden?.length > 1 ? 's' : ''} (Unavailable)</span>
       <svelte:component this={ viewHidden ? ChevronUp : ChevronDown } class='ml-auto mr-10' size='2.2rem' />
