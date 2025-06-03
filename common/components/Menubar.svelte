@@ -20,12 +20,14 @@
   })
 
   $: maximized = false
+  $: fullscreen = false
   IPC.on('isMaximized', (isMaximized) => maximized = isMaximized)
+  IPC.on('isFullscreen', (isFullscreen) => fullscreen = isFullscreen)
 </script>
 
 <div class='w-full z-101 navbar bg-transparent border-0 p-0 d-flex draggable'>
-  <div class='window-controls d-flex position-absolute top-0 right-0 h-full' class:d-flex={!SUPPORTS.isAndroid && window.version?.platform !== 'darwin'}>
-    {#if window.version?.platform !== 'win32'}
+  <div class='window-controls d-none position-absolute top-0 {window.version?.platform !== `darwin` ? `right-0 right-width` : `left-0 left-width`} h-full' class:d-flex={!SUPPORTS.isAndroid && !fullscreen || window.version?.platform !== 'darwin'}>
+    {#if window.version?.platform !== 'win32' && window.version?.platform !== 'darwin'}
       <button class='button max-button d-flex border-0 color-white align-items-center justify-content-center' on:click={() => IPC.emit('minimize')}><svg class='svg-controls' height='12' role='img' viewBox='0 0 12 12' width='12'><rect fill='currentColor' height='1' width='10' x='1' y='6' /></svg></button>
       <button class='button restore-button d-flex border-0 color-white align-items-center justify-content-center' on:click={async () => IPC.emit('maximize')}>
         {#if maximized}
@@ -44,13 +46,19 @@
   </div>
 </div>
 <div class='position-absolute' class:right-0={SUPPORTS.isAndroid}>
-  <img src='./logo_filled.png' class='z-102 position-absolute w-50 h-50 m-10 pointer d-none p-5' class:d-md-block={!SUPPORTS.isAndroid} class:mt-20={window.version?.platform === 'darwin'} alt='ico' use:click={home} />
+  <img src='./logo_filled.png' class='z-102 position-absolute w-50 h-50 m-10 pointer d-none p-5 transition-mt {window.version?.platform === `darwin` ? fullscreen ? `mt-20` : `mt-30` : ``}' class:d-md-block={!SUPPORTS.isAndroid} alt='ico' use:click={home} />
   {#if $debug}
     <div class='z-100 ribbon text-center position-absolute font-size-16 font-weight-bold pointer-events-none {!SUPPORTS.isAndroid ? `ribbon-left` : `ribbon-right`}'>Debug Mode</div>
   {/if}
 </div>
 
 <style>
+  .mt-30 {
+    margin-top: 3rem !important;
+  }
+  .transition-mt {
+    transition: margin-top 0.1s ease-in-out;
+  }
   .ribbon {
     background: var(--accent-color);
     box-shadow: 0 0 0 10rem var(--accent-color);
@@ -97,8 +105,14 @@
   .window-controls {
     -webkit-app-region: no-drag;
     backdrop-filter: blur(8px);
-    width: 137px;
     background: rgba(24, 24, 24, 0.2);
+  }
+  .right-width {
+    width: 137px;
+  }
+  .left-width {
+    width: 67px;
+    border-bottom-right-radius: var(--rounded-2-border-radius);
   }
   .window-controls .button {
     background: transparent;

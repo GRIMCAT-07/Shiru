@@ -85,6 +85,10 @@ export default class App {
     ipcMain.on('maximize', () => this.mainWindow?.isMaximized() ? this.mainWindow.unmaximize() : this.mainWindow.maximize())
     this.mainWindow.on('maximize', () => this.mainWindow.webContents.send('isMaximized', true))
     this.mainWindow.on('unmaximize', () => this.mainWindow.webContents.send('isMaximized', false))
+    if (process.platform === 'darwin') {
+      this.mainWindow.on('enter-full-screen', () => this.mainWindow.webContents.send('isFullscreen', true))
+      this.mainWindow.on('leave-full-screen', () => this.mainWindow.webContents.send('isFullscreen', false))
+    }
 
     this.mainWindow.on('closed', () => this.destroy())
     this.webtorrentWindow.on('closed', () => this.destroy())
@@ -170,6 +174,7 @@ export default class App {
     })
 
     ipcMain.on('portRequest', async ({ sender }) => {
+      if (process.platform === 'darwin') this.mainWindow.webContents.send('isFullscreen', this.mainWindow.isFullScreen())
       const { port1, port2 } = new MessageChannelMain()
       await torrentLoad
       ipcMain.once('webtorrent-heartbeat', () => {
