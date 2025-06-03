@@ -12,7 +12,7 @@
 </script>
 
 <div class='modal-soft position-absolute d-flex align-items-center justify-content-center z-50 w-full h-full' class:hide={!showModal} class:show={showModal} id={id}>
-  <div class='modal-soft-dialog d-flex align-items-center justify-content-center pt-30 mt-sm-20' class:hide={!showModal} class:show={showModal} on:pointerdown|self={close} on:keydown={checkClose} tabindex='-1' role='button' bind:this={modal}>
+  <div class='modal-soft-dialog d-flex align-items-center justify-content-center pt-40' class:hide={!showModal} class:show={showModal} on:pointerdown|self={close} on:keydown={checkClose} tabindex='-1' role='button' bind:this={modal}>
     <div class='overflow-hidden d-flex flex-column overflow-y-scroll {$$restProps.class}'>
       {#if showModal}
         <slot />
@@ -22,8 +22,8 @@
 </div>
 
 <style>
-  .pt-30 {
-    padding-top: 3rem;
+  .pt-40 {
+    padding-top: 4rem;
   }
   .modal-soft {
     background-color: rgba(0,0,0,0.85);
