@@ -153,7 +153,7 @@
                   </div>
                 {/if}
                 <div class='rounded-5 d-flex justify-content-center align-items-center overflow-hidden mr-10 z-10 notification-icon-container'>
-                  <img src={notification.icon} alt='icon' class='notification-icon rounded-5 w-auto' />
+                  <img src={notification.icon || './404_cover.png'} alt='icon' class='notification-icon rounded-5 w-auto' />
                 </div>
                 <div class='notification-content z-10 w-full'>
                   <p class='notification-title overflow-hidden font-weight-bold mt-0 mb-0 mr-40 font-scale-18 {SUPPORTS.isAndroid ? `line-clamp-1` : `line-clamp-2`}'>{notification.title}</p>
