@@ -180,9 +180,6 @@
   .mt-4 {
     margin-top: .4rem;
   }
-  .mw-350 {
-    min-width: 35rem;
-  }
   .rounded-top-30 {
     border-radius: 3rem 3rem 0 0;
   }

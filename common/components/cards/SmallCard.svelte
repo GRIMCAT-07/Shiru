@@ -79,17 +79,17 @@
   {#if preview}
     <PreviewCard {media} {type} bind:element={previewCard}/>
   {/if}
-  <div class='item load-in small-card d-flex flex-column pointer {airingInfo?.episode.match(/our for/i) ? `airing` : ``}'>
+  <div class='item load-in small-card d-flex flex-column pointer {airingInfo?.episode.match(/out for/i) ? `airing` : ``}'>
     {#if airingInfo}
       <div class='w-full text-center pb-10'>
         {airingInfo.episode}&nbsp;
-        <span class='font-weight-bold {airingInfo.episode.match(/our for/i) ? `text-success-subtle` : `text-light`}'>
+        <span class='font-weight-bold {airingInfo.episode.match(/out for/i) ? `text-success-subtle` : `text-light`}'>
             {airingInfo.time}
         </span>
       </div>
     {/if}
     <div class='d-inline-block position-relative'>
-      <span class="airing-badge rounded-10 font-weight-semi-bold text-light bg-success-subtle" class:d-none={!airingInfo?.episode?.match(/our for/i)}>AIRING</span>
+      <span class="airing-badge rounded-10 font-weight-semi-bold text-light bg-success-subtle" class:d-none={!airingInfo?.episode?.match(/out for/i)}>AIRING</span>
       <img loading='lazy' src={media.coverImage.extraLarge || ''} alt='cover' class='cover-img w-full rounded' style:--color={media.coverImage.color || '#1890ff'} />
       {#if !_variables?.scheduleList}
         <AudioLabel {media} />

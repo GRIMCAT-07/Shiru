@@ -115,6 +115,10 @@
   min-width: 0;
 }
 
+.mw-350 {
+  min-width: 35rem;
+}
+
 .wm-1150 {
   max-width: 115rem;
 }
