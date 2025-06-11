@@ -12,7 +12,7 @@
   import Helper from '@/modules/helper.js'
   import IPC from '@/modules/ipc.js'
   import SidebarLink from '@/components/SidebarLink.svelte'
-  import { CalendarSearch, Download, Heart, Home, Search, ListVideo, History, TvMinimalPlay, LogIn, Settings, Users, Bell, BellDot } from 'lucide-svelte'
+  import { CalendarSearch, Download, CloudDownload, Heart, Home, Search, ListVideo, History, TvMinimalPlay, LogIn, Settings, Users, Bell, BellDot } from 'lucide-svelte'
 
   let updateState = ''
 
@@ -73,6 +73,9 @@
     <SidebarLink click={() => { page = 'watchtogether' }} _page='watchtogether' icon='groups' text='Watch Together' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
       <Users size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
     </SidebarLink>
+    <SidebarLink click={() => { page = 'torrents' }} _page='torrents' icon='download' text='Torrents' css='d-sm-h-none' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
+      <Download size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
+    </SidebarLink>
     {#if $settings.donate && !SUPPORTS.isAndroid}
       <SidebarLink click={() => { IPC.emit('open', 'https://github.com/sponsors/RockinChaos/') }} icon='favorite' text='Support This App' css='{!SUPPORTS.isAndroid ? `mt-auto` : ``}' {page} let:active>
         <Heart size={btnSize} class='flex-shrink-0 p-5 m-5 rounded donate' strokeWidth='2.5' fill='currentColor' />
@@ -80,11 +83,11 @@
     {/if}
     {#if updateState === 'downloading'}
       <SidebarLink click={() => { toast('Update is downloading...', { description: 'This may take a moment, the update will be ready shortly.' }) }} icon='download' text='Update Downloading...' css='{!$settings.donate && !SUPPORTS.isAndroid ? `mt-auto` : ``}' {page} let:active>
-        <Download size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color='#4a90e2' />
+        <CloudDownload size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color='#4a90e2' />
       </SidebarLink>
     {:else if updateState === 'ready'}
       <SidebarLink click={() => { IPC.emit('quit-and-install') }} icon='download' text='Update Ready!' css='{!$settings.donate && !SUPPORTS.isAndroid ? `mt-auto` : ``}' {page} let:active>
-        <Download size={btnSize} class='flex-shrink-0 p-5 m-5 rounded update' strokeWidth='2.5' color='currentColor' />
+        <CloudDownload size={btnSize} class='flex-shrink-0 p-5 m-5 rounded update' strokeWidth='2.5' color='currentColor' />
       </SidebarLink>
     {/if}
     <SidebarLink click={() => { $notifyView = !$notifyView }} icon='bell' text='Notifications' css='{!$settings.donate && !SUPPORTS.isAndroid && updateState !== `downloading` && updateState !== `ready` ? `mt-auto` : ``}' {page} overlay={!$actionPrompt && $notifyView && 'notify'} nowPlaying={$view} let:active>

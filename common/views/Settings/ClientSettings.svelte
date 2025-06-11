@@ -2,6 +2,7 @@
   import { click } from '@/modules/click.js'
   import { defaults } from '@/modules/util.js'
   import IPC from '@/modules/ipc.js'
+  import { Eraser } from 'lucide-svelte'
   import SettingCard from '@/views/Settings/SettingCard.svelte'
   import { SUPPORTS } from '@/modules/support.js'
   export let settings
@@ -25,33 +26,30 @@
 
 <h4 class='mb-10 font-weight-bold'>Client Settings</h4>
 <SettingCard title='Torrent Download Location' description='Path to the folder used to store torrents. By default this is the TMP folder, which might lose data when your OS tries to reclaim storage.  {SUPPORTS.isAndroid ? "RESTART IS REQUIRED. /sdcard/ is internal storage, not external SD Cards. /storage/AB12-34CD/ is external storage, not internal. Thank you Android!" : ""}'>
-  <div class='input-group w-300 mw-full'>
+  <div class='input-group w-300 mw-full flex-nowrap'>
     <div class='input-group-prepend'>
       <button type='button' use:click={handleFolder} class='btn btn-primary input-group-append d-flex align-items-center justify-content-center'><span>Select Folder</span></button>
     </div>
     {#if !SUPPORTS.isAndroid}
-      <input type='url' class='form-control bg-dark' readonly bind:value={settings.torrentPathNew} placeholder='/tmp' />
+      <input type='url' class='form-control bg-dark mw-100' readonly bind:value={settings.torrentPathNew} placeholder='/tmp' />
     {:else}
-      <input type='text' class='form-control bg-dark' bind:value={settings.torrentPathNew} placeholder='/tmp' />
+      <input type='text' class='form-control bg-dark mw-100' bind:value={settings.torrentPathNew} placeholder='/tmp' />
     {/if}
+    <div class='input-group-prepend'>
+      <button type='button' use:click={() => settings.torrentPathNew = undefined} disabled={!settings.torrentPathNew} class='btn btn-danger btn-square input-group-append px-5 d-flex align-items-center'><Eraser size='1.8rem' /></button>
+    </div>
   </div>
 </SettingCard>
-<SettingCard title='Persist Files' description="Keeps torrents files instead of deleting them after a new torrent is played. This doesn't seed the files, only keeps them on your drive. This will quickly fill up your storage.">
+<SettingCard title='Persist Files' description="Keeps torrents files instead of deleting them after a new torrent is played, this will quickly fill up your storage. Seeding Limit will be prioritized, once the limit is reached the files will be deleted if persist files is disabled.">
   <div class='custom-switch'>
     <input type='checkbox' id='torrent-persist' bind:checked={settings.torrentPersist} />
     <label for='torrent-persist'>{settings.torrentPersist ? 'On' : 'Off'}</label>
   </div>
 </SettingCard>
-<SettingCard title='Streamed Download' description="Only downloads the single file that's currently being watched, instead of downloading an entire batch of episodes. Saves bandwidth and reduces strain on the peer swarm.">
+<SettingCard title='Streamed Download' description="Only downloads the single file that's currently being watched, instead of downloading an entire batch of episodes. Saves bandwidth and reduces strain on the peer swarm. Queued torrents for pre-download completely ignores this setting.">
   <div class='custom-switch'>
     <input type='checkbox' id='torrent-streamed-download' bind:checked={settings.torrentStreamedDownload} />
     <label for='torrent-streamed-download'>{settings.torrentStreamedDownload ? 'On' : 'Off'}</label>
-  </div>
-</SettingCard>
-<SettingCard title='Verify Files' description="Always verify files when a torrent is loaded, ensuring any previously cached files exist and are ready to stream. Enabling this will increase load times on slow Download/Upload speeds and poorly seeded torrents.">
-  <div class='custom-switch'>
-    <input type='checkbox' id='torrent-verify-files' bind:checked={settings.torrentVerify} />
-    <label for='torrent-verify-files'>{settings.torrentVerify ? 'On' : 'Off'}</label>
   </div>
 </SettingCard>
 <SettingCard title='Transfer Speed Limit' description='Download/Upload speed limit for torrents, higher values increase CPU usage, and values higher than your storage write speeds will quickly fill up RAM.'>
@@ -64,6 +62,9 @@
 </SettingCard>
 <SettingCard title='Max Number of Connections' description='Number of peers per torrent. Higher values will increase download speeds but might quickly fill up available ports if your ISP limits the maximum allowed number of open connections.'>
   <input type='number' inputmode='numeric' pattern='[0-9]*' bind:value={settings.maxConns} min='1' max='512' class='form-control text-right bg-dark w-100 mw-full' />
+</SettingCard>
+<SettingCard title='Seeding Limit' description='The maximum number of torrents that can be seeded at the same time. The minimum is 1 as you will always be seeding at least one torrent (the currently loaded torrent). When the seeding limit is reached, the highest ratio torrent will be completed.'>
+  <input type='number' inputmode='numeric' pattern='[0-9]*' bind:value={settings.seedingLimit} min='1' max='50' class='form-control text-right bg-dark w-150 mw-full' />
 </SettingCard>
 <SettingCard title='Torrent Port' description='Port used for Torrent connections. 0 is automatic.'>
   <input type='number' inputmode='numeric' pattern='[0-9]*' bind:value={settings.torrentPort} min='0' max='65536' class='form-control text-right bg-dark w-150 mw-full' />
@@ -83,7 +84,7 @@
     <label for='torrent-pex'>{settings.torrentPeX ? 'On' : 'Off'}</label>
   </div>
 </SettingCard>
-<SettingCard title='Disable Auto-Load' description='Disables loading the previously downloaded torrent on startup. Allowing the previous torrent to auto-load can increase your bandwidth usage, its recommended to keep this disabled on Android.'>
+<SettingCard title='Disable Auto-Load' description='Disables loading the previously downloaded torrent on startup. Allowing the previous torrent to auto-load can increase your bandwidth usage, its recommended to keep this disabled on Android. All seeding and pre-downloading torrents will be marked as completed.'>
   <div class='custom-switch'>
     <input type='checkbox' id='disable-torrent-autoload' bind:checked={settings.disableStartupTorrent} />
     <label for='disable-torrent-autoload'>{settings.disableStartupTorrent ? 'On' : 'Off'}</label>

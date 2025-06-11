@@ -1,12 +1,7 @@
-import { basename, extname } from 'node:path'
 import { ipcMain, dialog } from 'electron'
-import { store } from './util.js'
 
 export default class Dialog {
-  /**
-   * @param {import('electron').BrowserWindow} torrentWindow
-   */
-  constructor (torrentWindow) {
+  constructor () {
     ipcMain.on('player', async ({ sender }) => {
       const { filePaths, canceled } = await dialog.showOpenDialog({
         title: 'Select video player executable',
@@ -15,10 +10,7 @@ export default class Dialog {
       if (canceled) return
       if (filePaths.length) {
         const path = filePaths[0]
-
-        store.set('player', path)
-        torrentWindow.webContents.send('player', path)
-        sender.send('player', basename(path, extname(path)))
+        sender.send('player', path)
       }
     })
     ipcMain.on('dialog', async ({ sender }) => {
@@ -36,8 +28,6 @@ export default class Dialog {
             path += '/'
           }
         }
-        store.set('torrentPath', path)
-        torrentWindow.webContents.send('torrentPath', path)
         sender.send('path', path)
       }
     })

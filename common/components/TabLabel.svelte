@@ -7,12 +7,13 @@
   export let name = ''
   export let action = null
   export let sidebar = false
+  export let substitute = false
   const { registerTab, selectTab, selectedTab } = getContext(TABS)
 
   registerTab(tab)
 </script>
 
-<div class='tab-label pointer mx-auto pl-lg-20 w-lg-full {sidebar ? `d-none d-lg-block` : ``}' title={name} use:click={() => (action ?? (() => selectTab(tab)))()}>
+<div class='tab-label pointer mx-auto pl-lg-20 w-lg-full {sidebar ? `d-none d-lg-block` : ``} {substitute ? `d-sm-h-block d-sm-none` : ``}' title={name} use:click={() => (action ?? (() => selectTab(tab)))()}>
   <span class='d-flex align-items-center rounded'>
     <slot active={$selectedTab === tab}/>
   </span>

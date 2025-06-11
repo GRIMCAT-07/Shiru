@@ -1,9 +1,7 @@
 import { indexedDB as fakeIndexedDB } from 'fake-indexeddb'
-import TorrentClient from 'common/modules/webtorrent.js'
-import { cache, caches, setCache } from 'common/modules/cache.js'
 import { channel } from 'bridge'
-import { env } from 'node:process'
 import { statfs } from 'fs/promises'
+import { env } from 'node:process'
 
 async function storageQuota (directory) {
   const { bsize, bavail } = await statfs(directory)
@@ -22,41 +20,37 @@ if (typeof indexedDB === 'undefined') {
   globalThis.indexedDB = fakeIndexedDB
 }
 
-await setCache(false)
 let client
 let heartbeatId
 function setHeartBeat() {
   heartbeatId = setInterval(() => channel.send('webtorrent-heartbeat'), 500)
 }
 
-channel.on('main-heartbeat', () => clearInterval(heartbeatId))
-channel.on('port-init', data => {
-  cache.setEntry(caches.GENERAL, 'settings', data)
+channel.on('main-heartbeat', async settings => {
+  clearInterval(heartbeatId)
+  const { default: TorrentClient } = await import('common/modules/torrent/webtorrent.js')
+  client = new TorrentClient(channel, storageQuota, 'node', { userID: settings.userID, dht: !settings.torrentDHT, maxConns: settings.maxConns, downloadLimit: (settings.torrentSpeed * 1048576) || 0, uploadLimit: (settings.torrentSpeed * 1048576) || 0, torrentPort: settings.torrentPort || 0, dhtPort: settings.dhtPort || 0, torrentPersist: settings.torrentPersist, torrentPeX: settings.torrentPeX, torrentStreamedDownload: settings.torrentStreamedDownload, torrentPathNew: (settings.torrentPathNew || env.TMPDIR), playerPath: settings.playerPath, seedingLimit: settings.seedingLimit })
+})
+
+channel.on('port-init', () => {
   const port = {
     onmessage: _ => {},
     postMessage: data => {
       channel.send('ipc', { data })
     }
   }
-  let storedSettings = {}
-  try {
-    storedSettings = cache.getEntry(caches.GENERAL, 'settings') || {}
-  } catch (error) {}
-
   channel.on('ipc', a => port.onmessage(a))
   if (!client) {
-    client = new TorrentClient(channel, storageQuota, 'node', storedSettings.torrentPathNew || env.TMPDIR)
     setHeartBeat()
-    channel.emit('port', {
-      ports: [port]
+    channel.on('torrentPort', () => {
+      channel.emit('port', {
+        ports: [port]
+      })
     })
   }
   channel.on('webtorrent-reload', async () => {
     if (client) {
       client.destroy()
-      await setCache(false)
-      storedSettings = cache.getEntry(caches.GENERAL, 'settings') || {}
-      client = new TorrentClient(channel, storageQuota, 'node', storedSettings.torrentPathNew || env.TMPDIR)
       setHeartBeat()
     }
   })

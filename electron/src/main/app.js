@@ -8,7 +8,7 @@ import fs from 'fs'
 import { BrowserWindow, MessageChannelMain, Notification, Tray, Menu, nativeImage, app, dialog, ipcMain, powerMonitor, shell, session } from 'electron'
 import electronShutdownHandler from '@paymoapp/electron-shutdown-handler'
 
-import { store, development } from './util.js'
+import { development } from './util.js'
 import Discord from './discord.js'
 import Protocol from './protocol.js'
 import Updater from './updater.js'
@@ -62,7 +62,7 @@ export default class App {
   discord = new Discord(this.mainWindow)
   protocol = new Protocol(this.mainWindow)
   updater = new Updater(this.mainWindow, this.webtorrentWindow)
-  dialog = new Dialog(this.webtorrentWindow)
+  dialog = new Dialog()
   tray = new Tray(this.trayLogo)
   imageDir = join(app.getPath('userData'), 'Cache', 'Image_Data')
   debug = new Debug()
@@ -173,16 +173,16 @@ export default class App {
       }
     })
 
-    ipcMain.on('portRequest', async ({ sender }) => {
+    ipcMain.on('portRequest', async (event, settings) => {
       if (process.platform === 'darwin') this.mainWindow.webContents.send('isFullscreen', this.mainWindow.isFullScreen())
       const { port1, port2 } = new MessageChannelMain()
       await torrentLoad
       ipcMain.once('webtorrent-heartbeat', () => {
-        this.webtorrentWindow.webContents.postMessage('player', store.get('player'))
-        this.webtorrentWindow.webContents.postMessage('torrentPath', store.get('torrentPath'))
-        this.webtorrentWindow.webContents.postMessage('port', null, [port1])
-        this.webtorrentWindow.webContents.postMessage('main-heartbeat', null)
-        sender.postMessage('port', null, [port2])
+        this.webtorrentWindow.webContents.postMessage('main-heartbeat', settings)
+        ipcMain.once('torrentRequest', () => {
+          this.webtorrentWindow.webContents.postMessage('port', null, [port1])
+          event.sender.postMessage('port', null, [port2])
+        })
       })
     })
 

@@ -1,4 +1,4 @@
-// feature support list, overriden per environment, capacitor
+// feature support list, overridden per environment, capacitor
 
 export const SUPPORTS = {
   offscreenRender: false,

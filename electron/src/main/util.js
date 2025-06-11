@@ -1,7 +1,7 @@
 import { app, ipcMain, shell } from 'electron'
 import Store from './store.js'
 
-export const store = new Store(app.getPath('userData'), 'player.json', { angle: 'default', player: '', torrentPath: '' })
+export const store = new Store(app.getPath('userData'), 'persist.json', { angle: 'default' })
 export const development = process.env.NODE_ENV?.trim() === 'development'
 
 const flags = [

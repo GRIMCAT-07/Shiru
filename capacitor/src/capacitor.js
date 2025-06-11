@@ -191,14 +191,14 @@ function handleProtocol (text) {
  * Handles opening a `.torrent` file and sends it as a `Uint8Array`
  * @param {string} fileUri - The path to the .torrent file
  */
-async function handleTorrentFile(fileUri) {
-  const fileContents = await Filesystem.readFile({ path: fileUri })
-  const binaryString = atob(fileContents.data)
-  const uint8Array = new Uint8Array(binaryString.length)
-  for (let i = 0; i < binaryString.length; i++) uint8Array[i] = binaryString.charCodeAt(i)
-  if (uint8Array.length === 0) throw new Error("Empty file or conversion failed")
-  add(uint8Array)
-}
+// async function handleTorrentFile(fileUri) {
+//   const fileContents = await Filesystem.readFile({ path: fileUri })
+//   const binaryString = atob(fileContents.data)
+//   const uint8Array = new Uint8Array(binaryString.length)
+//   for (let i = 0; i < binaryString.length; i++) uint8Array[i] = binaryString.charCodeAt(i)
+//   if (uint8Array.length === 0) throw new Error("Empty file or conversion failed")
+//   add(uint8Array)
+// }
 
 function sendToken (line) {
   let token = line.split('access_token=')[1].split('&token_type')[0]

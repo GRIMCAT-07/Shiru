@@ -5,7 +5,7 @@
   import { settings } from '@/modules/settings.js'
   import { mediaCache } from '@/modules/cache.js'
   import { SUPPORTS } from '@/modules/support.js'
-  import { add } from '@/modules/torrent.js'
+  import { add } from '@/modules/torrent/torrent.js'
   import { toast } from 'svelte-sonner'
   import { anilistClient } from '@/modules/anilist.js'
   import { episodesList } from '@/modules/episodes.js'

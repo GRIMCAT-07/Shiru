@@ -66,3 +66,12 @@
     block-size: 2.5rem !important;
   }
 }
+
+@media (max-height: 500px) {
+  .d-sm-h-none {
+    display: none !important;
+  }
+  .d-sm-h-block {
+    display: block !important;
+  }
+}

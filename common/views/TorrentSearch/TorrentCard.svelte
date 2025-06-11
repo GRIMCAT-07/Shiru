@@ -3,7 +3,7 @@
   import { matchPhrase } from '@/modules/util.js'
   import { fastPrettyBytes, since } from '@/modules/util.js'
   import { getEpisodeMetadataForMedia, getKitsuMappings } from '@/modules/anime.js'
-  import { Database, BadgeCheck, FileQuestion } from 'lucide-svelte'
+  import { Download, CloudUpload, CloudDownload, FolderCheck, TvMinimalPlay, Database, BadgeCheck, FileQuestion } from 'lucide-svelte'
   import { toast } from 'svelte-sonner'
 
   /** @typedef {import('extensions/index.d.ts').TorrentResult} Result */
@@ -95,6 +95,10 @@
 </script>
 
 <script>
+  import { onDestroy, onMount } from 'svelte'
+  import { createListener } from '@/modules/util.js'
+  import { loadedTorrent, stagingTorrents, seedingTorrents, completedTorrents } from '@/views/TorrentManager/TorrentManager.svelte'
+
   /** @type {Result & { parseObject: AnitomyResult }} */
   export let result
 
@@ -105,6 +109,7 @@
 
   /** @type {Function} */
   export let play
+  export let stage
 
   export let type = 'default'
   export let countdown = -1
@@ -123,9 +128,15 @@
     card.style.borderColor = color
     card.style.setProperty('color', color)
   }
+
+  $: downloaded = $completedTorrents.some(t => t.infoHash === result.hash) || $seedingTorrents.some(t => t.infoHash === result.hash) || $stagingTorrents.some(t => t.infoHash === result.hash) || $loadedTorrent.infoHash === result.hash
+
+  const { reactive, init } = createListener([`react-${result.hash}`])
+  onMount(() => init(true))
+  onDestroy(() => init(false))
 </script>
 
-<div bind:this={card} class='card bg-dark p-15 d-flex mx-0 overflow-hidden pointer mb-10 mt-0 position-relative scale rounded-3' class:border-best={type === 'best'} class:border-magnet={type === 'magnet'} class:glow={countdown > -1} role='button' tabindex='0' use:click={() => play(result)} on:contextmenu|preventDefault={() => copyToClipboard(result.link)} title={result.parseObject.file_name}>
+<div bind:this={card} class='card bg-dark p-15 d-flex mx-0 overflow-hidden pointer mb-10 mt-0 position-relative scale rounded-3' class:not-reactive={!$reactive} class:border-best={type === 'best'} class:border-magnet={type === 'magnet'} class:glow={countdown > -1} role='button' tabindex='0' use:click={() => play(result)} on:contextmenu|preventDefault={() => copyToClipboard(result.link)} title={result.parseObject.file_name}>
   <div class='position-absolute top-0 left-0 w-full h-full'>
     <div class='position-absolute w-full h-full overflow-hidden' class:image-border={type === 'default'} >
       {#await getEpisodeMetadataForMedia(media) then metadata}
@@ -168,7 +179,13 @@
         {/if}
       </div>
     </div>
-    <div class='py-5 font-size-14 text-muted text-truncate overflow-hidden'>{simplifyFilename(result.parseObject)}</div>
+    <div class='py-5 font-size-14 text-muted d-flex align-items-center'>
+      <span class='overflow-hidden text-truncate'>{simplifyFilename(result.parseObject)}</span>
+      <span class='ml-auto mr-5 w-30 h-10 flex-shrink-0'/>
+      <button type='button' class='stage h-40 w-40 position-absolute right-0 shadow-none btn btn-square d-flex align-items-center justify-content-center bg-transparent react-{result.hash}' class:not-allowed={downloaded} title={$completedTorrents.some(t => t.infoHash === result.hash) ? 'Completed' : $seedingTorrents.some(t => t.infoHash === result.hash) ? 'Seeding...' : $stagingTorrents.some(t => t.infoHash === result.hash) ? 'Downloading...' : $loadedTorrent.infoHash === result.hash ? 'Now Playing' : 'Queue for Download'} use:click={() => { if(!downloaded) stage(result) }}>
+        <svelte:component this={$completedTorrents.some(t => t.infoHash === result.hash) ? FolderCheck : $seedingTorrents.some(t => t.infoHash === result.hash) ? CloudUpload : $stagingTorrents.some(t => t.infoHash === result.hash) ? CloudDownload : $loadedTorrent.infoHash === result.hash ? TvMinimalPlay : Download} size='2.5rem' style={downloaded ? `color: ${$completedTorrents.some(t => t.infoHash === result.hash) ? 'var(--quaternary-color)' : $seedingTorrents.some(t => t.infoHash === result.hash) ? 'var(--tertiary-color)' : $stagingTorrents.some(t => t.infoHash === result.hash) ? 'var(--warning-color)' : 'var(--quaternary-color)'}` : ''} />
+      </button>
+    </div>
     <div class='metadata-container d-flex w-full align-items-start text-dark font-size-14' style='line-height: 1;'>
       <div class='primary-metadata py-5 d-flex flex-row'>
         <div class='text-light d-flex align-items-center text-nowrap'>{fastPrettyBytes(result.size)}</div>
@@ -203,7 +220,7 @@
     border: .1rem solid transparent;
   }
   .scale:hover{
-    transform: scale(1.04);
+    transform: scale(1.015);
     border: .1rem solid var(--highlight-color);
   }
   .border-best {
@@ -214,6 +231,16 @@
   }
   .image-border {
     border-radius: 1.1rem;
+  }
+
+  .stage {
+    background-color: transparent !important;
+    border: transparent !important;
+    margin-right: -.8rem !important;
+  }
+  .stage:hover {
+    background-color: var(--dark-color) !important;
+    border: .1rem solid var(--highlight-color) !important;
   }
 
   .glow {

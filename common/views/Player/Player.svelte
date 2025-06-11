@@ -6,7 +6,7 @@
   import { anilistClient } from '@/modules/anilist.js'
   import { episodesList } from '@/modules/episodes.js'
   import { getMediaMaxEp } from '@/modules/anime.js'
-  import { client } from '@/modules/torrent.js'
+  import { client } from '@/modules/torrent/torrent.js'
   import { getContext, createEventDispatcher } from 'svelte'
   import Subtitles from '@/modules/subtitles.js'
   import { toTS, fastPrettyBytes, matchPhrase, videoRx } from '@/modules/util.js'

@@ -77,6 +77,7 @@ export function countdown(s) {
 }
 
 const formatter = (typeof Intl !== 'undefined') && new Intl.RelativeTimeFormat('en')
+const formatterShort = (typeof Intl !== 'undefined') && new Intl.RelativeTimeFormat('en', { style: 'short' })
 const ranges = {
   years: 3600 * 24 * 365,
   months: 3600 * 24 * 30,
@@ -108,6 +109,19 @@ export function since (date) {
       return formatter.format(Math.round(delta), key)
     }
   }
+}
+
+/** @param {Date} date */
+export function eta(date) {
+  const secondsElapsed = (date.getTime() - Date.now()) / 1000
+  for (const key in ranges) {
+    const seconds = ranges[key]
+    if (Math.abs(secondsElapsed) >= seconds) {
+      const delta = secondsElapsed / seconds
+      return formatterShort.format(Math.round(delta), key)
+    }
+  }
+  return formatterShort.format(1, 'second')
 }
 
 /**
@@ -164,22 +178,31 @@ export function toTS (sec, full) {
   if (seconds < 10) seconds = '0' + seconds
   return (hours > 0 || full === 1 || full === 2) ? hours + ':' + minutes + ':' + seconds : minutes + ':' + seconds
 }
+
+const BASE32_ALPHABET = 'abcdefghijklmnopqrstuvwxyz234567'
+export function base32toHex(base32) {
+  let bits = ''
+  for (const char of base32.toLowerCase()) {
+    const val = BASE32_ALPHABET.indexOf(char)
+    if (val === -1) throw new Error(`Invalid base32 character: ${char}`)
+    bits += val.toString(2).padStart(5, '0')
+  }
+  bits = bits.slice(0, bits.length - (bits.length % 4))
+  let hex = ''
+  for (let i = 0; i < bits.length; i += 4) hex += parseInt(bits.slice(i, i + 4), 2).toString(16)
+  return hex
+}
+
 export function generateRandomHexCode (len) {
   let hexCode = ''
-
-  while (hexCode.length < len) {
-    hexCode += (Math.round(Math.random() * 15)).toString(16)
-  }
-
+  while (hexCode.length < len) hexCode += (Math.round(Math.random() * 15)).toString(16)
   return hexCode
 }
 
 export function generateRandomString(length) {
   let string = ''
   const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'
-  for (let i = 0; i < length; i++) {
-    string += possible.charAt(Math.floor(Math.random() * possible.length))
-  }
+  for (let i = 0; i < length; i++) string += possible.charAt(Math.floor(Math.random() * possible.length))
   return string
 }
 
@@ -449,8 +472,8 @@ export const defaults = {
   disableStartupTorrent: SUPPORTS.isAndroid,
   torrentPort: 0,
   torrentStreamedDownload: true,
-  torrentVerify: false,
   torrentSort: 'seeders',
+  seedingLimit: !SUPPORTS.isAndroid ? 5 : 2,
   dhtPort: 0,
   missingFont: true,
   maxConns: 50,
@@ -492,8 +515,10 @@ export const defaults = {
  * @property {string} widthMiniplayer
  * @property {Array<any>} sync
  * @property {typeof defaults} settings
- * @property {any} [lastFinished]
  * @property {any} [loadedTorrent]
+ * @property {any} [stagingTorrents]
+ * @property {any} [seedingTorrents]
+ * @property {any} [completedTorrents]
  */
 export const generalDefaults = {
   theme: '',
@@ -502,8 +527,10 @@ export const generalDefaults = {
   widthMiniplayer: '0px',
   sync: [],
   settings: defaults,
-  lastFinished: undefined,
-  loadedTorrent: undefined
+  loadedTorrent: undefined,
+  stagingTorrents: [],
+  seedingTorrents: [],
+  completedTorrents: []
 }
 
 /**

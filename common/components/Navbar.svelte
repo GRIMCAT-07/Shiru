@@ -8,7 +8,7 @@
   import { SUPPORTS } from '@/modules/support.js'
   import NavbarLink from '@/components/NavbarLink.svelte'
   import { onDestroy, onMount } from 'svelte'
-  import { Home, Search, Users, CalendarSearch, Settings, Bell, BellDot, ListVideo, History, TvMinimalPlay } from 'lucide-svelte'
+  import { Home, Search, Users, Download, CalendarSearch, Settings, Bell, BellDot, ListVideo, History, TvMinimalPlay } from 'lucide-svelte'
   const view = getContext('view')
   export let page
   export let playPage
@@ -60,6 +60,9 @@
     {/if}
     <NavbarLink click={() => { page = 'watchtogether' }} _page='watchtogether' icon='groups' text='Watch Together' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
       <Users size='3.6rem' class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
+    </NavbarLink>
+    <NavbarLink click={() => { page = 'torrents' }} _page='torrents' icon='download' text='Torrents' css='d-none d-sm-block' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
+      <Download size='3.6rem' class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
     </NavbarLink>
     <NavbarLink click={() => { $notifyView = !$notifyView }} icon='bell' text='Notifications' {page} overlay={$notifyView && 'notify'} nowPlaying={$view} let:active>
       {#if $hasUnreadNotifications &&  $hasUnreadNotifications > 0}

@@ -4,7 +4,7 @@ import P2PT from 'p2pt'
 
 import Event, { EventTypes } from '@/views/WatchTogether/events.js'
 import Helper from '@/modules/helper.js'
-import { add } from '@/modules/torrent.js'
+import { add } from '@/modules/torrent/torrent.js'
 import { generateRandomHexCode } from '@/modules/util.js'
 import { writable } from 'simple-store-svelte'
 import Debug from 'debug'

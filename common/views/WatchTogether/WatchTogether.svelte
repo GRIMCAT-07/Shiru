@@ -1,7 +1,7 @@
 <script context='module'>
   import { EventEmitter } from 'events'
   import { writable } from 'simple-store-svelte'
-  import { client } from '@/modules/torrent.js'
+  import { client } from '@/modules/torrent/torrent.js'
   import { toast } from 'svelte-sonner'
   import { page } from '@/App.svelte'
   import IPC from '@/modules/ipc.js'

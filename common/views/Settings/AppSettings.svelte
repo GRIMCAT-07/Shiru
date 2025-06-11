@@ -1,18 +1,13 @@
 <script>
   import { persisted } from 'svelte-persisted-store'
-  import { client } from '@/modules/torrent.js'
+  import { client } from '@/modules/torrent/torrent.js'
   import { capitalize } from '@/modules/util.js'
   import { onDestroy } from 'svelte'
   import { platformMap } from '@/views/Settings/Settings.svelte'
   import SettingCard from '@/views/Settings/SettingCard.svelte'
+  import Changelog from '@/views/Settings/Changelog.svelte'
   import Debug from 'debug'
-
-  const debug = persisted('debug', '', {
-    serializer: {
-      parse: e => e,
-      stringify: e => e
-    }
-  })
+  const debug = persisted('debug', '', { serializer: { parse: e => e, stringify: e => e } })
 
   export let version = ''
   export let settings
@@ -157,3 +152,4 @@
     <button type='button' use:click={() => IPC.emit('ui-devtools')} class='btn btn-primary d-flex align-items-center justify-content-center'><span>Open Devtools</span></button>
   </SettingCard>
 {/if}
+<Changelog {version} class='d-none-lg' />

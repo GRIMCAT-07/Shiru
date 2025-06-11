@@ -1,4 +1,4 @@
-// feature support list, overriden per environment, global
+// feature support list, overridden per environment, global
 
 export const SUPPORTS = {
   offscreenRender: true,

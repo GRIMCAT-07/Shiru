@@ -1,7 +1,6 @@
 <script context='module'>
   import { settings } from '@/modules/settings.js'
   import { capitalize } from '@/modules/util.js'
-  import { status } from '@/modules/networking.js'
   import IPC from '@/modules/ipc.js'
   import Debug from 'debug'
   const debug = Debug('ui:settings-view')
@@ -25,45 +24,37 @@
   })
   IPC.emit('version')
   IPC.emit('discord-rpc', settings.value.enableRPC)
-
-  let changeLog = getChanges()
-  window.addEventListener('online', () => changeLog = getChanges())
-  async function getChanges() {
-    try {
-      const json = await (await fetch('https://api.github.com/repos/RockinChaos/Shiru/releases')).json()
-      return json.map(({body, tag_name: version, published_at: date, assets}) => ({body, version, date, assets}))
-    } catch (error) {
-      debug('Failed to changelog', error)
-      return {}
-    }
-  }
 </script>
 
 <script>
   import { Tabs, TabLabel, Tab } from '@/components/Tabination.js'
   import { onDestroy } from 'svelte'
   import PlayerSettings from '@/views/Settings/PlayerSettings.svelte'
-  import TorrentSettings from '@/views/Settings/TorrentSettings.svelte'
+  import ClientSettings from '@/views/Settings/ClientSettings.svelte'
   import InterfaceSettings from '@/views/Settings/InterfaceSettings.svelte'
   import AppSettings from '@/views/Settings/AppSettings.svelte'
-  import ChangelogSk from '@/components/skeletons/ChangelogSk.svelte'
+  import Changelog from '@/views/Settings/Changelog.svelte'
   import ExtensionSettings from '@/views/Settings/ExtensionSettings.svelte'
+  import ViewTorrent from '@/views/TorrentManager/TorrentManager.svelte'
   import { profileView } from '@/components/Profiles.svelte'
-  import { SUPPORTS } from '@/modules/support.js'
-  import { AppWindow, Puzzle, User, Heart, Logs, Play, Rss, LayoutDashboard } from 'lucide-svelte'
+  import { AppWindow, Puzzle, User, Heart, Logs, Play, Rss, Download, LayoutDashboard } from 'lucide-svelte'
 
   export let overlay = []
   export let playPage = false
-  $: safeTop = !SUPPORTS.isAndroid && $status !== 'offline' ? '18px' : '0px'
 
   const groups = {
     player: {
       name: 'Player',
       icon: Play
     },
-    torrent: {
-      name: 'Torrent',
+    client: {
+      name: 'Client',
       icon: Rss
+    },
+    torrents: {
+      name: 'Torrents',
+      icon: Download,
+      substitute: true
     },
     interface: {
       name: 'Interface',
@@ -84,7 +75,8 @@
     },
     changelog: {
       name: 'Changelog',
-      icon: Logs
+      icon: Logs,
+      sidebar: true
     },
     donate: {
       name: 'Donate',
@@ -101,59 +93,6 @@
     $settings.playerPath = data
   }
 
-  function markdownToHtml(text) {
-    const cleaned = text.replace(/<[^>]+>.*?<\/[^>]+>/gs, '').replace(/<[^>]+>/gs, '').replace(/(## Preview:|# Preview:)/g, '').trim()
-    let htmlOutput = ''
-    let listStack = []
-    let inList = false
-    let lastLevel = 0
-
-    const closeList = (level) => {
-      while (level < lastLevel && listStack.length > 0) {
-        htmlOutput += listStack.pop()
-        lastLevel--
-      }
-    }
-
-    const openList = (level) => {
-      while (level > lastLevel) {
-        htmlOutput += '<ul>'
-        listStack.push('</ul>')
-        lastLevel++
-      }
-    }
-
-    cleaned.split('\n').forEach(line => {
-      if (!line.trim()) return
-      const match = line.match(/^(\s*)([-*])\s+(.*)/)
-      if (match) {
-        const [, spaces, , content] = match
-        const level = Math.floor(spaces.length / 2)
-        closeList(level)
-        openList(level)
-        if (!inList) {
-          htmlOutput += '<ul>'
-          listStack.push('</ul>')
-          inList = true
-          lastLevel = 0
-        }
-        htmlOutput += `<li>${content.trim()}</li>`
-      }
-      else {
-        closeList(0)
-        if (inList) {
-          htmlOutput += listStack.pop()
-          inList = false
-          lastLevel = 0
-        }
-        htmlOutput += `<p>${line.trim()}</p>`
-      }
-    })
-    closeList(0)
-    if (inList) htmlOutput += listStack.pop()
-    return htmlOutput
-  }
-
   onDestroy(() => {
     IPC.off('path', pathListener)
     IPC.off('player', playerListener)
@@ -164,12 +103,12 @@
 </script>
 
 <Tabs>
-  <div class='d-flex w-full h-full position-relative settings root flex-md-row flex-column status-transition' style='padding-top: max(var(--safe-area-top), {safeTop})'>
+  <div class='d-flex w-full h-full position-relative settings root flex-md-row flex-column status-transition' style='padding-top: max(var(--safe-area-top), var(--safe-bar-top))'>
     <div class='d-flex flex-column h-lg-full bg-dark position-absolute position-lg-relative bb-10 w-full w-lg-300 z-10 flex-lg-shrink-0'>
       <div class='px-20 py-5 font-size-24 font-weight-semi-bold position-absolute d-none d-lg-block'>Settings</div>
       <div class='mt-lg-20 py-lg-20 py-10 d-flex flex-lg-column flex-row justify-content-center justify-content-lg-start align-items-center align-items-lg-start'>
         {#each Object.values(groups) as group}
-          <TabLabel name={group.name} action={group.action} sidebar={group.sidebar} let:active>
+          <TabLabel name={group.name} action={group.action} sidebar={group.sidebar} substitute={group.substitute} let:active>
             {@const isActive = (!overlay?.length && active || (group.name === 'Profiles' && (overlay?.includes(group.name.toLowerCase()))))}
             <svelte:component this={group.icon} size='3.6rem' stroke-width='2.5' class='flex-shrink-0 p-5 m-5 rounded' color={isActive ? 'currentColor' : '#5e6061'} fill={group.icon === Play ? (isActive ? 'currentColor' : '#5e6061') : 'transparent'} />
             <div class='font-size-16 line-height-normal d-none d-sm-block mr-10 text-truncate' style='color: {isActive ? `currentColor` : `#5e6061`}'>{group.name}</div>
@@ -192,7 +131,13 @@
       </Tab>
       <Tab>
         <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
-          <TorrentSettings bind:settings={$settings} />
+          <ClientSettings bind:settings={$settings} />
+          <div class='pb-10 d-md-none'/>
+        </div>
+      </Tab>
+      <Tab>
+        <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
+          <ViewTorrent />
           <div class='pb-10 d-md-none'/>
         </div>
       </Tab>
@@ -217,35 +162,8 @@
       </Tab>
       <Tab>
         <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
-          <div class='column px-20 px-sm-0'>
-            <h1 class='font-weight-bold text-white font-scale-40'>Changelog</h1>
-            <div class='font-size-18 text-muted'>New updates and improvements to Shiru.</div>
-            <div class='font-size-14 text-muted'>Your current App Version is <b>v{version}</b></div>
-          </div>
-          {#await changeLog}
-            {#each Array(5) as _}
-              <ChangelogSk />
-            {/each}
-          {:then changelog}
-            {#each changelog.slice(0, 5) as { version, date, body }}
-              <hr class='my-20' />
-              <div class='row py-20 px-20 px-sm-0 position-relative text-wrap text-break'>
-                <div class='col-sm-3 order-first text-white mb-10 mb-sm-0'>
-                  <div class='position-sticky top-0 pt-20'>
-                    {new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                  </div>
-                </div>
-                <div class='col-sm-9 pre-wrap text-muted'>
-                  <h2 class='mt-0 font-weight-bold text-white font-scale-34'>{version}</h2>
-                  <div class='ml-10'>{@html markdownToHtml(body)}</div>
-                </div>
-              </div>
-            {/each}
-          {:catch e}
-            {#each Array(5) as _}
-              <ChangelogSk />
-            {/each}
-          {/await}
+          <Changelog {version} />
+          <div class='pb-10 d-md-none'/>
         </div>
       </Tab>
       <Tab/> <!-- Skip Donate Tab -->
