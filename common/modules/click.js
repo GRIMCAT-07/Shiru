@@ -118,7 +118,7 @@ export function hoverClick(node, [cb = noop, hoverUpdate = noop, rcb = noop]) {
       hoverUpdate(false)
       cb(e)
     } else {
-      hoverUpdate(true)
+      hoverUpdate(true, true)
       lastTapElement = hoverUpdate
       lastTapTarget = e.target
     }
@@ -135,7 +135,7 @@ export function hoverClick(node, [cb = noop, hoverUpdate = noop, rcb = noop]) {
         lastTapElement = null
         cb(e)
       } else {
-        hoverUpdate(true)
+        hoverUpdate(true, true)
         if (!SUPPORTS.isAndroid) lastTapElement = hoverUpdate
       }
     }

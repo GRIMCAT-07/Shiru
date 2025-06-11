@@ -42,13 +42,11 @@
     }))
   }
   function setClickState() {
-    if ($prompt === false && media?.mediaListEntry?.progress < (data.episode - 1)) {
-      prompt.set(true)
-    } else {
-      data.onclick ? data.onclick() : data.episode ? promptTorrent() : viewMedia()
-    }
+    if (!$prompt && media?.mediaListEntry?.progress < (data.episode - 1)) prompt.set(true)
+    else data.onclick ? data.onclick() : data.episode ? promptTorrent() : viewMedia()
   }
-  function setHoverState (state) {
+  function setHoverState (state, tapped) {
+    if (!$prompt && media?.mediaListEntry?.progress < (data.episode - 1)) prompt.set(!!tapped)
     preview = state
   }
 
@@ -62,7 +60,7 @@
   onDestroy(() => clearInterval(sinceInterval))
 </script>
 
-<div class='d-flex p-20 pb-10 position-relative episode-card' class:mb-150={section} use:hoverExit={() => prompt.set(false)} use:hoverClick={[setClickState, setHoverState, viewMedia]} role='none'>
+<div class='d-flex p-20 pb-10 position-relative episode-card' class:mb-150={section} use:hoverExit={() => setTimeout(() => { if (!preview) prompt.set(false) })} use:hoverClick={[setClickState, setHoverState, viewMedia]} role='none'> <!-- use:hoverExit={() => prompt.set(false)}  -->
   {#if preview}
     <EpisodePreviewCard {data} bind:prompt={$prompt} />
   {/if}
