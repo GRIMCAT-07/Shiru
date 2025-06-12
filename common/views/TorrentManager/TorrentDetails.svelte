@@ -50,7 +50,7 @@
   })
 </script>
 <div role='button' class='details d-flex flex-row border-top py-20 text-wrap text-break-word {$_reactive && !current ? `` : `not-reactive`}' class:bg-error={completed && data.incomplete} class:current={current} class:option={!current} class:pointer={!current} class:not-allowed={current} aria-label={!current ? 'Play Torrent' : 'Currently Playing'} title={!current ? 'Play Torrent' : 'Currently Playing'} use:click={() => { if (!current) add(data.infoHash, null, data.infoHash) }} on:contextmenu|preventDefault={altClick}>
-  <div class='p-5 ml-20 name mw-150 flex-1 w-auto d-flex line-2'>{(data.name && AnimeResolver.cleanFileName(data.name)) || '—'}</div>
+  <div class='p-5 ml-20 name mw-150 flex-1 w-auto d-flex line-2' title={(data.name && AnimeResolver.cleanFileName(data.name)) || ''}>{(data.name && AnimeResolver.cleanFileName(data.name)) || '—'}</div>
   <div class='p-5 w-150 d-none d-md-block'>{fastPrettyBytes(data.size)}</div>
   <div class='p-5 w-150'>{data.size && !data.incomplete ? `${(completed && '100.0') || (data.progress * 100).toFixed(1)}%` : data.name && !data.incomplete ? '0.0%' : '—'}</div>
   <div class='p-5 w-150'>{completed ? (data.incomplete ? 'Incomplete' : 'Completed') : data.progress === 1 ? 'Seeding' : data.size && data.downloadSpeed ? 'Downloading' : data.name ? 'Stalled' : '—'}</div>
