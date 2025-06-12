@@ -152,4 +152,4 @@
     <button type='button' use:click={() => IPC.emit('ui-devtools')} class='btn btn-primary d-flex align-items-center justify-content-center'><span>Open Devtools</span></button>
   </SettingCard>
 {/if}
-<Changelog {version} class='d-none-lg' />
+<Changelog {version} class='d-lg-none' />
