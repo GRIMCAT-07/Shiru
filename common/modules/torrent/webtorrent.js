@@ -11,6 +11,14 @@ const debug = Debug('torrent:worker')
 
 import fs from 'fs/promises'
 import path from 'path'
+import os from 'os'
+
+let TMP
+try {
+  TMP = path.join(fs.statSync('/tmp') && '/tmp', 'webtorrent')
+} catch (err) {
+  TMP = path.join(typeof os.tmpdir === 'function' ? os.tmpdir() : '/', 'webtorrent')
+}
 
 // HACK: this is https only, but electron doesn't run in https, weird.
 if (!globalThis.FileSystemFileHandle) globalThis.FileSystemFileHandle = false
@@ -37,7 +45,7 @@ export default class TorrentClient extends WebTorrent {
     this.settings = settings
     this.player = settings.playerPath
     this.ipc = ipc
-    this.torrentCache = path.join(this.settings.torrentPathNew || '', 'shiru-cache')
+    this.torrentCache = path.join(this.settings.torrentPathNew || TMP || '', 'shiru-cache')
     this.scrapeStats = {}
     fs.mkdir(this.torrentCache, { recursive: true })
     ipc.send('torrentRequest')
@@ -404,7 +412,6 @@ export default class TorrentClient extends WebTorrent {
         const torrents = (await getTorrents(this.torrentCache)).filter(torrent => !excludeHashes.has(torrent.infoHash))
         let missingCount = 0
         let removedCount = 0
-
         for (const torrent of torrents) {
           if (!torrent.structureHash?.length) {
             missingCount++
@@ -457,9 +464,7 @@ export default class TorrentClient extends WebTorrent {
           }
           this.parser?.destroy()
           found.select()
-          if (found.length > await this.storageQuota(torrent.path)) {
-            this.dispatchError('File Too Big! This File Exceeds The Selected Drive\'s Available Space. Change Download Location In Torrent Settings To A Drive With More Space And Restart The App!')
-          }
+          if (found.length > await this.storageQuota(torrent.path)) this.dispatchError('File Too Big! This File Exceeds The Selected Drive\'s Available Space. Change Download Location In Torrent Settings To A Drive With More Space And Restart The App!')
           this.currentFile = found
           this.currentTorrent = torrent
           if (data.data.external) {
@@ -497,8 +502,7 @@ export default class TorrentClient extends WebTorrent {
         const hash = data.data && data.data.hash
         const torrentID = data.data && data.data.id
         const cache = await getTorrent(this.torrentCache, torrentID, hash)
-        const skipVerify = cache?.torrentFile && (await isVerified(path.join(cache.path, cache.name), cache.structureHash))
-        this.stageTorrent(cache?.torrentFile ? fromBase64(cache?.torrentFile) : torrentID, torrentID, skipVerify)
+        this.stageTorrent(cache?.torrentFile ? fromBase64(cache?.torrentFile) : torrentID, torrentID, cache?.torrentFile && (await isVerified(path.join(cache.path, cache.name), cache.structureHash)))
         break
       } case 'complete': {
         const cache = await getTorrent(this.torrentCache, null, data.data)
@@ -521,24 +525,16 @@ export default class TorrentClient extends WebTorrent {
       } case 'stage_all': {
         for (const hash of data.data) {
           const cache = await getTorrent(this.torrentCache, null, hash)
-          if (cache?.torrentFile) {
-            const skipVerify = await isVerified(path.join(cache.path, cache.name), cache.structureHash)
-            this.stageTorrent(fromBase64(cache?.torrentFile), hash, skipVerify, 'stage')
-          } else {
-            this.dispatch('untrack', hash)
-          }
+          if (cache?.torrentFile) this.stageTorrent(fromBase64(cache?.torrentFile), hash, await isVerified(path.join(cache.path, cache.name), cache.structureHash), 'stage')
+          else this.dispatch('untrack', hash)
         }
         debug('Loaded staging torrents:', data.data)
         break
       } case 'seed_all': {
         for (const hash of data.data) {
           const cache = await getTorrent(this.torrentCache, null, hash)
-          if (cache?.torrentFile) {
-            const skipVerify = await isVerified(path.join(cache.path, cache.name), cache.structureHash)
-            this.stageTorrent(fromBase64(cache?.torrentFile), hash, skipVerify, 'seed')
-          } else {
-            this.dispatch('untrack', hash)
-          }
+          if (cache?.torrentFile) this.stageTorrent(fromBase64(cache?.torrentFile), hash, await isVerified(path.join(cache.path, cache.name), cache.structureHash), 'seed')
+          else this.dispatch('untrack', hash)
         }
         debug('Loaded seeding torrents:', data.data)
         break
@@ -670,6 +666,7 @@ export default class TorrentClient extends WebTorrent {
     debug('Destroying TorrentClient')
     if (this.destroyed) return
     this.hault = true
+    this.tracker?.destroy()
     this.parser?.destroy()
     this.server.close()
     super.destroy(() => {
