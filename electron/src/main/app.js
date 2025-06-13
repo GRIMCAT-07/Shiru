@@ -67,16 +67,18 @@ export default class App {
   imageDir = join(app.getPath('userData'), 'Cache', 'Image_Data')
   debug = new Debug()
   close = false
+  ready = false
   notifications = {}
 
   constructor() {
     this.mainWindow.setMenuBarVisibility(false)
     this.mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
-    this.mainWindow.once('ready-to-show', () => this.mainWindow.show())
     this.mainWindow.on('minimize', () => this.mainWindow.webContents.postMessage('visibilitychange', 'hidden'))
     this.mainWindow.on('hide', () => this.mainWindow.webContents.postMessage('visibilitychange', 'hidden'))
     this.mainWindow.on('restore', () => this.mainWindow.webContents.postMessage('visibilitychange', 'visible'))
     this.mainWindow.on('show', () => this.mainWindow.webContents.postMessage('visibilitychange', 'visible'))
+    if (development) this.mainWindow.once('ready-to-show', () => this.showAndFocus(true))
+    else ipcMain.once('main-ready', () => this.showAndFocus(true)) // HACK: Prevents the window from being shown while it's still loading. This is nice for production as the window can't be moved without the elements being rendered.
     ipcMain.on('torrent-devtools', () => this.webtorrentWindow.webContents.openDevTools())
     ipcMain.on('ui-devtools', ({ sender }) => sender.openDevTools())
     ipcMain.on('window-hide', () => this.mainWindow.hide())
@@ -334,7 +336,9 @@ export default class App {
     }
   }
 
-  showAndFocus() {
+  showAndFocus(ready = false) {
+    if (!this.ready && !ready) return
+    if (!this.ready) this.ready = true
     if (this.mainWindow.isMinimized()) {
       this.mainWindow.restore()
     } else if (!this.mainWindow.isVisible()) {

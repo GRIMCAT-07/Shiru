@@ -86,6 +86,7 @@
   import Status from '@/components/Status.svelte'
 
   setContext('view', view)
+  IPC.emit('main-ready')
 </script>
 
 <div class='page-wrapper with-transitions bg-dark position-relative' data-sidebar-type='overlayed-all'>
