@@ -64,7 +64,7 @@
   <input type='number' inputmode='numeric' pattern='[0-9]*' bind:value={settings.maxConns} min='1' max='512' class='form-control text-right bg-dark w-100 mw-full' />
 </SettingCard>
 <SettingCard title='Seeding Limit' description='The maximum number of torrents that can be seeded at the same time. The minimum is 1 as you will always be seeding at least one torrent (the currently loaded torrent). When the seeding limit is reached, the highest ratio torrent will be completed.'>
-  <input type='number' inputmode='numeric' pattern='[0-9]*' bind:value={settings.seedingLimit} min='1' max='50' class='form-control text-right bg-dark w-150 mw-full' />
+  <input type='number' inputmode='numeric' pattern='[0-9]*' bind:value={settings.seedingLimit} min='1' max='15' class='form-control text-right bg-dark w-150 mw-full' />
 </SettingCard>
 <SettingCard title='Torrent Port' description='Port used for Torrent connections. 0 is automatic.'>
   <input type='number' inputmode='numeric' pattern='[0-9]*' bind:value={settings.torrentPort} min='0' max='65536' class='form-control text-right bg-dark w-150 mw-full' />

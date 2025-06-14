@@ -121,7 +121,7 @@ export default class TorrentClient extends WebTorrent {
     else createServer()
 
     this.tracker = new HTTPTracker({}, trackerUrl)
-    setInterval(async () => this.scrapeTorrents([ this.currentTorrent, ...(this.stagingTorrents || []), ...(this.seedingTorrents || []) ]), getRandomInt(45, 60) * 1000)
+    setInterval(async () => this.scrapeTorrents([ this.currentTorrent, ...(this.stagingTorrents || []), ...(this.seedingTorrents || []) ]), getRandomInt(300, 480) * 1000)
 
     process.on('uncaughtException', this.dispatchError.bind(this))
     this.on('error', this.dispatchError.bind(this))
@@ -162,17 +162,13 @@ export default class TorrentClient extends WebTorrent {
   async findFontFiles (targetFile) {
     const files = this.currentTorrent?.files
     const fontFiles = files.filter(file => fontRx.test(file.name))
-
     const map = {}
 
     // deduplicate fonts
     // some releases have duplicate fonts for diff languages
     // if they have different chars, we can't find that out anyways
     // so some chars might fail, on REALLY bad releases
-    for (const file of fontFiles) {
-      map[file.name] = file
-    }
-
+    for (const file of fontFiles) map[file.name] = file
     debug(`Found ${Object.keys(map).length} font files`)
 
     for (const file of Object.values(map)) {
@@ -187,9 +183,7 @@ export default class TorrentClient extends WebTorrent {
     const videoFiles = files.filter(file => videoRx.test(file.name))
     const videoName = targetFile.name.substring(0, targetFile.name.lastIndexOf('.')) || targetFile.name
     // array of subtitle files that match video name, or all subtitle files when only 1 vid file
-    const subfiles = files.filter(file => {
-      return subRx.test(file.name) && (videoFiles.length === 1 ? true : file.name.includes(videoName))
-    })
+    const subfiles = files.filter(file => subRx.test(file.name) && (videoFiles.length === 1 ? true : file.name.includes(videoName)))
     debug(`Found ${subfiles?.length} subtitle files`)
     for (const file of subfiles) {
       const data = await file.arrayBuffer()
@@ -246,32 +240,32 @@ export default class TorrentClient extends WebTorrent {
     const torrent = await this.add(data, {
       private: this.settings.torrentPeX,
       path: this.settings.torrentPathNew || undefined,
-      skipVerify,
+      skipVerify, // Would only ever be a torrent previously seeding...
       announce: ANNOUNCE,
       deselect: false
     })
     this.stagingTorrents.push(torrent)
     this.scrapeTorrents([torrent])
-    torrent.once('verified', () => {
+    torrent.once('verified', async () => {
       if (this.destroyed) return
-      if (!skipVerify && type !== 'stage' && type !== 'seed' && type !== 'rescan') this.dispatch('info', 'Torrent queued for background download. Check the management page for progress...')
-      if ((this.settings.torrentStreamedDownload && this.currentFile && this.currentFile.progress !== 1) || (!this.settings.torrentStreamedDownload && this.currentTorrent && this.currentTorrent.progress !== 1)) {
+      if (torrent.length > await this.storageQuota(torrent.path)) this.dispatchError('File Too Big! This File Exceeds The Selected Drive\'s Available Space. Change Download Location In Torrent Settings To A Drive With More Space And Restart The App!')
+      else if (!skipVerify && type !== 'stage' && type !== 'seed' && type !== 'rescan') this.dispatch('info', 'Torrent queued for background download. Check the management page for progress...')
+      if (this.settings.torrentStreamedDownload && this.currentFile && this.currentFile.progress !== 1) {
         for (const file of torrent.files) {
-          if (!file._destroyed) file.deselect()
+          if (!file._destroyed && file.selected) file.deselect()
         }
       }
     })
     torrent.once('ready', () => {
       this.scrapeTorrents([torrent])
-      if (!skipVerify || type !== 'stage') {
-        this.dispatch('staging', torrent.infoHash)
-      }
+      if (!skipVerify || type !== 'stage') this.dispatch('staging', torrent.infoHash)
       this.promoteTorrent(torrent, skipVerify, type)
     })
     torrent.once('done', () => this.promoteTorrent(torrent, skipVerify, type))
     torrent.on('error', (err) => {
       this.dispatchError(`Pre-download error: ${err.message}`)
-      this.removePreTorrent(torrent)
+      this.releaseActive(torrent)
+      if (!torrent.destroyed) torrent.destroy({ destroyStore: !this.settings.torrentPersist })
     })
   }
 
@@ -337,27 +331,15 @@ export default class TorrentClient extends WebTorrent {
       }
       if (this.stagingTorrents?.length) {
         for (const torrent of this.stagingTorrents) {
-          if (!torrent.destroyed) torrent.select()
+          if (!torrent.destroyed && !torrent.selected) torrent.select()
         }
       }
       if (this.seedingTorrents?.length) {
         for (const torrent of this.seedingTorrents) {
-          if (!torrent.destroyed) torrent.select()
+          if (!torrent.destroyed && !torrent.selected) torrent.select()
         }
       }
       if (torrent !== this.currentTorrent || type === 'current') this.seedTorrent(torrent, type)
-  }
-
-  removePreTorrent(torrent) {
-    this.releaseActive(torrent)
-    if (!torrent.destroyed) torrent.destroy({ destroyStore: !this.settings.torrentPersist })
-  }
-
-  releaseActive(torrent) {
-    const preIndex = this.stagingTorrents.indexOf(torrent)
-    if (preIndex !== -1) this.stagingTorrents.splice(preIndex, 1)
-    const seedIndex = this.seedingTorrents.indexOf(torrent)
-    if (seedIndex !== -1) this.seedingTorrents.splice(seedIndex, 1)
   }
 
   async handleMessage ({ data }) {
@@ -409,27 +391,29 @@ export default class TorrentClient extends WebTorrent {
             this.playerProcess = null
           }
           if (this.currentFile) {
-             this.currentFile.removeAllListeners('stream')
-             if (!this.currentFile._destroyed && torrent?.progress < 1) this.currentFile.deselect()
+            this.currentFile.removeAllListeners('stream')
+            if (this.settings.torrentStreamedDownload && !this.currentFile._destroyed && torrent?.progress < 1 && this.currentFile.selected) this.currentFile.deselect()
           }
-          if (this.stagingTorrents?.length && torrent?.progress < 1) {
-            for (const torrent of this.stagingTorrents) {
-              for (const file of torrent.files) {
-                if (!file._destroyed) file.deselect()
+          if (this.settings.torrentStreamedDownload) {
+            if (this.stagingTorrents?.length && torrent?.progress < 1) {
+              for (const torrent of this.stagingTorrents) {
+                for (const file of torrent.files) {
+                  if (!file._destroyed && file.selected) file.deselect()
+                }
               }
             }
-          }
-          if (this.seedingTorrents?.length && torrent?.progress < 1) {
-            for (const torrent of this.seedingTorrents) {
-              if (!torrent.destroyed) {
-                for (const file of torrent.files) {
-                  if (!file._destroyed) file.deselect()
+            if (this.seedingTorrents?.length && torrent?.progress < 1) {
+              for (const torrent of this.seedingTorrents) {
+                if (!torrent.destroyed) {
+                  for (const file of torrent.files) {
+                    if (!file._destroyed && file.selected) file.deselect()
+                  }
                 }
               }
             }
           }
           this.parser?.destroy()
-          found.select()
+          if (!found.selected) found.select()
           if (found.length > await this.storageQuota(torrent.path)) this.dispatchError('File Too Big! This File Exceeds The Selected Drive\'s Available Space. Change Download Location In Torrent Settings To A Drive With More Space And Restart The App!')
           this.currentFile = found
           this.currentTorrent = torrent
@@ -481,9 +465,9 @@ export default class TorrentClient extends WebTorrent {
           }
           const removed = this.seedingTorrents.find(t => t.infoHash === cache.infoHash) || this.stagingTorrents.find(t => t.infoHash === cache.infoHash)
           if (removed) {
+            if (!this.settings.torrentPersist) await removeTorrent(this.torrentCache, removed.infoHash)
             await this.remove(removed, { destroyStore: !this.settings.torrentPersist })
-            this.seedingTorrents = this.seedingTorrents.filter(t => t.infoHash !== cache.infoHash)
-            this.stagingTorrents = this.stagingTorrents.filter(t => t.infoHash !== cache.infoHash)
+            this.releaseActive(removed)
           }
           debug('Completed torrent: ' + removed?.torrentFile)
         }
@@ -534,10 +518,9 @@ export default class TorrentClient extends WebTorrent {
       } case 'untrack': {
         const untrack = this.seedingTorrents.find(t => t.infoHash === data.data) || this.stagingTorrents.find(t => t.infoHash === data.data)
         if (untrack) {
-          await this.remove(untrack, { destroyStore: !this.settings.torrentPersist })
           if (!this.settings.torrentPersist) await removeTorrent(this.torrentCache, untrack.infoHash)
-          this.seedingTorrents = this.seedingTorrents.filter(t => t.infoHash !== data.data)
-          this.stagingTorrents = this.stagingTorrents.filter(t => t.infoHash !== data.data)
+          await this.remove(untrack, { destroyStore: !this.settings.torrentPersist })
+          this.releaseActive(untrack)
         }
         this.dispatch('untrack', data.data)
         break
@@ -590,15 +573,11 @@ export default class TorrentClient extends WebTorrent {
 
   async _scrape ({ id, infoHashes }, tracker = null) {
     debug(`Scraping ${infoHashes.length} hashes, id: ${id}, process: ${!!tracker}`)
-    // this seems to give the best speed, and lowest failure rate
     const MAX_ANNOUNCE_LENGTH = 1300 // it's likely 2048, but let's undercut it
     const RATE_LIMIT = 200 // ms
-
     const ANNOUNCE_LENGTH = (tracker || this.tracker).scrapeUrl.length
-
     let batch = []
     let currentLength = ANNOUNCE_LENGTH // fuzz the size a little so we don't always request the same amt of hashes
-
     const results = []
     const scrape = async () => {
       if (results.length) await sleep(RATE_LIMIT)
@@ -613,13 +592,10 @@ export default class TorrentClient extends WebTorrent {
           const { files } = data
           const result = []
           debug(`Scraped ${Object.keys(files || {}).length} hashes, id: ${id}, process: ${!!tracker}`)
-          for (const [key, data] of Object.entries(files || {})) {
-            result.push({ hash: key.length !== 40 ? arr2hex(text2arr(key)) : key, ...data })
-          }
+          for (const [key, data] of Object.entries(files || {})) result.push({ hash: key.length !== 40 ? arr2hex(text2arr(key)) : key, ...data })
           resolve(result)
         })
       })
-
       results.push(...result)
       batch = []
       currentLength = ANNOUNCE_LENGTH
@@ -627,19 +603,22 @@ export default class TorrentClient extends WebTorrent {
 
     for (const infoHash of infoHashes.sort(() => 0.5 - Math.random()).map(infoHash => hex2bin(infoHash))) {
       const qsLength = stringifyQuery({ info_hash: infoHash }).length + 1 // qs length + 1 for the & or ? separator
-      if (currentLength + qsLength > MAX_ANNOUNCE_LENGTH) {
-        await scrape()
-      }
-
+      if (currentLength + qsLength > MAX_ANNOUNCE_LENGTH) await scrape()
       batch.push(infoHash)
       currentLength += qsLength
     }
     if (batch.length) await scrape()
-
     debug(`Scraped ${results.length} hashes, id: ${id}, process: ${!!tracker}`)
 
     if (!tracker) this.dispatch('scrape', { id, result: results })
     return { id, result: results }
+  }
+
+  releaseActive(torrent) {
+    const stageIndex = this.stagingTorrents.indexOf(torrent)
+    if (stageIndex !== -1) this.stagingTorrents.splice(stageIndex, 1)
+    const seedIndex = this.seedingTorrents.indexOf(torrent)
+    if (seedIndex !== -1) this.seedingTorrents.splice(seedIndex, 1)
   }
 
   async dispatch (type, data, transfer) {
