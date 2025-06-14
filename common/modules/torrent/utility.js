@@ -4,6 +4,7 @@ import querystring from 'querystring'
 import bencode from 'bencode'
 import fs from 'fs/promises'
 import path from 'path'
+import os from 'os'
 
 export const ANNOUNCE = [
   atob('d3NzOi8vdHJhY2tlci5vcGVud2VidG9ycmVudC5jb20='),
@@ -22,7 +23,15 @@ export const ANNOUNCE = [
   atob('aHR0cDovL3RyYWNrZXIuYW5pcmVuYS5jb206ODAvYW5ub3VuY2U=')
 ]
 
-const torrentHashes = JSON.parse(localStorage.getItem('torrentHashes')) || {}
+export const trackerUrl = atob('aHR0cDovL255YWEudHJhY2tlci53Zjo3Nzc3L2Fubm91bmNl')
+export const trackerNSFWUrl = atob('aHR0cDovL3N1a2ViZWkudHJhY2tlci53Zjo4ODg4L2Fubm91bmNl')
+
+export let TMP
+try {
+  TMP = path.join(fs.statSync('/tmp') && '/tmp', 'webtorrent')
+} catch (err) {
+  TMP = path.join(typeof os.tmpdir === 'function' ? os.tmpdir() : '/', 'webtorrent')
+}
 
 export function toBase64(data) {
   return Buffer.from(data).toString('base64')
@@ -138,6 +147,7 @@ export async function structureHash(targetPath) {
   }
 }
 
+const torrentHashes = JSON.parse(localStorage.getItem('torrentHashes')) || {}
 /**
  * @param {any} input
  * @param {any} og_input

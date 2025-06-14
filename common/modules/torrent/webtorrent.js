@@ -1,24 +1,16 @@
-import { spawn } from 'node:child_process'
 import WebTorrent from 'webtorrent'
 import HTTPTracker from 'bittorrent-tracker/lib/client/http-tracker.js' //../../node_modules/bittorrent-tracker/lib/client/http-tracker.js
 import { hex2bin, arr2hex, text2arr } from 'uint8-util'
-import Parser from '../parser.js'
-import { toBase64, fromBase64, saveTorrent, getTorrent, getTorrents, removeTorrent, isVerified, structureHash, stringifyQuery, errorToString, ANNOUNCE } from './utility.js'
+import { toBase64, fromBase64, saveTorrent, getTorrent, getTorrents, removeTorrent, isVerified, structureHash, stringifyQuery, errorToString, ANNOUNCE, trackerUrl, trackerNSFWUrl, TMP } from './utility.js'
 import { fontRx, getRandomInt, deepEqual, sleep, subRx, videoRx } from '../util.js'
 import { SUPPORTS } from '@/modules/support.js'
+import { spawn } from 'node:child_process'
+import Parser from '../parser.js'
 import Debug from 'debug'
 const debug = Debug('torrent:worker')
 
 import fs from 'fs/promises'
 import path from 'path'
-import os from 'os'
-
-let TMP
-try {
-  TMP = path.join(fs.statSync('/tmp') && '/tmp', 'webtorrent')
-} catch (err) {
-  TMP = path.join(typeof os.tmpdir === 'function' ? os.tmpdir() : '/', 'webtorrent')
-}
 
 // HACK: this is https only, but electron doesn't run in https, weird.
 if (!globalThis.FileSystemFileHandle) globalThis.FileSystemFileHandle = false
@@ -46,12 +38,13 @@ export default class TorrentClient extends WebTorrent {
     this.player = settings.playerPath
     this.ipc = ipc
     this.torrentCache = path.join(this.settings.torrentPathNew || TMP || '', 'shiru-cache')
+    this.trackers = {}
     this.scrapeStats = {}
     fs.mkdir(this.torrentCache, { recursive: true })
     ipc.send('torrentRequest')
     this._ready = new Promise(resolve => {
       ipc.on('port', ({ ports }) => {
-        if (this.hault) return
+        if (this.destroyed) return
         this.message = ports[0].postMessage.bind(ports[0])
         ports[0].onmessage = ({ data }) => {
           debug(`Received IPC message ${data.type}: ${data.data}`)
@@ -68,7 +61,7 @@ export default class TorrentClient extends WebTorrent {
     this.currentTorrent = null
 
     setInterval(() => {
-      if (this.hault) return
+      if (this.destroyed) return
       this.dispatch('stats', {
         numPeers: this.currentTorrent?.numPeers || 0,
         uploadSpeed: this.currentTorrent?.uploadSpeed || 0,
@@ -76,7 +69,7 @@ export default class TorrentClient extends WebTorrent {
       })
     }, 200)
     setInterval(() => {
-      if (this.hault) return
+      if (this.destroyed) return
       if (this.currentTorrent?.pieces) this.dispatch('progress', this.currentFile?.progress)
       this.dispatch('activity', {
         current: {
@@ -127,35 +120,8 @@ export default class TorrentClient extends WebTorrent {
     if (controller) controller.then(createServer)
     else createServer()
 
-    this.tracker = new HTTPTracker({}, atob('aHR0cDovL255YWEudHJhY2tlci53Zjo3Nzc3L2Fubm91bmNl'))
-
-    const id = Math.trunc(Math.random() * Number.MAX_SAFE_INTEGER).toString()
-    setInterval(async () => {
-      if (this.hault) return
-      const hashes = new Set()
-      if (this.currentTorrent?.infoHash) hashes.add(this.currentTorrent.infoHash)
-      for (const t of this.stagingTorrents) if (t?.infoHash) hashes.add(t.infoHash)
-      for (const t of this.seedingTorrents) if (t?.infoHash) hashes.add(t.infoHash)
-      try {
-        if (hashes.size > 0) {
-          const infoHashes = Array.from(hashes)
-          const data = await this._scrape({ id, infoHashes }, false)
-          this.scrapeStats = {}
-          for (let i = 0; i < infoHashes.length; i++) {
-            const hash = infoHashes[i]
-            const result = data?.result?.[i]
-            if (result) {
-              this.scrapeStats[hash] = {
-                seeders: result.complete || 0,
-                leechers: result.incomplete || 0
-              }
-            }
-          }
-        }
-      } catch (err) {
-        debug('Failed to scrape torrents:', err)
-      }
-    }, getRandomInt(45, 60) * 1000)
+    this.tracker = new HTTPTracker({}, trackerUrl)
+    setInterval(async () => this.scrapeTorrents([ this.currentTorrent, ...(this.stagingTorrents || []), ...(this.seedingTorrents || []) ]), getRandomInt(45, 60) * 1000)
 
     process.on('uncaughtException', this.dispatchError.bind(this))
     this.on('error', this.dispatchError.bind(this))
@@ -170,7 +136,7 @@ export default class TorrentClient extends WebTorrent {
   }
 
   async torrentReady (torrent) {
-    if (this.hault) return
+    if (this.destroyed) return
     debug('Got torrent metadata: ' + torrent?.name)
     const files = torrent.files.map(file => {
       return {
@@ -186,7 +152,7 @@ export default class TorrentClient extends WebTorrent {
     this.dispatch('files', files)
     this.dispatch('magnet', { magnet: torrent.magnetURI, hash: torrent.infoHash })
     setTimeout(() => {
-      if (this.hault || torrent.destroyed) return
+      if (this.destroyed || torrent.destroyed) return
       if (torrent.progress !== 1) {
         if (torrent.numPeers === 0) this.dispatchError('No peers found for torrent, try using a different torrent.')
       }
@@ -233,7 +199,7 @@ export default class TorrentClient extends WebTorrent {
   }
 
   async addTorrent (data, og_data, skipVerify = false, recover = false) {
-    if (this.hault || !data) return
+    if (this.destroyed || !data) return
     debug('Adding torrent: ' + data)
     if (this.currentTorrent) await this.promoteTorrent(this.currentTorrent, this.currentTorrent.progress === 1, 'current')
     const existing = await this.get(data)
@@ -252,18 +218,18 @@ export default class TorrentClient extends WebTorrent {
       deselect: this.settings.torrentStreamedDownload
     })
     torrent.once('verified', () => {
-      if (this.hault) return
+      if (this.destroyed) return
       if (!torrent.ready && !skipVerify) this.dispatch('info', 'Detected already downloaded files. Verifying file integrity. This might take a minute...')
     })
     torrent.once('ready', () => {
-      this.scrapeTorrent(torrent)
+      this.scrapeTorrents([torrent])
       this.dispatch('loaded', { id: !recover ? og_data || data : torrent.torrentFile, infoHash: torrent.infoHash })
       this.torrentReady(torrent)
     })
     torrent.once('done', async () => this.promoteTorrent(torrent, skipVerify))
     this.currentTorrent = torrent
     setTimeout(() => {
-      if (this.hault || torrent.destroyed || skipVerify) return
+      if (this.destroyed || torrent.destroyed || skipVerify) return
       if (!torrent.progress && !torrent.ready) {
         if (torrent.numPeers === 0) this.dispatchError('No peers found for torrent, try using a different torrent.')
       }
@@ -271,7 +237,7 @@ export default class TorrentClient extends WebTorrent {
   }
 
   async stageTorrent(data, og_data, skipVerify = false, type) {
-    if (this.hault || !data) return
+    if (this.destroyed || !data) return
     debug('Staging torrent: ' + data)
     if (await this.get(data)) {
       if (!skipVerify && type !== 'stage' && type !== 'seed' && type !== 'rescan') this.dispatch('info', 'This torrent is already queued and downloading in the background...')
@@ -285,9 +251,9 @@ export default class TorrentClient extends WebTorrent {
       deselect: false
     })
     this.stagingTorrents.push(torrent)
-    this.scrapeTorrent(torrent)
+    this.scrapeTorrents([torrent])
     torrent.once('verified', () => {
-      if (this.hault) return
+      if (this.destroyed) return
       if (!skipVerify && type !== 'stage' && type !== 'seed' && type !== 'rescan') this.dispatch('info', 'Torrent queued for background download. Check the management page for progress...')
       if ((this.settings.torrentStreamedDownload && this.currentFile && this.currentFile.progress !== 1) || (!this.settings.torrentStreamedDownload && this.currentTorrent && this.currentTorrent.progress !== 1)) {
         for (const file of torrent.files) {
@@ -296,7 +262,7 @@ export default class TorrentClient extends WebTorrent {
       }
     })
     torrent.once('ready', () => {
-      this.scrapeTorrent(torrent)
+      this.scrapeTorrents([torrent])
       if (!skipVerify || type !== 'stage') {
         this.dispatch('staging', torrent.infoHash)
       }
@@ -343,7 +309,7 @@ export default class TorrentClient extends WebTorrent {
   }
 
   promoteTorrent(torrent, skipVerify, type) {
-    if (this.hault || torrent.destroyed) return
+    if (this.destroyed || torrent.destroyed) return
       if (!skipVerify) {
         structureHash(path.join(torrent.path, torrent.name)).then(structureHash => {
           saveTorrent(this.torrentCache, torrent.infoHash, {
@@ -395,7 +361,7 @@ export default class TorrentClient extends WebTorrent {
   }
 
   async handleMessage ({ data }) {
-    if (this.hault) return
+    if (this.destroyed) return
     switch (data.type) {
       case 'load': {
         this.loadLastTorrent(data.data)
@@ -473,7 +439,7 @@ export default class TorrentClient extends WebTorrent {
               this.playerProcess.stdout.on('data', () => {})
               const startTime = Date.now()
               this.playerProcess.once('close', () => {
-                if (this.hault) return
+                if (this.destroyed) return
                 this.playerProcess = null
                 const seconds = (Date.now() - startTime) / 1000
                 this.dispatch('externalWatched', seconds)
@@ -510,7 +476,7 @@ export default class TorrentClient extends WebTorrent {
           if (!this.settings.torrentPersist) await removeTorrent(this.torrentCache, cache?.infoHash)
           else {
             const stats = { infoHash: cache.infoHash, name: cache.name, size: cache.size, incomplete: !cache.structureHash?.length }
-            this.completedTorrents = Array.from(new Set([...this.completedTorrents || [], ...stats]))
+            this.completedTorrents = Array.from(new Set([...this.completedTorrents || [], stats]))
             this.dispatch('completed', stats)
           }
           const removed = this.seedingTorrents.find(t => t.infoHash === cache.infoHash) || this.stagingTorrents.find(t => t.infoHash === cache.infoHash)
@@ -582,43 +548,71 @@ export default class TorrentClient extends WebTorrent {
     }
   }
 
-  async scrapeTorrent(torrent) {
-    if (!this.hault && torrent?.infoHash) {
+  async scrapeTorrents(torrents) {
+    if (!this.destroyed && torrents?.length) {
+      const announceMap = new Map()
+      const announceCounts = new Map()
+      for (const torrent of torrents) {
+        if (!torrent?.infoHash || !torrent.announce) continue
+        const announces = Array.isArray(torrent.announce) ? torrent.announce : torrent.announce.split(',').map(s => s.trim()).filter(Boolean)
+        debug(`Scrapeable announces ${torrent.infoHash}`, announces)
+        for (const url of announces) {
+          if (!url.match(/\/announce(?:[^/]*)?$/)) continue
+          if (!announceMap.has(url)) announceMap.set(url, new Set())
+          announceMap.get(url).add(torrent.infoHash)
+          announceCounts.set(url, (announceCounts.get(url) || 0) + 1)
+        }
+      }
+      let bestAnnounce = announceMap.has(trackerNSFWUrl) ? trackerNSFWUrl : announceMap.has(trackerUrl) ? trackerUrl : [...announceCounts.entries()].reduce((best, [url, count]) => count > (announceCounts.get(best) || 0) ? url : best, null)
+      if (!bestAnnounce) return
+      const infoHashes = Array.from(announceMap.get(bestAnnounce) || [])
+      if (infoHashes.length === 0) return
+
+      let tracker = this.tracker
+      if (bestAnnounce.toLowerCase().trim() !== trackerNSFWUrl.toLowerCase().trim() || bestAnnounce.toLowerCase().trim() !== trackerUrl.toLowerCase().trim()) {
+        if (!this.trackers[bestAnnounce]) this.trackers[bestAnnounce] = new HTTPTracker({}, bestAnnounce)
+        tracker = this.trackers[bestAnnounce]
+      }
+
+      const id = Math.trunc(Math.random() * Number.MAX_SAFE_INTEGER).toString()
       try {
-        const data = await this._scrape({ id: Math.trunc(Math.random() * Number.MAX_SAFE_INTEGER).toString(), infoHashes: [torrent.infoHash] }, false)
-        this.scrapeStats[torrent.infoHash] = { seeders: data?.result?.[0]?.complete, leechers: data?.result?.[0]?.incomplete }
+        const data = await this._scrape({ id, infoHashes }, tracker)
+        for (const [i, hash] of infoHashes.entries()) {
+          const result = data?.result?.[i]
+          if (result) this.scrapeStats[hash] = { seeders: result.complete || 0, leechers: result.incomplete || 0 }
+        }
+        debug(`Scraped ${infoHashes.length} hashes using ${bestAnnounce}`)
       } catch (err) {
-        debug('Failed to scrape loaded torrent:', err)
+        debug(`Failed to scrape torrents with ${bestAnnounce}`, err)
       }
     }
   }
 
-  async _scrape ({ id, infoHashes }, client = true) {
-    debug(`Scraping ${infoHashes.length} hashes, id: ${id}, client: ${client}`)
+  async _scrape ({ id, infoHashes }, tracker = null) {
+    debug(`Scraping ${infoHashes.length} hashes, id: ${id}, process: ${!!tracker}`)
     // this seems to give the best speed, and lowest failure rate
     const MAX_ANNOUNCE_LENGTH = 1300 // it's likely 2048, but let's undercut it
     const RATE_LIMIT = 200 // ms
 
-    const ANNOUNCE_LENGTH = this.tracker.scrapeUrl.length
+    const ANNOUNCE_LENGTH = (tracker || this.tracker).scrapeUrl.length
 
     let batch = []
     let currentLength = ANNOUNCE_LENGTH // fuzz the size a little so we don't always request the same amt of hashes
 
     const results = []
-
     const scrape = async () => {
       if (results.length) await sleep(RATE_LIMIT)
       const result = await new Promise(resolve => {
-        this.tracker._request(this.tracker.scrapeUrl, { info_hash: batch }, (err, data) => {
+        (tracker || this.tracker)._request((tracker || this.tracker).scrapeUrl, { info_hash: batch }, (err, data) => {
           if (err) {
             const error = errorToString(err)
             debug('Failed to scrape: ' + error)
-            if (client) this.dispatch('warn', `Failed to update seeder counts: ${error}`)
+            if (!tracker) this.dispatch('warn', `Failed to update seeder counts: ${error}`)
             return resolve([])
           }
           const { files } = data
           const result = []
-          debug(`Scraped ${Object.keys(files || {}).length} hashes, id: ${id}, client: ${client}`)
+          debug(`Scraped ${Object.keys(files || {}).length} hashes, id: ${id}, process: ${!!tracker}`)
           for (const [key, data] of Object.entries(files || {})) {
             result.push({ hash: key.length !== 40 ? arr2hex(text2arr(key)) : key, ...data })
           }
@@ -642,9 +636,9 @@ export default class TorrentClient extends WebTorrent {
     }
     if (batch.length) await scrape()
 
-    debug(`Scraped ${results.length} hashes, id: ${id}, client: ${client}`)
+    debug(`Scraped ${results.length} hashes, id: ${id}, process: ${!!tracker}`)
 
-    if (client) this.dispatch('scrape', { id, result: results })
+    if (!tracker) this.dispatch('scrape', { id, result: results })
     return { id, result: results }
   }
 
@@ -664,13 +658,17 @@ export default class TorrentClient extends WebTorrent {
 
   destroy () {
     debug('Destroying TorrentClient')
-    if (this.destroyed) return
-    this.hault = true
-    this.tracker?.destroy()
+    if (this.destroyed) {
+      debug('Ooops! TorrentClient is already destroyed!')
+      this.ipc?.send('destroyed')
+      return
+    }
+    for (const tracker of Object.values(this.trackers)) tracker?.destroy(() => null)
+    this.tracker?.destroy(() => null)
     this.parser?.destroy()
-    this.server.close()
+    this.server?.close()
     super.destroy(() => {
-      this.ipc.send('destroyed')
+      this.ipc?.send('destroyed')
     })
   }
 }
