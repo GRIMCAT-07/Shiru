@@ -382,6 +382,11 @@ body {
   background-color: var(--success-color-subtle) !important;
 }
 
+.transparent {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .btn:disabled {
   opacity: 0.3 !important;
 }

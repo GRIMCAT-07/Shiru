@@ -18,6 +18,7 @@
 
   let preview = false
   let prompt = writable(false)
+  let clicked = writable(false)
 
   /** @type {import('@/modules/al.d.ts').Media | null} */
   let media
@@ -44,10 +45,12 @@
   function setClickState() {
     if (!$prompt && media?.mediaListEntry?.progress < (data.episode - 1)) prompt.set(true)
     else data.onclick ? data.onclick() : data.episode ? promptTorrent() : viewMedia()
+    clicked.set(true)
+    setTimeout(() => clicked.set(false))
   }
   function setHoverState (state, tapped) {
     if (!$prompt && media?.mediaListEntry?.progress < (data.episode - 1)) prompt.set(!!tapped)
-    preview = state
+    if (!$prompt || !$clicked) preview = state
   }
 
   $: progress = liveAnimeEpisodeProgress(media?.id, data?.episode)
@@ -60,7 +63,7 @@
   onDestroy(() => clearInterval(sinceInterval))
 </script>
 
-<div class='d-flex p-20 pb-10 position-relative episode-card' class:mb-150={section} use:hoverExit={() => setTimeout(() => { if (!preview) prompt.set(false) })} use:hoverClick={[setClickState, setHoverState, viewMedia]} role='none'> <!-- use:hoverExit={() => prompt.set(false)}  -->
+<div class='d-flex p-20 pb-10 position-relative episode-card' class:mb-150={section} use:hoverExit={() => setTimeout(() => { if (!preview) prompt.set(false) })} use:hoverClick={[setClickState, setHoverState, viewMedia]} role='none'>
   {#if preview}
     <EpisodePreviewCard {data} bind:prompt={$prompt} />
   {/if}
@@ -69,12 +72,12 @@
       <img loading='lazy' src={episodeThumbnail} alt='cover' class='cover-img w-full h-full position-absolute' class:cover-rotated={!(data.episodeData?.image || media?.bannerImage) && media?.genres?.includes('Hentai')} style:--color={media?.coverImage?.color || '#1890ff'} referrerpolicy='no-referrer' />
       {#if data.episodeData?.video}
         <video src={data.episodeData.video}
-               class='w-full position-absolute left-0'
-               class:d-none={hide}
-               playsinline
-               preload='metadata'
-               muted
-               on:loadeddata={() => { hide = false }} />
+          class='w-full position-absolute left-0'
+          class:d-none={hide}
+          playsinline
+          preload='metadata'
+          muted
+          on:loadeddata={() => { hide = false }} />
       {/if}
       {#if data.failed}
         <div class='pr-10 pt-10 z-10 position-absolute top-0 right-0 text-danger failed' title='Failed to resolve media'>
