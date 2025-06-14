@@ -449,9 +449,6 @@
   .pr-30 {
     padding-right: 3rem;
   }
-  .pl-40 {
-    padding-left: 4rem;
-  }
   .mt-80 {
     margin-top: 8rem;
   }

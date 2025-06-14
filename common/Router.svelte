@@ -34,5 +34,5 @@
 {:else if page === 'watchtogether'}
   <WatchTogether />
 {:else if page === 'torrents'}
-  <ViewTorrent class='overflow-y-scroll'/>
+  <ViewTorrent class='overflow-y-scroll overflow-x-hidden'/>
 {/if}

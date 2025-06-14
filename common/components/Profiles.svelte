@@ -75,7 +75,7 @@
   window.addEventListener('overlay-check', () => { if ($profileView) close() })
 </script>
 
-<SoftModal class='w-auto mw-350 d-flex justify-content-center flex-column scrollbar-none bg-very-dark p-40 mx-20 mb-30 mt-20 rounded' bind:showModal={$profileView} {close} id='profileModal'>
+<SoftModal class='w-auto mw-350 d-flex justify-content-center flex-column scrollbar-none bg-very-dark p-30 mx-20 mb-30 mt-20 rounded' bind:showModal={$profileView} {close} id='profileModal'>
   {#if $profileView}
     <div class='d-flex justify-content-end align-items-start w-auto'>
       <button type='button' class='btn btn-square d-flex align-items-center justify-content-center' use:click={close}><X size='1.7rem' strokeWidth='3'/></button>

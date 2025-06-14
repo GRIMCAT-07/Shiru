@@ -131,6 +131,10 @@
   min-width: 35rem;
 }
 
+.wm-600 {
+  max-width: 60rem;
+}
+
 .wm-1150 {
   max-width: 115rem;
 }
@@ -480,8 +484,11 @@ img[src=''], img[src=' '] {
 .p-4 {
   padding: 0.4rem;
 }
-.p-40 {
+.p-30 {
   padding: 3rem;
+}
+.pl-40 {
+  padding-left: 4rem;
 }
 
 .px-40 {
