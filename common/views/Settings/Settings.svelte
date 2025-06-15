@@ -1,5 +1,6 @@
 <script context='module'>
   import { settings } from '@/modules/settings.js'
+  import { SUPPORTS } from '@/modules/support.js'
   import { capitalize } from '@/modules/util.js'
   import IPC from '@/modules/ipc.js'
   import Debug from 'debug'
@@ -24,6 +25,7 @@
   })
   IPC.emit('version')
   IPC.emit('discord-rpc', settings.value.enableRPC)
+  if (SUPPORTS.angle) settings.value.angle = await IPC.invoke('get:angle')
 </script>
 
 <script>

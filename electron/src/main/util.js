@@ -24,16 +24,15 @@ const flags = [
   // image, and video cache hopefully lets video buffer more and remembers more images, might be bad to touch this?
   ['disk-cache-size', '500000000']
 ]
-for (const [flag, value] of flags) {
-  app.commandLine.appendSwitch(flag, value)
-}
+for (const [flag, value] of flags) app.commandLine.appendSwitch(flag, value)
 
 app.commandLine.appendSwitch('use-angle', store.get('angle') || 'default')
 
-ipcMain.on('open', (event, url) => {
-  shell.openExternal(url)
-})
-
+ipcMain.on('open', (event, url) => shell.openExternal(url))
+ipcMain.on('set:angle', (e, data) => store.set('angle', data))
+ipcMain.on('close', () => app.quit())
+ipcMain.on('version', ({ sender }) => sender.send('version', app.getVersion()))
+ipcMain.handle('get:angle', () => store.get('angle') || 'default')
 ipcMain.on('doh', (event, dns) => {
   try {
     app.configureHostResolver({
@@ -41,18 +40,6 @@ ipcMain.on('doh', (event, dns) => {
       secureDnsServers: ['' + new URL(dns)]
     })
   } catch (e) {}
-})
-
-ipcMain.on('angle', (e, data) => {
-  store.set('angle', data)
-})
-
-ipcMain.on('close', () => {
-  app.quit()
-})
-
-ipcMain.on('version', ({ sender }) => {
-  sender.send('version', app.getVersion())
 })
 
 app.setJumpList?.([

@@ -13,7 +13,8 @@ contextBridge.exposeInMainWorld('IPC', {
   },
   off: (event) => {
     ipcRenderer.removeAllListeners(event)
-  }
+  },
+  invoke: (event, data) => ipcRenderer.invoke(event, data)
 })
 contextBridge.exposeInMainWorld('version', {
   arch: process.arch,

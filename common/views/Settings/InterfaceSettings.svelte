@@ -11,7 +11,7 @@
   import CustomDropdown from '@/components/CustomDropdown.svelte'
   import Helper from '@/modules/helper.js'
   function updateAngle () {
-    IPC.emit('angle', settings.value.angle)
+    IPC.emit('set:angle', settings.angle)
   }
   export let settings
 

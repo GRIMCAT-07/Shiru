@@ -1,7 +1,7 @@
 <script>
   import { persisted } from 'svelte-persisted-store'
   import { client } from '@/modules/torrent/torrent.js'
-  import { capitalize } from '@/modules/util.js'
+  import { capitalize, defaults } from '@/modules/util.js'
   import { onDestroy } from 'svelte'
   import { platformMap } from '@/views/Settings/Settings.svelte'
   import SettingCard from '@/views/Settings/SettingCard.svelte'
@@ -11,6 +11,11 @@
 
   export let version = ''
   export let settings
+
+  function resetSettings () {
+    IPC.emit('set:angle', defaults.angle)
+    cache.resetSettings()
+  }
 
   function updateDebug (debug) {
     Debug.disable()
@@ -117,7 +122,7 @@
   <div class='d-inline-flex flex-column'>
     <button use:click={importSettings} class='btn btn-primary d-flex align-items-center justify-content-center' type='button'><span>Import from Clipboard</span></button>
     <button use:click={exportSettings} class='btn btn-primary mt-5 d-flex align-items-center justify-content-center' type='button'><span>Export to Clipboard</span></button>
-    <button use:click={() => cache.resetSettings()} class='btn btn-danger mt-5 d-flex align-items-center justify-content-center' type='button' data-toggle='tooltip' data-placement='top' data-title='Restores All Settings Back To Their Recommended Defaults'><span>Reset to Defaults</span></button> <!--TODO: Add a prompt for the user  -->
+    <button use:click={resetSettings} class='btn btn-danger mt-5 d-flex align-items-center justify-content-center' type='button' data-toggle='tooltip' data-placement='top' data-title='Restores All Settings Back To Their Recommended Defaults'><span>Reset to Defaults</span></button> <!--TODO: Add a prompt for the user  -->
   </div>
 </SettingCard>
 
