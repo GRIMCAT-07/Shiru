@@ -4,6 +4,7 @@
   import { matchPhrase } from '@/modules/util.js'
   import { settings } from '@/modules/settings.js'
   import { client } from '@/modules/torrent/torrent.js'
+  import ErrorCard from '@/components/cards/ErrorCard.svelte'
   import TorrentDetails from '@/views/TorrentManager/TorrentDetails.svelte'
   import { Search, RefreshCw, Package, Percent, Activity, Scale, Gauge, CloudDownload, CloudUpload, Sprout, Magnet, Timer } from 'lucide-svelte'
   export const loadedTorrent = writable({})
@@ -36,9 +37,14 @@
     if (!searchText?.length) return results
     return results.filter(({ name }) => matchPhrase(searchText, name, 0.4, false, true)) || []
   }
+  $: filteredLoaded = matchPhrase(searchText, $loadedTorrent?.name, 0.4, false, true)
+  $: filteredStaging = filterResults($stagingTorrents.slice().reverse(), searchText) || []
+  $: filteredSeeding = filterResults($seedingTorrents.slice().reverse(), searchText) || []
+  $: filteredCompleted = filterResults($completedTorrents.slice().reverse(), searchText) || []
+  $: foundResults = !(searchText?.length && !filteredLoaded && !filteredStaging.length && !filteredSeeding.length && !filteredCompleted.length)
 </script>
 
-<div class='bg-dark h-full w-full d-flex flex-wrap flex-row root align-content-start status-transition {$$restProps.class}' style={$$restProps.class ? 'padding-top: max(var(--safe-area-top), var(--safe-bar-top))' : ''}>
+<div class='bg-dark h-full w-full root status-transition {$$restProps.class}' style={$$restProps.class ? 'padding-top: max(var(--safe-area-top), var(--safe-bar-top))' : ''}>
   <div class='w-full {$$restProps.class ? `ml-20 mt-20` : ``}'>
     <h4 class='font-weight-bold m-0 mb-10'>Manage Torrents</h4>
     <div class='d-flex align-items-center'>
@@ -51,10 +57,10 @@
           data-option='search'
           placeholder='Filter torrents by text, or manually specify one by pasting a magnet link or torrent file' bind:value={searchText} />
       </div>
-      <button type='button' use:click={() => client.send('rescan')} disabled={!settings.value.torrentPersist} title={!settings.value.torrentPersist ? 'Persist Files is disabled' : 'Rescan Cache'} class='btn btn-primary d-flex align-items-center justify-content-center ml-20 mr-5 mr-md-20 font-scale-16 h-full'><RefreshCw class='mr-10' size='1.8rem' strokeWidth='2.5'/><span>Rescan</span></button>
+      <button type='button' use:click={() => client.send('rescan')} disabled={!settings.value.torrentPersist} title={!settings.value.torrentPersist ? 'Persist Files is disabled' : 'Rescan Cache'} class='btn btn-primary d-flex align-items-center justify-content-center ml-20 mr-20 font-scale-16 h-full'><RefreshCw class='mr-10' size='1.8rem' strokeWidth='2.5'/><span>Rescan</span></button>
     </div>
   </div>
-  <div class='d-flex flex-column w-full h-full text-wrap text-break-word font-scale-16 z-40 mt-20'>
+  <div class='d-flex flex-column w-full text-wrap text-break-word font-scale-16 mt-20 z-40'>
     <div class='d-flex flex-row mb-10 font-scale-18'>
       <div class='font-weight-bold p-5 ml-20 mw-150 flex-1 w-auto'>Name</div>
       <div class='font-weight-bold p-5 w-150 d-none d-md-block'><span class='d-none d-lg-block'>Size</span><Package class='d-lg-none' size='2rem'/></div>
@@ -69,17 +75,21 @@
       <div class='font-weight-bold p-5 w-115 d-none d-md-block'><span class='d-none d-lg-block'>ETA</span><Timer class='d-lg-none' size='2rem'/></div>
       <div class='font-weight-bold p-5 w-40 mr-5 mr-md-20 flex-shrink-0'/>
     </div>
-    {#if !searchText?.length || matchPhrase(searchText, $loadedTorrent?.name, 0.4, false, true)}
-      <TorrentDetails bind:data={$loadedTorrent} current={true} />
+    {#if foundResults}
+      {#if !searchText?.length || filteredLoaded}
+        <TorrentDetails bind:data={$loadedTorrent} current={true} />
+      {/if}
+      {#each filteredStaging as torrent}
+        <TorrentDetails data={torrent}/>
+      {/each}
+      {#each filteredSeeding as torrent}
+        <TorrentDetails data={torrent}/>
+      {/each}
+      {#each filteredCompleted as torrent}
+        <TorrentDetails data={torrent} completed={true}/>
+      {/each}
+    {:else}
+      <ErrorCard promise={{ errors: [ { message: 'found no results' }]}}/>
     {/if}
-    {#each filterResults($stagingTorrents.slice().reverse(), searchText) as torrent}
-      <TorrentDetails data={torrent}/>
-    {/each}
-    {#each filterResults($seedingTorrents.slice().reverse(), searchText) as torrent}
-      <TorrentDetails data={torrent}/>
-    {/each}
-    {#each filterResults($completedTorrents.slice().reverse(), searchText) as torrent}
-      <TorrentDetails data={torrent} completed={true}/>
-    {/each}
   </div>
 </div>
