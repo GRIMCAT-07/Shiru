@@ -1,7 +1,8 @@
 import WebTorrent from 'webtorrent'
 import HTTPTracker from 'bittorrent-tracker/lib/client/http-tracker.js' //../../node_modules/bittorrent-tracker/lib/client/http-tracker.js
+import Client from 'bittorrent-tracker'
 import { hex2bin, arr2hex, text2arr } from 'uint8-util'
-import { toBase64, fromBase64, saveTorrent, getTorrent, getTorrents, removeTorrent, isVerified, structureHash, stringifyQuery, errorToString, ANNOUNCE, trackerUrl, trackerNSFWUrl, TMP } from './utility.js'
+import { toBase64, fromBase64, saveTorrent, getTorrent, getTorrents, removeTorrent, isVerified, structureHash, stringifyQuery, errorToString, ANNOUNCE, TMP } from './utility.js'
 import { fontRx, getRandomInt, deepEqual, sleep, subRx, videoRx } from '../util.js'
 import { SUPPORTS } from '@/modules/support.js'
 import { spawn } from 'node:child_process'
@@ -38,8 +39,6 @@ export default class TorrentClient extends WebTorrent {
     this.player = settings.playerPath
     this.ipc = ipc
     this.torrentCache = path.join(this.settings.torrentPathNew || TMP || '', 'shiru-cache')
-    this.trackers = {}
-    this.scrapeStats = {}
     fs.mkdir(this.torrentCache, { recursive: true })
     ipc.send('torrentRequest')
     this._ready = new Promise(resolve => {
@@ -77,8 +76,8 @@ export default class TorrentClient extends WebTorrent {
           name: this.currentTorrent?.name,
           size: this.currentTorrent?.length,
           progress: this.currentTorrent?.progress,
-          numSeeders: this.scrapeStats?.[this.currentTorrent?.infoHash]?.seeders || 0,
-          numLeechers: this.scrapeStats?.[this.currentTorrent?.infoHash]?.leechers || 0,
+          numSeeders: this.currentTorrent?.seeders || 0,
+          numLeechers: this.currentTorrent?.leechers || 0,
           numPeers: this.currentTorrent?.numPeers || 0,
           downloadSpeed: this.currentTorrent?.downloadSpeed || 0,
           uploadSpeed: this.currentTorrent?.uploadSpeed || 0,
@@ -90,8 +89,8 @@ export default class TorrentClient extends WebTorrent {
           name: torrent.name,
           size: torrent.length,
           progress: torrent.progress,
-          numSeeders: this.scrapeStats?.[torrent.infoHash]?.seeders || 0,
-          numLeechers: this.scrapeStats?.[torrent.infoHash]?.leechers || 0,
+          numSeeders: torrent?.seeders || 0,
+          numLeechers: torrent?.leechers || 0,
           numPeers: torrent.numPeers,
           downloadSpeed: torrent.downloadSpeed,
           uploadSpeed: torrent.uploadSpeed,
@@ -103,8 +102,8 @@ export default class TorrentClient extends WebTorrent {
           name: torrent.name,
           size: torrent.length,
           progress: torrent.progress,
-          numSeeders: this.scrapeStats?.[torrent.infoHash]?.seeders || 0,
-          numLeechers: this.scrapeStats?.[torrent.infoHash]?.leechers || 0,
+          numSeeders: torrent?.seeders || 0,
+          numLeechers: torrent?.leechers || 0,
           numPeers: torrent.numPeers,
           downloadSpeed: torrent.downloadSpeed,
           uploadSpeed: torrent.uploadSpeed,
@@ -120,9 +119,7 @@ export default class TorrentClient extends WebTorrent {
     if (controller) controller.then(createServer)
     else createServer()
 
-    this.tracker = new HTTPTracker({}, trackerUrl)
-    setInterval(async () => this.scrapeTorrents([ this.currentTorrent, ...(this.stagingTorrents || []), ...(this.seedingTorrents || []) ]), getRandomInt(300, 480) * 1000)
-
+    this.tracker = new HTTPTracker({}, atob('aHR0cDovL255YWEudHJhY2tlci53Zjo3Nzc3L2Fubm91bmNl'))
     process.on('uncaughtException', this.dispatchError.bind(this))
     this.on('error', this.dispatchError.bind(this))
   }
@@ -216,8 +213,8 @@ export default class TorrentClient extends WebTorrent {
       if (!torrent.ready && !skipVerify) this.dispatch('info', 'Detected already downloaded files. Verifying file integrity. This might take a minute...')
     })
     torrent.once('ready', () => {
-      this.scrapeTorrents([torrent])
       this.dispatch('loaded', { id: !recover ? og_data || data : torrent.torrentFile, infoHash: torrent.infoHash })
+      this.bindTracker(torrent)
       this.torrentReady(torrent)
     })
     torrent.once('done', async () => this.promoteTorrent(torrent, skipVerify))
@@ -245,7 +242,6 @@ export default class TorrentClient extends WebTorrent {
       deselect: false
     })
     this.stagingTorrents.push(torrent)
-    this.scrapeTorrents([torrent])
     torrent.once('verified', async () => {
       if (this.destroyed) return
       if (torrent.length > await this.storageQuota(torrent.path)) this.dispatchError('File Too Big! This File Exceeds The Selected Drive\'s Available Space. Change Download Location In Torrent Settings To A Drive With More Space And Restart The App!')
@@ -257,8 +253,8 @@ export default class TorrentClient extends WebTorrent {
       }
     })
     torrent.once('ready', () => {
-      this.scrapeTorrents([torrent])
       if (!skipVerify || type !== 'stage') this.dispatch('staging', torrent.infoHash)
+      this.bindTracker(torrent)
       this.promoteTorrent(torrent, skipVerify, type)
     })
     torrent.once('done', () => this.promoteTorrent(torrent, skipVerify, type))
@@ -531,44 +527,35 @@ export default class TorrentClient extends WebTorrent {
     }
   }
 
-  async scrapeTorrents(torrents) {
-    if (!this.destroyed && torrents?.length) {
-      const announceMap = new Map()
-      const announceCounts = new Map()
-      for (const torrent of torrents) {
-        if (!torrent?.infoHash || !torrent.announce) continue
-        const announces = Array.isArray(torrent.announce) ? torrent.announce : torrent.announce.split(',').map(s => s.trim()).filter(Boolean)
-        debug(`Scrapeable announces ${torrent.infoHash}`, announces)
-        for (const url of announces) {
-          if (!url.match(/\/announce(?:[^/]*)?$/)) continue
-          if (!announceMap.has(url)) announceMap.set(url, new Set())
-          announceMap.get(url).add(torrent.infoHash)
-          announceCounts.set(url, (announceCounts.get(url) || 0) + 1)
-        }
-      }
-      let bestAnnounce = announceMap.has(trackerNSFWUrl) ? trackerNSFWUrl : announceMap.has(trackerUrl) ? trackerUrl : [...announceCounts.entries()].reduce((best, [url, count]) => count > (announceCounts.get(best) || 0) ? url : best, null)
-      if (!bestAnnounce) return
-      const infoHashes = Array.from(announceMap.get(bestAnnounce) || [])
-      if (infoHashes.length === 0) return
+  bindTracker(torrent) {
+    if (!torrent?.infoHash || torrent.tracker) return
+    if (!(torrent.announce || []).length) return
 
-      let tracker = this.tracker
-      if (bestAnnounce.toLowerCase().trim() !== trackerNSFWUrl.toLowerCase().trim() || bestAnnounce.toLowerCase().trim() !== trackerUrl.toLowerCase().trim()) {
-        if (!this.trackers[bestAnnounce]) this.trackers[bestAnnounce] = new HTTPTracker({}, bestAnnounce)
-        tracker = this.trackers[bestAnnounce]
-      }
+    const client = new Client({
+      infoHash: torrent.infoHash,
+      announce: torrent.announce,
+      peerId: torrent.client?.peerId,
+      port: this.torrentPort
+    })
 
-      const id = Math.trunc(Math.random() * Number.MAX_SAFE_INTEGER).toString()
-      try {
-        const data = await this._scrape({ id, infoHashes }, tracker)
-        for (const [i, hash] of infoHashes.entries()) {
-          const result = data?.result?.[i]
-          if (result) this.scrapeStats[hash] = { seeders: result.complete || 0, leechers: result.incomplete || 0 }
-        }
-        debug(`Scraped ${infoHashes.length} hashes using ${bestAnnounce}`)
-      } catch (err) {
-        debug(`Failed to scrape torrents with ${bestAnnounce}`, err)
+    client.on('update', (data) => {
+      // Only update if it's a new/better tracker report, typically it will lean toward favoring a specific url and sticking with it.
+      if (!torrent.trackerUrl || (torrent.trackerUrl === data.announce) || (torrent.seeders <= data.complete)) {
+        torrent.seeders = data.complete
+        torrent.leechers = data.incomplete
+        torrent.trackerUrl = data.announce
+        debug(`Updated seeders and leechers:`, { name: torrent.name, infoHash: torrent.infoHash, seeders: torrent.seeders, leechers: torrent.leechers, trackerUrl: torrent.trackerUrl })
       }
+    })
+
+    torrent.tracker = client
+    const _destroy = torrent.destroy.bind(torrent)
+    torrent.destroy = (opts, cb) => {
+      client.destroy()
+      return _destroy(opts, cb)
     }
+    torrent.once('done', () => client.complete())
+    debug(`Successfully bound tracker:`, { name: torrent.name, infoHash: torrent.infoHash })
   }
 
   async _scrape ({ id, infoHashes }, tracker = null) {
@@ -642,7 +629,6 @@ export default class TorrentClient extends WebTorrent {
       this.ipc?.send('destroyed')
       return
     }
-    for (const tracker of Object.values(this.trackers)) tracker?.destroy(() => null)
     this.tracker?.destroy(() => null)
     this.parser?.destroy()
     this.server?.close()
