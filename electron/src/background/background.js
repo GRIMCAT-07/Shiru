@@ -17,7 +17,11 @@ ipcRenderer.on('main-heartbeat', async (event, settings) => {
   const { default: TorrentClient } = await import('@/modules/torrent/webtorrent.js')
   globalThis.client = new TorrentClient(ipcRenderer, storageQuota, 'node', settings)
 })
-ipcRenderer.on('webtorrent-reload', () => {
+ipcRenderer.on('webtorrent-reload', async () => {
   globalThis.client?.destroy()
+  await new Promise(resolve => {
+    ipcRenderer.once('destroyed', resolve)
+    setTimeout(resolve, 5000).unref?.()
+  })
   setHeartBeat()
 })

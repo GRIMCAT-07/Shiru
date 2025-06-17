@@ -26,14 +26,14 @@
 
 <h4 class='mb-10 font-weight-bold'>Client Settings</h4>
 <SettingCard title='Torrent Download Location' description='Path to the folder used to store torrents. By default this is the TMP folder, which might lose data when your OS tries to reclaim storage.  {SUPPORTS.isAndroid ? "RESTART IS REQUIRED. /sdcard/ is internal storage, not external SD Cards. /storage/AB12-34CD/ is external storage, not internal. Thank you Android!" : ""}'>
-  <div class='input-group w-300 mw-full flex-nowrap'>
+  <div class='input-group mw-100 w-400 flex-nowrap'>
     <div class='input-group-prepend'>
       <button type='button' use:click={handleFolder} class='btn btn-primary input-group-append d-flex align-items-center justify-content-center'><span>Select Folder</span></button>
     </div>
     {#if !SUPPORTS.isAndroid}
-      <input type='url' class='form-control bg-dark mw-100' readonly bind:value={settings.torrentPathNew} placeholder='/tmp' />
+      <input type='url' class='form-control bg-dark mw-100 text-truncate' readonly bind:value={settings.torrentPathNew} placeholder='/tmp' />
     {:else}
-      <input type='text' class='form-control bg-dark mw-100' bind:value={settings.torrentPathNew} placeholder='/tmp' />
+      <input type='text' class='form-control bg-dark mw-100 text-truncate' bind:value={settings.torrentPathNew} placeholder='/tmp' />
     {/if}
     <div class='input-group-prepend'>
       <button type='button' use:click={() => settings.torrentPathNew = undefined} disabled={!settings.torrentPathNew} class='btn btn-danger btn-square input-group-append px-5 d-flex align-items-center'><Eraser size='1.8rem' /></button>

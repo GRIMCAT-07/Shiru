@@ -3,6 +3,7 @@
   import { profiles, settings, sync } from '@/modules/settings.js'
   import { getMediaMaxEp } from '@/modules/anime.js'
   import { codes, createListener } from '@/modules/util.js'
+  import { SUPPORTS } from '@/modules/support.js'
   import { click } from '@/modules/click.js'
   import { writable } from 'svelte/store'
   import { toast } from 'svelte-sonner'
@@ -186,61 +187,63 @@
 </script>
 
 
-<button type='button' id='list-btn' title='List Editor' class='btn scoring-btn {viewAnime ? `bg-dark btn-lg` : previewAnime ? `btn-square` : `bg-dark-light`} font-size-{viewAnime ? `20` : `16`} btn-square ml-10 shadow-none border-0 d-flex align-items-center justify-content-center' use:click={() => toggleModal({ toggle: !$showModal })} disabled={!Helper.isAuthorized()}>
-  {#if media?.mediaListEntry}
-    <PencilLine size='1.7rem' />
-  {:else}
-    <Bookmark size='1.7rem' />
-  {/if}
-</button>
-{#if Helper.isAuthorized()}
-  <div class='modal scoring position-absolute bg-dark shadow-lg rounded-3 p-20 z-30 {$showModal ? `visible` : `invisible`} {!previewAnime && !viewAnime ? `banner` : !previewAnime ? `viewAnime` : `previewAnime`} {(!previewAnime || !viewAnime) ? `w-auto h-auto` : ``}' use:click={() => {}}>
-    <div class='d-flex justify-content-between align-items-center mb-2'>
-      <h5 class='font-weight-bold'>List Editor</h5>
-      <button type='button' class='btn btn-square d-flex align-items-center justify-content-center' use:click={() => toggleModal({ toggle: false })}><X size='1.7rem' strokeWidth='3'/></button>
-    </div>
-    <div class='modal-body'>
-      <div class='form-group mb-15'>
-        <label class='d-block mb-5' for='status'>Status</label>
-        <select class='form-control bg-dark-light' class:noList={status?.includes('NOT IN LIST')} id='status' required bind:value={status}>
-          <option value='NOT IN LIST' selected disabled hidden>Not on List</option>
-          <option value='CURRENT'>Watching</option>
-          <option value='PLANNING'>Planning</option>
-          <option value='COMPLETED'>Completed</option>
-          <option value='PAUSED'>Paused</option>
-          <option value='DROPPED'>Dropped</option>
-          <option value='REPEATING'>Rewatching</option>
-        </select>
+<div class='score-dropdown'>
+  <button type='button' id='list-btn' title='List Editor' class='btn scoring-btn {viewAnime ? `bg-dark btn-lg` : previewAnime ? `btn-square` : `bg-dark-light`} font-size-{viewAnime ? `20` : `16`} btn-square ml-10 shadow-none border-0 d-flex align-items-center justify-content-center' use:click={() => toggleModal({ toggle: !$showModal })} disabled={!Helper.isAuthorized()}>
+    {#if media?.mediaListEntry}
+      <PencilLine size='1.7rem' />
+    {:else}
+      <Bookmark size='1.7rem' />
+    {/if}
+  </button>
+  {#if Helper.isAuthorized()}
+    <div class='modal scoring position-absolute bg-dark shadow-lg rounded-3 p-20 z-30 {$showModal ? `visible` : `invisible`} {!previewAnime && !viewAnime ? `banner ${SUPPORTS.isAndroid ? `ml--255` : ``}` : !previewAnime ? `viewAnime` : `previewAnime`} {(!previewAnime || !viewAnime) ? `w-auto h-auto` : ``}' use:click={() => {}}>
+      <div class='d-flex justify-content-between align-items-center mb-2'>
+        <h5 class='font-weight-bold'>List Editor</h5>
+        <button type='button' class='btn btn-square d-flex align-items-center justify-content-center' use:click={() => toggleModal({ toggle: false })}><X size='1.7rem' strokeWidth='3'/></button>
       </div>
-      <div class='form-group'>
-        <label class='d-block mb-5' for='episode'>Episode</label>
-        <div class='d-flex'>
-          <input class='form-control bg-dark-light w-full' type='number' id='episode' bind:value={episode} on:input={handleEpisodes} />
-          <div>
-            <span class='total-episodes position-absolute text-right pointer-events-none'>/ {totalEpisodes}</span>
+      <div class='modal-body'>
+        <div class='form-group mb-15'>
+          <label class='d-block mb-5' for='status'>Status</label>
+          <select class='form-control bg-dark-light' class:noList={status?.includes('NOT IN LIST')} id='status' required bind:value={status}>
+            <option value='NOT IN LIST' selected disabled hidden>Not on List</option>
+            <option value='CURRENT'>Watching</option>
+            <option value='PLANNING'>Planning</option>
+            <option value='COMPLETED'>Completed</option>
+            <option value='PAUSED'>Paused</option>
+            <option value='DROPPED'>Dropped</option>
+            <option value='REPEATING'>Rewatching</option>
+          </select>
+        </div>
+        <div class='form-group'>
+          <label class='d-block mb-5' for='episode'>Episode</label>
+          <div class='d-flex'>
+            <input class='form-control bg-dark-light w-full' type='number' id='episode' bind:value={episode} on:input={handleEpisodes} />
+            <div>
+              <span class='total-episodes position-absolute text-right pointer-events-none'>/ {totalEpisodes}</span>
+            </div>
+          </div>
+        </div>
+        <div class='form-group'>
+          <label class='d-block mb-5' for='score'>Your Score</label>
+          <input class='w-full p-2 bg-dark-light' type='range' id='score' min='0' max='10' bind:value={score} />
+          <div class='d-flex justify-content-center'>
+            {#if score !== 0}
+              <span class='text-center text-decoration-underline font-weight-bold'>{score}</span>
+              <span class='ml-5'>/ 10</span>
+            {/if}
+            <span class='ml-5'>{scoreName[score]}</span>
           </div>
         </div>
       </div>
-      <div class='form-group'>
-        <label class='d-block mb-5' for='score'>Your Score</label>
-        <input class='w-full p-2 bg-dark-light' type='range' id='score' min='0' max='10' bind:value={score} />
-        <div class='d-flex justify-content-center'>
-          {#if score !== 0}
-            <span class='text-center text-decoration-underline font-weight-bold'>{score}</span>
-            <span class='ml-5'>/ 10</span>
-          {/if}
-          <span class='ml-5'>{scoreName[score]}</span>
-        </div>
+      <div class='d-flex justify-content-center'>
+        {#if !status.includes('NOT IN LIST') && media?.mediaListEntry}
+          <button type='button' class='btn btn-delete btn-secondary text-dark mr-20 font-weight-bold shadow-none d-flex align-items-center justify-content-center' use:click={() => toggleModal({ delete: true })}><span>Delete</span></button>
+        {/if}
+        <button type='button' class='btn btn-save btn-secondary text-dark font-weight-bold shadow-none d-flex align-items-center justify-content-center' use:click={() => toggleModal({ save: true })}><span>Save</span></button>
       </div>
     </div>
-    <div class='d-flex justify-content-center'>
-      {#if !status.includes('NOT IN LIST') && media?.mediaListEntry}
-        <button type='button' class='btn btn-delete btn-secondary text-dark mr-20 font-weight-bold shadow-none d-flex align-items-center justify-content-center' use:click={() => toggleModal({ delete: true })}><span>Delete</span></button>
-      {/if}
-      <button type='button' class='btn btn-save btn-secondary text-dark font-weight-bold shadow-none d-flex align-items-center justify-content-center' use:click={() => toggleModal({ save: true })}><span>Save</span></button>
-    </div>
-  </div>
-{/if}
+  {/if}
+</div>
 
 <style>
   .modal:global(.absolute-container) {
@@ -261,21 +264,24 @@
   .previewAnime {
     top: 65%;
     margin-top: -26rem;
-    width: 70%;
+    width: 70% !important;
     left: 0.5rem;
     cursor: auto;
   }
   .viewAnime {
     top: auto;
     left: auto;
-    margin-top: 3rem;
-    margin-left: 4rem;
+    margin-top: -20rem;
+    margin-left: 6rem;
   }
   .banner {
-    top: auto;
+    top: 0;
     left: auto;
-    margin-top: 2.5rem;
-    margin-left: 30.5rem;
+    margin-top: 1rem;
+    margin-left: -22rem;
+  }
+  .ml--255 {
+    margin-left: -25.5rem !important;
   }
   .visible {
     animation: 0.15s ease 0s 1 load-in;

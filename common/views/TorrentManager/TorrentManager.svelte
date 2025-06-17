@@ -13,22 +13,29 @@
   export const completedTorrents = writable([])
   client.on('activity', ({ detail }) => {
     loadedTorrent.update(() => ({ ...detail.current }))
-    stagingTorrents.update(() => Array.from(new Map(detail.staging.map(t => [t.infoHash, t])).values()))
-    seedingTorrents.update(() => Array.from(new Map(detail.seeding.map(t => [t.infoHash, t])).values()))
+    stagingTorrents.update(() => Array.from(new Map(detail.staging.map(torrent => [torrent.infoHash, torrent])).values()))
+    seedingTorrents.update(() => Array.from(new Map(detail.seeding.map(torrent => [torrent.infoHash, torrent])).values()))
   })
-  client.on('completedStats', ({ detail }) => completedTorrents.update(torrents => [...Array.from(new Map(detail.map(t => [t.infoHash, t])).values()), ...torrents]))
-  client.on('staging', ({ detail }) => completedTorrents.update(torrents => torrents.filter(t => t.infoHash !== detail)))
+  client.on('completedStats', ({ detail }) => {
+    completedTorrents.update(torrents => [...Array.from(new Map(detail.map(torrent => [torrent.infoHash, torrent])).values()), ...torrents])
+  })
+  client.on('staging', ({ detail }) => {
+    const found = structuredClone(loadedTorrent.value?.infoHash === detail || seedingTorrents.value.find(torrent => torrent.infoHash === detail) || completedTorrents.value.find(torrent => torrent.infoHash === detail))
+    if (loadedTorrent.value?.infoHash === detail) loadedTorrent.update(() => ({}))
+    seedingTorrents.update(torrents => torrents.filter(torrent => torrent.infoHash !== detail))
+    completedTorrents.update(torrents => torrents.filter(torrent => torrent.infoHash !== detail))
+    if (found) (found.incomplete ? stagingTorrents : seedingTorrents).update(prev => [found, ...prev.filter(torrent => torrent.infoHash !== detail)])
+  })
   client.on('completed', ({ detail }) => {
-    completedTorrents.update(prev => {
-      const map = new Map(prev.map(t => [t.infoHash, t]))
-      map.set(detail.infoHash, detail)
-      return Array.from(map.values())
-    })
+    if (loadedTorrent.value?.infoHash === detail.infoHash) loadedTorrent.update(() => ({}))
+    stagingTorrents.update(arr => arr.filter(torrent => torrent.infoHash !== detail.infoHash))
+    seedingTorrents.update(arr => arr.filter(torrent => torrent.infoHash !== detail.infoHash))
+    completedTorrents.update(prev => [detail, ...prev.filter(torrent => torrent.infoHash !== detail.infoHash)])
   })
   client.on('untrack',  ({ detail }) => {
-    stagingTorrents.update(arr => arr.filter(t => t.infoHash !== detail))
-    seedingTorrents.update(arr => arr.filter(t => t.infoHash !== detail))
-    completedTorrents.update(arr => arr.filter(t => t.infoHash !== detail))
+    stagingTorrents.update(arr => arr.filter(torrent => torrent.infoHash !== detail))
+    seedingTorrents.update(arr => arr.filter(torrent => torrent.infoHash !== detail))
+    completedTorrents.update(arr => arr.filter(torrent => torrent.infoHash !== detail))
   })
 </script>
 <script>
@@ -38,9 +45,9 @@
     return results.filter(({ name }) => matchPhrase(searchText, name, 0.4, false, true)) || []
   }
   $: filteredLoaded = matchPhrase(searchText, $loadedTorrent?.name, 0.4, false, true)
-  $: filteredStaging = filterResults($stagingTorrents.slice().reverse(), searchText) || []
-  $: filteredSeeding = filterResults($seedingTorrents.slice().reverse(), searchText) || []
-  $: filteredCompleted = filterResults($completedTorrents.slice().reverse(), searchText) || []
+  $: filteredStaging = filterResults($stagingTorrents, searchText) || []
+  $: filteredSeeding = filterResults($seedingTorrents, searchText) || []
+  $: filteredCompleted = filterResults($completedTorrents, searchText) || []
   $: foundResults = !(searchText?.length && !filteredLoaded && !filteredStaging.length && !filteredSeeding.length && !filteredCompleted.length)
 </script>
 
@@ -60,7 +67,7 @@
       <button type='button' use:click={() => client.send('rescan')} disabled={!settings.value.torrentPersist} title={!settings.value.torrentPersist ? 'Persist Files is disabled' : 'Rescan Cache'} class='btn btn-primary d-flex align-items-center justify-content-center ml-20 mr-20 font-scale-16 h-full'><RefreshCw class='mr-10' size='1.8rem' strokeWidth='2.5'/><span>Rescan</span></button>
     </div>
   </div>
-  <div class='d-flex flex-column w-full text-wrap text-break-word font-scale-16 mt-20 z-40'>
+  <div class='d-flex flex-column w-full text-wrap text-break-word font-scale-16 mt-20'>
     <div class='d-flex flex-row mb-10 font-scale-18'>
       <div class='font-weight-bold p-5 ml-20 mw-150 flex-1 w-auto'>Name</div>
       <div class='font-weight-bold p-5 w-150 d-none d-md-block'><span class='d-none d-lg-block'>Size</span><Package class='d-lg-none' size='2rem'/></div>
