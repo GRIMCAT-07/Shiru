@@ -33,6 +33,7 @@ main.on('portRequest', async () => {
     }
   })
 })
+main.on('webtorrent-reload', () => NodeJS.send({eventName: 'webtorrent-reload', args: []}))
 
 const [_platform, arch] = navigator.platform.split(' ')
 

@@ -51,6 +51,10 @@ channel.on('port-init', () => {
   channel.on('webtorrent-reload', async () => {
     if (client) {
       client.destroy()
+      await new Promise(resolve => {
+        channel.once('destroyed', resolve)
+        setTimeout(resolve, 5000).unref?.()
+      })
       setHeartBeat()
     }
   })
