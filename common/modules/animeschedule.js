@@ -31,8 +31,8 @@ class AnimeSchedule {
     hentaiAiredListsCache = writable({})
 
     constructor() {
-        this.feedChanged('sub', true)
-        this.feedChanged('dub', true)
+        this.subAiringLists.value = this.feedChanged('sub', true)
+        this.dubAiringLists.value = this.feedChanged('dub', true)
         setTimeout(() => {
             this.findNewNotifications()
             this.findNewDelayedEpisodes()
@@ -42,12 +42,14 @@ class AnimeSchedule {
         setInterval(async () => {
             debug(`Updating dub airing schedule`)
             try {
-                this.feedChanged('sub', true)
+                const subFeed = await this.feedChanged('sub', true)
+                if (subFeed) this.subAiringLists.value = Promise.resolve(subFeed)
             } catch (error) {
                 debug(`Failed to update Sub schedule at the scheduled interval, this is likely a temporary connection issue: ${JSON.stringify(error)}`)
             }
             try {
-                this.feedChanged('dub', true)
+                const dubFeed = await this.feedChanged('dub', true)
+                if (dubFeed) this.dubAiringLists.value = Promise.resolve(dubFeed)
             } catch (error) {
                 debug(`Failed to update Dub schedule at the scheduled interval, this is likely a temporary connection issue: ${JSON.stringify(error)}`)
             }
@@ -231,13 +233,13 @@ class AnimeSchedule {
             }
             else throw e
         }
-        const res = await this[`${type.toLowerCase()}${!schedule ? 'Aired' : 'Airing'}Lists`].value
+        const res = !schedule ? await this[`${type.toLowerCase()}AiredLists`].value : null
         if (JSON.stringify(content) !== JSON.stringify(res)) {
-            this[`${type.toLowerCase()}${!schedule ? 'Aired' : 'Airing'}Lists`].value = !schedule ? content : Promise.resolve(content)
+            if (!schedule) this[`${type.toLowerCase()}AiredLists`].value = content
             cache.cacheEntry(caches.RSS, `${feed}`, { mappings: true }, content, Date.now() + getRandomInt(10, 15) * 60 * 1000)
-            return true
+            return content
         }
-        return false
+        return null
     }
 
     getMediaForRSS(page, perPage, type) {
