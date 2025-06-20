@@ -431,24 +431,23 @@ class AnilistClient {
     const res = structuredClone(data)
     debug(`Sorting user lists based on custom sort order: ${sort}`)
     const getSortValue = (entry) => {
-      const { mediaListEntry } = entry.media
       switch (sort) {
         case 'STARTED_ON_DESC':
-          return mediaListEntry?.startedAt ? (mediaListEntry.startedAt.year || 0) * 10000 + (mediaListEntry.startedAt.month || 0) * 100 + (mediaListEntry.startedAt.day || 0) : 0
+          return entry?.media?.mediaListEntry?.startedAt ? (entry.media.mediaListEntry.startedAt.year || 0) * 10000 + (entry.media.mediaListEntry.startedAt.month || 0) * 100 + (entry.media.mediaListEntry.startedAt.day || 0) : 0
         case 'FINISHED_ON_DESC':
-          return mediaListEntry?.completedAt ? (mediaListEntry.completedAt.year || 0) * 10000 + (mediaListEntry.completedAt.month || 0) * 100 + (mediaListEntry.completedAt.day || 0) : 0
+          return entry?.media?.mediaListEntry?.completedAt ? (entry.media.mediaListEntry.completedAt.year || 0) * 10000 + (entry.media.mediaListEntry.completedAt.month || 0) * 100 + (entry.media.mediaListEntry.completedAt.day || 0) : 0
         case 'PROGRESS_DESC':
-          return mediaListEntry?.progress || 0
+          return entry?.media?.mediaListEntry?.progress || 0
         case 'USER_SCORE_DESC': // doesn't exist, AniList uses SCORE_DESC for both MediaSort and MediaListSort.
-          return mediaListEntry?.score || 0
+          return entry?.media?.mediaListEntry?.score || 0
         case 'UPDATED_TIME_DESC':
-          return mediaListEntry?.updatedAt || 0;
+          return entry?.media?.mediaListEntry?.updatedAt || 0
         default:
           return 0
       }
     }
     res.data.MediaListCollection.lists.forEach(list => {
-      list.entries.sort((a, b) => {
+      list.entries = list.entries.filter(entry => entry.media).sort((a, b) => {
         const aValue = getSortValue(a)
         const bValue = getSortValue(b)
         if (aValue === 0 && bValue !== 0) return 1
