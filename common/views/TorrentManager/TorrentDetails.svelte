@@ -62,22 +62,22 @@
     <div class='p-5 w-150 d-none d-md-block'>{completed ? '—' : data.numLeechers || 0}<span class='text-muted text-nowrap' class:d-none={completed}>{` (${data.numPeers || 0})`}</span></div>
     <div class='p-5 w-115 d-none d-md-block'>{data.eta > 0 && data.progress < 1 && data.downloadSpeed ? eta(new Date(Date.now() + data.eta)) : '∞'}</div>
   </div>
-  <div class='dropdown react-{data.infoHash} with-arrow right-0 mr-5 mr-md-20 w-40 h-auto z-10' class:invisible={current} use:click={toggleDropdown}>
+  <div class='dropdown react-{data.infoHash} with-arrow right-0 mr-5 mr-md-20 w-40 h-auto' class:invisible={current} use:click={toggleDropdown}>
     <span bind:this={options} class='btn btn-square h-full bg-transparent border-0 options d-flex align-items-center muted justify-content-center flex-shrink-0 h-full w-40' title='Options'><EllipsisVertical size='2rem' /></span>
-    <div class='dropdown-menu dropdown-menu-right pt-5 pb-5 ml-10 text-capitalize hm-400 text-nowrap'>
-      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details py-5' class:d-flex={!current} aria-label='Play Torrent' title='Play Torrent' use:click={() => { add(data.infoHash, null, data.infoHash); toggleDropdown() }}>
+    <div class='dropdown-menu dropdown-menu-right pt-5 pb-5 ml-10 text-capitalize w-auto hm-400 text-nowrap'>
+      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details p-5' class:d-flex={!current} aria-label='Play Torrent' title='Play Torrent' use:click={() => { add(data.infoHash, null, data.infoHash); toggleDropdown() }}>
         Play
       </div>
-      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details py-5' class:d-flex={!current} aria-label='Untrack Torrent' title='Untrack Torrent' use:click={() => { untrack(data.infoHash); toggleDropdown() }}>
+      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details p-5' class:d-flex={!current} aria-label='Untrack Torrent' title='Untrack Torrent' use:click={() => { untrack(data.infoHash); toggleDropdown() }}>
         Untrack
       </div>
-      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details py-5' class:d-flex={!completed && !current && data.progress === 1} aria-label='Stop Seeding' title='Stop Seeding' use:click={() => { complete(data.infoHash); toggleDropdown() }}>
+      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details p-5' class:d-flex={!completed && !current && data.progress === 1} aria-label='Stop Seeding' title='Stop Seeding' use:click={() => { complete(data.infoHash); toggleDropdown() }}>
         Stop Seeding
       </div>
-      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details py-5' class:d-flex={completed && !data.incomplete} aria-label='Start Seeding' title='Start Seeding' use:click={() => { stage(data.infoHash, data.infoHash); toggleDropdown() }}>
+      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details p-5' class:d-flex={completed && !data.incomplete} aria-label='Start Seeding' title='Start Seeding' use:click={() => { stage(data.infoHash, data.infoHash); toggleDropdown() }}>
         Start Seeding
       </div>
-      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details py-5' class:d-flex={completed && data.incomplete} aria-label='Continue Downloading' title='Continue Downloading' use:click={() => { stage(data.infoHash, data.infoHash); toggleDropdown() }}>
+      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details p-5' class:d-flex={completed && data.incomplete} aria-label='Continue Downloading' title='Continue Downloading' use:click={() => { stage(data.infoHash, data.infoHash); toggleDropdown() }}>
         Continue Downloading
       </div>
     </div>
