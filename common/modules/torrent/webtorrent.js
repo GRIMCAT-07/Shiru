@@ -270,6 +270,8 @@ export default class TorrentClient extends WebTorrent {
       return
     }
 
+    const seedingLimit = 1 // this.settings.seedingLimit
+    if ((((this.torrents.filter(_torrent => _torrent.seeding && !_torrent.destroyed)?.length || 0) + 1) > (seedingLimit || 1)) || (seedingLimit || 1) === 1) {
       const removed = this.torrents.filter(_torrent => _torrent.seeding && !_torrent.destroyed).sort((a, b) => (b.ratio || 0) - (a.ratio || 0))[0]
       if (!this.settings.torrentPersist) await removeTorrent(this.torrentCache, removed.infoHash)
       else {
