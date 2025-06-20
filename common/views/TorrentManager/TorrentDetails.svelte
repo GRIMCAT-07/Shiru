@@ -11,7 +11,7 @@
   export let completed = false
 
   function ratioType(ratio, progress) {
-    if (((Math.ceil(ratio * 100) / 100).toFixed(2) <= 0 || progress < 1)) return 'Leeching'
+    if (Math.round(ratio * 100) / 100 <= 0 || progress < 1) return 'Leeching'
     else if (ratio < 0.5) return 'Leecher'
     else if (ratio < 1.0) return 'Fair'
     else if (ratio < 2.5) return 'Good'

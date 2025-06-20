@@ -272,7 +272,7 @@ export default class TorrentClient extends WebTorrent {
 
     const seedingLimit = 1 // this.settings.seedingLimit
     if ((((this.torrents.filter(_torrent => _torrent.seeding && !_torrent.destroyed)?.length || 0) + 1) > (seedingLimit || 1)) || (seedingLimit || 1) === 1) {
-      const removed = this.torrents.filter(_torrent => _torrent.seeding && !_torrent.destroyed).sort((a, b) => (b.ratio || 0) - (a.ratio || 0))[0]
+      const removed = this.torrents.filter(_torrent => _torrent.seeding && !_torrent.destroyed).sort((a, b) => (b.ratio || 0) - (a.ratio || 0))[0] || torrent
       if (!this.settings.torrentPersist) await removeTorrent(this.torrentCache, removed.infoHash)
       else {
         const stats = { infoHash: removed.infoHash, name: removed.name, size: removed.length, incomplete: (removed.progress < 1) }
@@ -283,12 +283,14 @@ export default class TorrentClient extends WebTorrent {
       debug('Completed torrent: ' + removed?.torrentFile)
     }
 
-    torrent.current = false
-    torrent.staging = false
-    if (!torrent.seeding) {
-      torrent.seeding = true
-      if (type !== 'seed') this.dispatch('seeding', torrent.infoHash)
-      debug('Seeding torrent: ' + torrent.torrentFile)
+    if (!torrent?.destroyed) {
+      torrent.current = false
+      torrent.staging = false
+      if (!torrent.seeding) {
+        torrent.seeding = true
+        if (type !== 'seed') this.dispatch('seeding', torrent.infoHash)
+        debug('Seeding torrent: ' + torrent.torrentFile)
+      }
     }
   }
 
