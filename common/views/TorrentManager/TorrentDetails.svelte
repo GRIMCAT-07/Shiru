@@ -74,8 +74,11 @@
       <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details py-5' class:d-flex={!completed && !current && data.progress === 1} aria-label='Stop Seeding' title='Stop Seeding' use:click={() => { complete(data.infoHash); toggleDropdown() }}>
         Stop Seeding
       </div>
-      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details py-5' class:d-flex={completed} aria-label='Start Seeding' title='Start Seeding' use:click={() => { stage(data.infoHash, data.infoHash); toggleDropdown() }}>
+      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details py-5' class:d-flex={completed && !data.incomplete} aria-label='Start Seeding' title='Start Seeding' use:click={() => { stage(data.infoHash, data.infoHash); toggleDropdown() }}>
         Start Seeding
+      </div>
+      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details py-5' class:d-flex={completed && data.incomplete} aria-label='Continue Downloading' title='Continue Downloading' use:click={() => { stage(data.infoHash, data.infoHash); toggleDropdown() }}>
+        Continue Downloading
       </div>
     </div>
   </div>
