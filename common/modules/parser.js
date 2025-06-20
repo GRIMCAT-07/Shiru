@@ -70,7 +70,11 @@ export default class Parser {
 
   destroy () {
     debug('Destroying Parser')
+    this.metadata?.removeAllListeners()
+    this.metadata?.destroy()
     this.destroyed = true
-    // Add any additional cleanup code here
+    this.metadata = null
+    this.client = null
+    this.file = null
   }
 }
