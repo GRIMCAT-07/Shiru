@@ -433,7 +433,7 @@ class AnilistClient {
    */
   sortListEntries(sort, data) {
     if (!data?.data?.MediaListCollection?.lists) return data
-    const res = structuredClone(data)
+    const res = data
     debug(`Sorting user lists based on custom sort order: ${sort}`)
     const getSortValue = (entry) => {
       switch (sort) {

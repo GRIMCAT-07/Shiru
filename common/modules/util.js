@@ -277,6 +277,12 @@ function replaceSeasonWithWords(text) {
   })
 }
 
+const regex = !SUPPORTS.isAndroid ? new RegExp('[^\\p{L}\\p{N}\\p{Zs}\\p{Pd}]', 'gu') : /[^a-zA-Z0-9\s\-\u00C0-\u024F\u0400-\u04FF\u0370-\u03FF\u0600-\u06FF\u0900-\u097F\u4E00-\u9FFF]/g
+function cleanText(text) {
+  if (typeof text !== 'string') return ''
+  return replaceSeasonWithWords(text.replace(regex, ''))
+}
+
 /**
  * @param {Object} nest The nested Object to use for looking up the keys.
  * @param {String} phrase The key phrase to look for.
@@ -287,12 +293,12 @@ function replaceSeasonWithWords(text) {
 export function matchKeys(nest, phrase, keys, threshold = 0.4) {
   if (!phrase) return true
   if (!nest) return false
-  const cleanedPhrase = replaceSeasonWithWords(phrase.replace(!SUPPORTS.isAndroid ? new RegExp('[^\\p{L}\\p{N}\\p{Zs}\\p{Pd}]', 'gu') : /[^a-zA-Z0-9\s\-\u00C0-\u024F\u0400-\u04FF\u0370-\u03FF\u0600-\u06FF\u0900-\u097F\u4E00-\u9FFF]/g, ''))
-  const cleanedNest = structuredClone(nest)
-  keys.forEach((key) => {
-    const value = getNestedValue(cleanedNest, key)
-    if (typeof value === 'string') setNestedValue(cleanedNest, key, replaceSeasonWithWords(value.replace(!SUPPORTS.isAndroid ? new RegExp('[^\\p{L}\\p{N}\\p{Zs}\\p{Pd}]', 'gu') : /[^a-zA-Z0-9\s\-\u00C0-\u024F\u0400-\u04FF\u0370-\u03FF\u0600-\u06FF\u0900-\u097F\u4E00-\u9FFF]/g, '')))
-  })
+  const cleanedNest = {}
+  const cleanedPhrase = cleanText(phrase)
+  for (const key of keys) {
+    const value = getNestedValue(nest, key)
+    if (typeof value === 'string') setNestedValue(cleanedNest, key, cleanText(value))
+  }
   if (new Fuse([cleanedNest], { includeScore: true, threshold, keys: keys }).search(cleanedPhrase).length > 0) return true
   const fuse = new Fuse([cleanedPhrase], { includeScore: true, threshold })
   return keys.some((key) => {
