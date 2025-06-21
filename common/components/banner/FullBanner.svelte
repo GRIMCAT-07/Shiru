@@ -170,9 +170,6 @@
       width: 100%;
     }
   }
-  .w-800 {
-    width: 80rem
-  }
   .details span + span::before {
     content: '•';
     padding: 0 .5rem;

@@ -53,9 +53,6 @@
 </div>
 
 <style>
-  .mt-30 {
-    margin-top: 3rem !important;
-  }
   .transition-mt {
     transition: margin-top 0.1s ease-in-out;
   }

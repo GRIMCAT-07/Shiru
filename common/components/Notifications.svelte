@@ -1,8 +1,10 @@
 <script context='module'>
   import { derived, writable } from 'simple-store-svelte'
   import { click, hoverExit } from '@/modules/click.js'
-  import { createListener, debounce, since } from '@/modules/util.js'
-  import { MailCheck, MailOpen, Play, X } from 'lucide-svelte'
+  import { createListener, matchPhrase, matchKeys, debounce, since } from '@/modules/util.js'
+  import { Search, MailCheck, MailOpen, Play, X } from 'lucide-svelte'
+  import ErrorCard from '@/components/cards/ErrorCard.svelte'
+  import SoftModal from '@/components/SoftModal.svelte'
   import IPC from '@/modules/ipc.js'
   import { cache, caches, mediaCache } from '@/modules/cache.js'
   import { SUPPORTS } from '@/modules/support.js'
@@ -81,7 +83,7 @@
   }
 
   function markAll(read) {
-    notifications.update(items => items.map(notification => ({ ...notification, read: read })))
+    notifications.update(items => items.map(notification => ({...notification, read: read })))
   }
 
   function markRead(media) {
@@ -111,134 +113,150 @@
   }
 
   function updateSort() {
-    notifications.update(currentNotifications => sort([...currentNotifications]))
+    notifications.update(notifications => sort([...notifications]))
     return true
   }
 
-  let notificationCount = 25
+  let container
+  let searchText = ''
+  function filterResults(results, searchText) {
+    if (!searchText?.length) return results
+    return results.filter(({ id, title }) => matchPhrase(searchText, title, 0.4, false, true) || matchKeys($mediaCache[id], searchText, ['title.userPreferred', 'title.english', 'title.romaji', 'title.native', 'synonyms'], 0.4)) || []
+  }
+
+  let notificationCountDefault = 25
+  let notificationCount = notificationCountDefault
   let currentNotifications = []
   function handleScroll(event) {
     const container = event.target
     if (currentNotifications.length !== $notifications.length && container.scrollTop + container.clientHeight + 10 >= container.scrollHeight) {
-      const nextBatch = $notifications.slice(currentNotifications.length, currentNotifications.length + notificationCount)
+      const nextBatch = filterResults($notifications, searchText).slice(currentNotifications.length, currentNotifications.length + notificationCount)
       currentNotifications = [...new Set([...currentNotifications, ...nextBatch])]
     }
   }
   IPC.emit('notification-unread', hasUnreadNotifications.value)
 </script>
 
-<div class='modal z-55' class:show={$notifyView}>
+<SoftModal class='m-0 w-800 mw-0 {$notifications?.length ? `h-full` : ``} d-flex flex-column rounded bg-very-dark pt-0 py-30 pl-20 pr-30 mx-20 scrollbar-none' bind:showModal={$notifyView} {close} id='notificationModal'>
   {#if $notifyView}
-    <div class='modal-dialog overflow-x-hidden' on:pointerup|self={close} on:keydown={checkClose} tabindex='-1' role='button' bind:this={modal}>
-      <div class='modal-content w-auto bg-transparent d-flex justify-content-center align-items-center pt-20 pb-20' class:h-full={currentNotifications.length > 0}>
-        <div class='modal-content mw-500 w-auto d-flex justify-content-center flex-column' class:h-full={currentNotifications.length > 0}>
-          <div class='d-flex justify-content-end align-items-start w-auto'>
-            <button type='button' class='btn btn-square d-flex align-items-center justify-content-center' use:click={close}><X size='1.7rem' strokeWidth='3'/></button>
+    <div class='d-flex mt-30'>
+      <h3 class='mb-0 font-weight-bold text-white title mr-5 font-size-24 ml-20'>Notifications</h3>
+      <button type='button' class='btn btn-square bg-dark ml-auto d-flex align-items-center justify-content-center rounded-2 flex-shrink-0' use:click={close}><X size='1.7rem' strokeWidth='3'/></button>
+    </div>
+    <div class='input-group mt-10 mx-20' class:d-none={!$notifications?.length}>
+      <Search size='2.6rem' strokeWidth='2.5' class='position-absolute z-10 text-dark-light h-full pl-10 pointer-events-none' />
+      <input
+        type='search'
+        class='form-control bg-dark-light pl-40 rounded-1 h-40 text-truncate mr-50'
+        autocomplete='off'
+        data-option='search'
+        placeholder='Filter notifications by their titles' bind:value={searchText} on:input={(event) => { container.scrollTo({top: 0}); notificationCount = notificationCountDefault; currentNotifications = filterResults($notifications, event.target.value).slice(0, notificationCount) }} />
+    </div>
+    <div class='shadow-overlay' />
+    {#if $notifications?.length && !currentNotifications?.length}
+      <ErrorCard promise={{ errors: [ { message: 'found no results' }]}}/>
+    {/if}
+    <div bind:this={container} class='notification-list mt-10 overflow-y-auto' class:h-full={$notifications?.length} class:mh-350={currentNotifications.length > 0} on:scroll={handleScroll}>
+      {#each currentNotifications as notification, index}
+        {@const delayed = notification.delayed}
+        {@const announcement = notification.click_action === 'VIEW' && !delayed}
+        {@const notWatching = !announcement && !delayed && ((!$mediaCache[notification?.id]?.mediaListEntry?.progress) || ($mediaCache[notification?.id]?.mediaListEntry?.progress === 0 && ($mediaCache[notification?.id]?.mediaListEntry?.status !== 'CURRENT' || $mediaCache[notification?.id]?.mediaListEntry?.status !== 'REPEATING' && $mediaCache[notification?.id]?.mediaListEntry?.status !== 'COMPLETED')))}
+        {@const behind = !announcement && !delayed && notification.episode && ($mediaCache[notification?.id]?.mediaListEntry?.status !== 'COMPLETED' && (($mediaCache[notification?.id]?.mediaListEntry?.progress || -1) < ((!notification.season ? notification.episode : $mediaCache[notification?.id].episodes) - 1)))}
+        {@const watched = !announcement && !delayed && !notWatching && !behind && notification.episode && ($mediaCache[notification?.id]?.mediaListEntry?.status === 'COMPLETED' || ($mediaCache[notification?.id]?.mediaListEntry?.progress >= (!notification.season ? notification.episode : $mediaCache[notification?.id].episodes)))}
+        {#if watched && !notification.read}{(notification.read = true) && updateSort() && ''}{/if}
+        <div class='notification-item shadow-lg position-relative d-flex align-items-center mx-20 my-5 p-5 scale pointer' class:mt-20={index === 0} role='button' tabindex='0' use:hoverExit={() => { notification.prompt = false; delete notification.prompt }} use:click={() => { if (!behind || notification.prompt) { notification.prompt = false; delete notification.prompt; notification.read = true; onclick(notification) } else { notification.prompt = true } } } on:contextmenu|preventDefault={() => { notification.read = true; onclick(notification, true); }} class:not-reactive={!$reactive} class:read={notification.read} class:behind={(behind && !notWatching) || delayed} class:current={!behind && !notWatching} class:not-watching={notWatching} class:watched={watched} class:announcement={announcement}>
+          {#if notification.heroImg}
+            <div class='position-absolute top-0 left-0 w-full h-full'>
+              <img src={notification.heroImg} alt='bannerImage' class='hero-img img-cover w-full h-full' />
+              <div class='position-absolute top-0 left-0 w-full h-full rounded-5' style='background: var(--notification-card-gradient)' />
+            </div>
+          {/if}
+          <div class='rounded-5 d-flex justify-content-center align-items-center overflow-hidden mr-10 z-10 notification-icon-container'>
+            <img src={notification.icon || './404_cover.png'} alt='icon' class='notification-icon rounded-5 w-auto' />
           </div>
-          <div class='notification-list mt-10 overflow-y-auto h-auto' class:mh-350={currentNotifications.length > 0} on:scroll={handleScroll}>
-            {#each currentNotifications as notification, index}
-              {@const delayed = notification.delayed}
-              {@const announcement = notification.click_action === 'VIEW' && !delayed}
-              {@const notWatching = !announcement && !delayed && notification.episode && ((!$mediaCache[notification?.id]?.mediaListEntry?.progress) || ($mediaCache[notification?.id]?.mediaListEntry?.progress === 0 && ($mediaCache[notification?.id]?.mediaListEntry?.status !== 'CURRENT' || $mediaCache[notification?.id]?.mediaListEntry?.status !== 'REPEATING' && $mediaCache[notification?.id]?.mediaListEntry?.status !== 'COMPLETED')))}
-              {@const behind = !announcement && !delayed && !notWatching && notification.episode && ($mediaCache[notification?.id]?.mediaListEntry?.status !== 'COMPLETED' && ($mediaCache[notification?.id]?.mediaListEntry?.progress < ((!notification.season ? notification.episode : $mediaCache[notification?.id].episodes) - 1)))}
-              {@const watched = !announcement && !delayed && !notWatching && !behind && notification.episode && ($mediaCache[notification?.id]?.mediaListEntry?.status === 'COMPLETED' || ($mediaCache[notification?.id]?.mediaListEntry?.progress >= (!notification.season ? notification.episode : $mediaCache[notification?.id].episodes)))}
-              {#if watched && !notification.read}
-                {(notification.read = true) && updateSort() && ''}
+          <div class='notification-content z-10 w-full'>
+            <p class='notification-title overflow-hidden font-weight-bold my-0 mr-40 font-scale-18 {SUPPORTS.isAndroid ? `line-clamp-1` : `line-clamp-2`}'>{notification.title}</p>
+            <button type='button' class='position-absolute right-0 top-0 mr-5 mt-5 btn btn-square d-flex align-items-center justify-content-center' class:not-allowed={watched} class:not-reactive={watched} use:click={() => { if (!watched) notification.prompt = false; delete notification.prompt; notification.read = !notification.read } }>
+              {#if notification.read}
+                <MailOpen size='1.7rem' strokeWidth='3'/>
+              {:else}
+                <MailCheck size='1.7rem' strokeWidth='3'/>
               {/if}
-              <div class='notification-item shadow-lg position-relative d-flex align-items-center ml-20 mr-20 mt-5 mb-5 p-5 scale pointer' role='button' tabindex='0' use:hoverExit={() => {notification.prompt = false; delete notification.prompt}} use:click={() => { if (!behind || notification.prompt) { notification.prompt = false; delete notification.prompt; notification.read = true; onclick(notification) } else { notification.prompt = true } } } on:contextmenu|preventDefault={() => { notification.read = true; onclick(notification, true); }} class:not-reactive={!$reactive} class:read={notification.read} class:behind={behind || delayed} class:current={!behind} class:not-watching={notWatching} class:watched={watched} class:announcement={announcement}>
-                {#if notification.heroImg}
-                  <div class='position-absolute top-0 left-0 w-full h-full'>
-                    <img src={notification.heroImg} alt='bannerImage' class='hero-img img-cover w-full h-full' />
-                    <div class='position-absolute top-0 left-0 w-full h-full rounded-5' style='background: var(--notification-card-gradient)' />
-                  </div>
+            </button>
+            <p class='font-size-12 my-0 mr-40'>{notification.message}</p>
+            <div class='d-flex justify-content-between align-items-center mt-5'>
+              <p class='font-size-10 text-muted my-0'>{since(new Date(notification.timestamp * 1000))}</p>
+              <div>
+                {#if announcement}
+                  <span class='badge text-dark bg-announcement mr-5'>Announcement</span>
+                {:else if notification.format === 'MOVIE'}
+                  <span class='badge text-dark bg-episode mr-5'>Movie</span>
+                {:else if !notification.season}
+                  {#if delayed}<span class='badge text-dark bg-delayed mr-5'>Delayed</span>{/if}
+                  <span class='badge text-dark bg-episode mr-5'>{notification.episode ? `Episode ${Array.isArray(notification.episode) ? `${notification.episode[0]} ~ ${notification.episode[1]}` : notification.episode}` : `Batch`} </span>
+                {:else if notification.season}
+                  <span class='badge text-dark bg-episode mr-5'>Season {notification.episode}</span>
                 {/if}
-                <div class='rounded-5 d-flex justify-content-center align-items-center overflow-hidden mr-10 z-10 notification-icon-container'>
-                  <img src={notification.icon || './404_cover.png'} alt='icon' class='notification-icon rounded-5 w-auto' />
-                </div>
-                <div class='notification-content z-10 w-full'>
-                  <p class='notification-title overflow-hidden font-weight-bold mt-0 mb-0 mr-40 font-scale-18 {SUPPORTS.isAndroid ? `line-clamp-1` : `line-clamp-2`}'>{notification.title}</p>
-                  <button type='button' class='position-absolute right-0 top-0 mr-5 mt-5 btn btn-square d-flex align-items-center justify-content-center' class:not-allowed={watched} class:not-reactive={watched} use:click={() => { if (!watched) notification.prompt = false; delete notification.prompt; notification.read = !notification.read } }>
-                    {#if notification.read}
-                      <MailOpen size='1.7rem' strokeWidth='3'/>
-                    {:else}
-                      <MailCheck size='1.7rem' strokeWidth='3'/>
-                    {/if}
-                  </button>
-                  <p class='font-size-12 mb-0 mt-0'>{notification.message}</p>
-                  <div class='d-flex justify-content-between align-items-center mt-5'>
-                    <p class='font-size-10 text-muted mt-0 mb-0'>{since(new Date(notification.timestamp * 1000))}</p>
-                    <div>
-                      {#if announcement}
-                        <span class='badge text-dark bg-announcement mr-5'>Announcement</span>
-                      {:else if notification.format === 'MOVIE'}
-                        <span class='badge text-dark bg-episode mr-5'>Movie</span>
-                      {:else if !notification.season}
-                        {#if delayed}<span class='badge text-dark bg-delayed mr-5'>Delayed</span>{/if}
-                        <span class='badge text-dark bg-episode mr-5'>{notification.episode ? `Episode ${Array.isArray(notification.episode) ? `${notification.episode[0]} ~ ${notification.episode[1]}` : notification.episode}` : `Batch`} </span>
-                      {:else if notification.season}
-                      <span class='badge text-dark bg-episode mr-5'>Season {notification.episode}</span>
-                      {/if}
-                      {#if notification.dub}
-                        <span class='badge text-dark bg-dubbed'>Dub</span>
-                      {:else}
-                        <span class='badge text-dark bg-subbed'>Sub</span>
-                      {/if}
-                    </div>
-                  </div>
-                </div>
-                <div class='overlay position-absolute w-full h-full z-40 d-flex flex-column align-items-center' class:visible={notification.prompt} class:invisible={!notification.prompt}>
-                  <p class='ml-20 mr-20 font-size-20 text-white text-center mt-auto mb-0'>Your Current Progress Is At <b>Episode {$mediaCache[notification?.id]?.mediaListEntry?.progress}</b></p>
-                  <button type='button' class='btn btn-lg btn-secondary w-230 h-33 text-dark font-size-16 font-weight-bold shadow-none border-0 d-flex align-items-center mt-10 mb-auto' use:click={() => { notification.prompt = false; delete notification.prompt; notification.read = true; onclick(notification) } }>
-                    <Play class='mr-10' fill='currentColor' size='1.4rem' />
-                    Continue Anyway?
-                  </button>
-                </div>
-              </div>
-            {/each}
-          </div>
-          <div class='d-flex flex-column justify-content-between align-items-center'>
-            {#if currentNotifications.length > 0}
-              <button type='button' class='btn text-light font-weight-bold shadow-none border-0 d-flex align-items-center mt-20' on:click={() => markAll($hasUnreadNotifications && $hasUnreadNotifications > 0)}>
-                {#if $hasUnreadNotifications && $hasUnreadNotifications > 0}
-                  <MailCheck strokeWidth='3' class='mr-10' size='1.7rem' />
-                  Mark All As Read
+                {#if notification.dub}
+                  <span class='badge text-dark bg-dubbed'>Dub</span>
                 {:else}
-                  <MailOpen strokeWidth='3' class='mr-10' size='1.7rem' />
-                  Mark All As Unread
+                  <span class='badge text-dark bg-subbed'>Sub</span>
                 {/if}
-              </button>
-            {:else}
-              <div class='d-flex flex-column justify-content-between align-items-center mb-20'>
-                <p class='font-size-20 mb-0'>Nothing To See Here!</p>
-                <p class='font-size-16'>Settings > Interface > Notifications Settings</p>
               </div>
-            {/if}
+            </div>
+          </div>
+          <div class='overlay position-absolute w-full h-full z-40 d-flex flex-column align-items-center' class:visible={notification.prompt} class:invisible={!notification.prompt}>
+            <p class='mx-20 font-size-20 text-white text-center mt-auto mb-0'>
+              {#if !$mediaCache[notification?.id]?.mediaListEntry?.progress}
+                You Haven't Watched Any Episodes Yet!
+              {:else}
+                Your Current Progress Is At <b>Episode {$mediaCache[notification?.id]?.mediaListEntry?.progress}</b>
+              {/if}
+            </p>
+            <button type='button' class='btn btn-lg btn-secondary w-230 h-33 text-dark font-size-16 font-weight-bold shadow-none border-0 d-flex align-items-center mt-10 mb-auto' use:click={() => { notification.prompt = false; delete notification.prompt; notification.read = true; onclick(notification) } }>
+              <Play class='mr-10' fill='currentColor' size='1.4rem' />
+              Continue Anyway?
+            </button>
           </div>
         </div>
-      </div>
+      {/each}
+    </div>
+    <div class='d-flex flex-column justify-content-between align-items-center'>
+      {#if $notifications?.length}
+        <button type='button' class='btn text-light font-weight-bold shadow-none border-0 d-flex align-items-center mt-20' disabled={searchText?.length} on:click={() => markAll($hasUnreadNotifications && $hasUnreadNotifications > 0)}>
+          {#if $hasUnreadNotifications && $hasUnreadNotifications > 0}
+            <MailCheck strokeWidth='3' class='mr-10' size='1.7rem' />
+            Mark All As Read
+          {:else}
+            <MailOpen strokeWidth='3' class='mr-10' size='1.7rem' />
+            Mark All As Unread
+          {/if}
+        </button>
+      {:else}
+        <div class='w-800 mw-0'>
+          <ErrorCard promise={{ errors: [ { message: ['Nothing To See Here!', 'Settings > Interface > Notifications Settings']}]}}/>
+        </div>
+      {/if}
     </div>
   {/if}
-</div>
+</SoftModal>
 
 <style>
   .h-33 {
     height: 3.3rem !important;
   }
-  .mr-30 {
-    margin-right: 3rem;
-  }
   .mr-40 {
-    margin-right: 4rem;
+    margin-right: 4rem !important;
   }
-  .mw-500 {
-    min-width: 50rem;
-    max-width: 80rem;
+  .mr-50 {
+    margin-right: 5rem;
   }
   .mh-350 {
     min-height: 35rem;
   }
   .scale {
     transition: transform 0.2s ease;
+    will-change: transform;
   }
   .scale:hover{
     transform: scale(1.04);
@@ -299,6 +317,16 @@
   }
   .rounded-5 {
     border-radius: .5rem;
+  }
+  .shadow-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1.2rem;
+    margin-top: 12rem;
+    box-shadow: 0 1.2rem 1.2rem #131416;
+    pointer-events: none;
+    z-index: 1;
   }
 
   .overlay {

@@ -110,6 +110,10 @@
   width: 11.5rem;
 }
 
+.w-800 {
+  width: 80rem !important
+}
+
 .wh-25 {
   width: 2.5rem;
   height: 2.5rem;
@@ -292,15 +296,15 @@ a[href]:active, button:not([disabled]):active:not([data-sonner-toast] > button),
 .mt-2 {
   margin-top: .2rem;
 }
-
 .mt-3 {
   margin-top: 0.3rem;
 }
-
+.mt-30 {
+  margin-top: 3rem !important;
+}
 .mt-70 {
   margin-top: 7rem;
 }
-
 .mt-100 {
   margin-top: 10rem;
 }
@@ -492,10 +496,22 @@ img[src=''], img[src=' '] {
 .p-30 {
   padding: 3rem;
 }
+.pr-30 {
+  padding-right: 3rem;
+}
 .pl-40 {
   padding-left: 4rem;
 }
 
+.py-30 {
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}
+
+.px-30 {
+  padding-left: 3rem;
+  padding-right: 3rem;
+}
 .px-40 {
   padding-left: 4rem;
   padding-right: 4rem;

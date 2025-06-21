@@ -16,6 +16,8 @@
               No results found.
             {:else if (JSON.stringify(errors)?.match(/extension is not enabled/i) && !errors?.filter(error => !error?.message.match(/extension is not enabled/i))?.length) || JSON.stringify(errors)?.match(/no torrent sources/i)}
               No Extensions Found
+            {:else if errors?.length === 1 && Array.isArray(errors[0].message)}
+              {errors[0].message[0]}
             {:else if errors}
               Looks like something went wrong!
             {/if}
@@ -28,6 +30,10 @@
             It looks like you haven't added any extension sources, manage your extensions in the settings.
           {:else if JSON.stringify(errors)?.match(/found no results/i)}
             You can manually specify a torrent by providing a link or file.
+          {:else if errors?.length === 1 && Array.isArray(errors[0].message)}
+           {#each errors[0].message.slice(1) as message}
+             <div>{message}</div>
+           {/each}
           {:else}
             {#each errors?.filter(error => !error.message.match(/found no results|extension is not enabled/i)) as error}
               <div>{error.message}</div>

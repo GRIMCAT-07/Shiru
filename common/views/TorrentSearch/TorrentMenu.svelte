@@ -456,8 +456,4 @@
     padding-left: 2.5rem;
     padding-right: 2rem;
   }
-  .px-30 {
-    padding-left: 3rem;
-    padding-right: 3rem;
-  }
 </style>
