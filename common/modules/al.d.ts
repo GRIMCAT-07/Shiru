@@ -8,6 +8,11 @@ export type Media = {
     userPreferred: string
   }
   description?: string
+  startDate?: {
+    year: number
+    month: number
+    day: number
+  }
   season?: string
   seasonYear?: string
   type: string

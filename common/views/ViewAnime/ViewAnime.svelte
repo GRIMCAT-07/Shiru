@@ -309,7 +309,7 @@
               </div>
             {/if}
             <Following media={staticMedia} />
-            {#if episodeList}
+            {#if episodeList?.length}
               <div class='w-full d-flex d-lg-none flex-row align-items-center pt-20 mt-10 pointer' aria-hidden='true' use:click={() => { episodeOrder = !episodeOrder }}>
                 <hr class='w-full' />
                 <div class='position-absolute font-size-18 font-weight-semi-bold px-20 text-white' style='left: 50%; transform: translateX(-50%);'>Episodes</div>
@@ -356,7 +356,7 @@
           </div>
         </div>
         <div class='col-lg-5 col-12 d-none d-lg-flex flex-column pl-lg-20' bind:this={rightColumn}>
-          <button class='close order pointer z-30 bg-dark position-absolute' title='Reverse Episodes' use:click={()=> {episodeOrder = !episodeOrder}}>
+          <button class='close order pointer z-30 bg-dark position-absolute' class:d-none={!episodeList?.length} title='Reverse Episodes' use:click={()=> {episodeOrder = !episodeOrder}}>
             <svelte:component this={episodeOrder ? ArrowDown01 : ArrowUp10} size='2rem' />
           </button>
           <EpisodeList bind:episodeLoad={episodeLoad} media={staticMedia} {episodeOrder} bind:userProgress bind:watched episodeCount={getMediaMaxEp(media)} {play} />

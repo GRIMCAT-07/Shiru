@@ -137,9 +137,18 @@ export function past(episodeDate, weeks = 0, skip) {
   return episodeDate
 }
 
-/** @param {Date} date */
-export function monthDay(date) {
+/**
+ * @param {Date} date
+ * @param {boolean} year
+ */
+export function monthDay(date, year = false) {
   const day = date.getDate()
+  if (year) {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'long',
+      year: 'numeric'
+    }).format(date)
+  }
   return (new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric' }).format(date)) + (day % 10 === 1 && day !== 11 ? 'st' : day % 10 === 2 && day !== 12 ? 'nd' : day % 10 === 3 && day !== 13 ? 'rd' : 'th')
 }
 

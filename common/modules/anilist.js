@@ -44,6 +44,11 @@ title {
   userPreferred
 },
 description(asHtml: false),
+startDate {
+  year,
+  month,
+  day
+},
 season,
 seasonYear,
 format,
