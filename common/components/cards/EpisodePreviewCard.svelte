@@ -155,7 +155,13 @@
     {/if}
   </div>
   <div class='overlay position-absolute w-full h-200 z-40 d-flex flex-column justify-content-center align-items-center transition-opacity' class:transparent={!prompt}>
-    <p class='ml-20 mr-20 font-size-24 text-white text-center'>Your Current Progress Is At <b>Episode {media?.mediaListEntry?.progress}</b></p>
+    <p class='ml-20 mr-20 font-size-24 text-white text-center'>
+      {#if !media?.mediaListEntry?.progress}
+        You Haven't Watched Any Episodes Yet!
+      {:else}
+        Your Current Progress Is At <b>Episode {media?.mediaListEntry?.progress}</b>
+      {/if}
+    </p>
     <button class='btn btn-lg btn-secondary w-250 text-dark font-weight-bold shadow-none border-0 d-flex align-items-center justify-content-center mt-10' use:click={() => { data.onclick() || viewMedia() }}>
       <Play class='mr-10' fill='currentColor' size='1.6rem' />
       Continue Anyway?
