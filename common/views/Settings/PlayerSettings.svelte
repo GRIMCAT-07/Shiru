@@ -124,6 +124,16 @@
     <label for='player-autocomplete'>{settings.playerAutocomplete ? 'On' : 'Off'}</label>
   </div>
 </SettingCard>
+{#if settings.playerAutocomplete}
+  <SettingCard title='Auto-Complete Threshold' description='The percentage of an episode that must be watched before it is automatically marked as complete. A higher value means more of the episode must be watched.'>
+    <div class='input-group w-100 mw-full'>
+      <input type='number' inputmode='numeric' pattern={'[0-9]*'} bind:value={settings.playerAutocompleteThreshold} min='1' max='100' class='form-control text-right bg-dark' />
+      <div class='input-group-append'>
+        <span class='input-group-text bg-dark'>%</span>
+      </div>
+    </div>
+  </SettingCard>
+{/if}
 <SettingCard title='Deband Video' description='Reduces banding on dark and compressed videos. High performance impact, not recommended for high quality videos.'>
   <div class='custom-switch'>
     <input type='checkbox' id='player-deband' bind:checked={settings.playerDeband} />

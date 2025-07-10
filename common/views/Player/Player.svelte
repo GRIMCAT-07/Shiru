@@ -1182,9 +1182,9 @@
   }
 
   function checkCompletionByTime (currentTime, safeduration) {
-    const fromend = Math.max(180, safeduration / 10)
-    if ((safeduration && currentTime && (video?.readyState || externalPlayerReady) && (safeduration - fromend < currentTime)) && (media?.media?.episodes || (media?.media?.nextAiringEpisode?.episode >= media.episode))) {
-      debug('Marking current episode as completed as it has met the completion threshold.')
+    const threshold = $settings.playerAutocompleteThreshold / 100
+    if (safeduration && currentTime && (video?.readyState || externalPlayerReady) && (currentTime >= safeduration * threshold) && (media?.media?.episodes || (media?.media?.nextAiringEpisode?.episode >= media.episode))) {
+      debug(`Marking current episode as completed as it has met the ${$settings.playerAutocompleteThreshold}% threshold.`)
       completed = true
       externalPlayerReady = false
       Helper.updateEntry(media)
