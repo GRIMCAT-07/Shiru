@@ -21,7 +21,7 @@
     const results = { data: { Page: { media: [], pageInfo: { hasNextPage: false } } } }
     const airingLists = await (variables.hideSubs ? animeSchedule.dubAiringLists.value : animeSchedule.subAiringLists.value)
     let ids = airingLists.map(entry => {
-        const media = variables.hideSubs ? entry.media?.media : entry;
+        const media = variables.hideSubs ? entry.media?.media : entry
         return media?.id ? { id: media.id, idMal: media.idMal ?? null } : null
     }).filter(item => item !== null)
     // Hide My Anime
@@ -47,12 +47,16 @@
         const numberOfEpisodes = cachedItem.subtractedEpisodeNumber ? (cachedItem.episodeNumber - cachedItem.subtractedEpisodeNumber) : 1
         let predict = false
         if (cachedItem?.media?.media?.airingSchedule?.nodes?.length) {
-            const airingFirst = new Date(Math.min(...cachedItem.media.media.airingSchedule.nodes.map(node => new Date(node.airingAt))))
-            predict = (airingFirst < new Date())
+            const now = new Date()
+            const futureEpisodes = cachedItem.media.media.airingSchedule.nodes.filter(node => new Date(node.airingAt) > now)
+            predict = futureEpisodes.length === 0
             if (predict && !((numberOfEpisodes > 4) && !cachedItem.unaired)) {
-                const highestEpisode = Math.max(...cachedItem.media.media.airingSchedule.nodes.filter(node => new Date(node.airingAt).getTime() === airingFirst.getTime()).map(node => node.episode))
-                cachedItem.media.media.airingSchedule.nodes[0].episode = highestEpisode + 1
-                cachedItem.media.media.airingSchedule.nodes[0].airingAt = new Date(airingFirst.getTime() + (cachedItem.delayedIndefinitely ? 6 * 365 * 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000)).toISOString().slice(0, -5) + 'Z'
+                const latestEpisode = Math.max(...cachedItem.media.media.airingSchedule.nodes.map(node => node.episode))
+                const latestAiringAt = Math.max(...cachedItem.media.media.airingSchedule.nodes.map(node => new Date(node.airingAt).getTime()))
+                cachedItem.media.media.airingSchedule.nodes.unshift({
+                    episode: latestEpisode + 1,
+                    airingAt: new Date(latestAiringAt + (cachedItem.delayedIndefinitely ? 6 * 365 * 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000)).toISOString().slice(0, -5) + 'Z'
+                })
             }
         }
         return (!(cachedItem?.media?.media?.airingSchedule?.nodes[0]?.episode > media.episodes) || !media.episodes) && (!predict || !((numberOfEpisodes > 4) && !cachedItem.unaired)) && cachedItem?.media?.media?.airingSchedule?.nodes[0]?.airingAt && self.findIndex(m => m.id === media.id) === index
@@ -62,7 +66,7 @@
           const aDelayed = aEntry?.delayedIndefinitely ? 1 : 0
           const bDelayed = bEntry?.delayedIndefinitely ? 1 : 0
           if (aDelayed !== bDelayed) return aDelayed - bDelayed
-          return new Date(aEntry?.media?.media?.airingSchedule?.nodes[0]?.airingAt).getTime() - new Date(bEntry?.media?.media?.airingSchedule?.nodes[0]?.airingAt).getTime()
+          return new Date(nextAiring(aEntry?.media?.media?.airingSchedule?.nodes, variables)?.airingAt).getTime() - new Date(nextAiring(bEntry?.media?.media?.airingSchedule?.nodes, variables)?.airingAt).getTime()
       })
     } else {
       // filter out entries without airing schedule and duplicates [only allow first occurrence], then sort entries from first airing to last airing.

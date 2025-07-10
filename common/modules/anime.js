@@ -768,16 +768,10 @@ export function episode(media, variables) {
   if (entry?.delayedIndefinitely && nodes[0]) return `Episode ${nodes[0].episode} is`
   if (nodes.length === 1) return `Episode ${nodes[0].episode} {suffix}`
 
-  let lastEpisode = nodes[0].episode
   const firstEpisode = nextAiring(nodes, variables)?.episode
-  for (let i = 1; i < nodes.length; i++) {
-    if (new Date(nodes[i].airingAt).getTime() !== new Date(nodes[i - 1].airingAt).getTime() && new Date(variables?.hideSubs ? nodes[i].airingAt : (nodes[i].airingAt * 1000)) > new Date() && new Date(variables?.hideSubs ? nodes[i].airingAt : (nodes[i - 1].airingAt * 1000)) > new Date()) {
-      lastEpisode = nodes[i - 1].episode
-      break
-    }
-    if (i === nodes.length - 1) lastEpisode = nodes[i].episode
-  }
-
+  const firstAiring = nodes.find(node => node.episode === firstEpisode)
+  const matchingNodes = nodes.filter(node => new Date(variables?.hideSubs ? node.airingAt : node.airingAt * 1000).getTime() === new Date(variables?.hideSubs ? firstAiring.airingAt : firstAiring.airingAt * 1000).getTime())
+  const lastEpisode = Math.max(...matchingNodes.map(node => node.episode))
   return `Episode ${firstEpisode === lastEpisode ? `${firstEpisode}` : `${firstEpisode} ~ ${lastEpisode}`} {suffix}`
 }
 
