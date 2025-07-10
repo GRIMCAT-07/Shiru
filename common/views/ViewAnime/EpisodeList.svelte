@@ -304,11 +304,9 @@
                         <div class='mr-5 py-5 px-10 text-dark text-nowrap rounded-top rounded-left font-weight-bold' class:lg-label={image} class:bg-danger={dubAiring.delayed} class:bg-dubbed={!dubAiring.delayed}>
                           Dub: {dubAiring.text}
                         </div>
-                        {#if airdate || dubAiring.delayed}
-                          <div class='py-5 px-10 text-dark text-nowrap rounded-top rounded-left font-weight-bold' class:lg-label={image} class:bg-danger={!airdate && dubAiring.delayed} class:bg-subbed={!(!airdate && dubAiring.delayed)}>
-                            Sub: {airdate ? since(new Date(airdate)) : dubAiring.text}
-                          </div>
-                        {/if}
+                        <div class='py-5 px-10 text-dark text-nowrap rounded-top rounded-left font-weight-bold' class:lg-label={image} class:bg-danger={!airdate && dubAiring.delayed} class:bg-subbed={!(!airdate && dubAiring.delayed)}>
+                          Sub: {airdate ? since(new Date(airdate)) : dubAiring.text}
+                        </div>
                       </div>
                     {:else}
                       {#if airdate}
