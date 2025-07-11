@@ -49,6 +49,7 @@
   }
 
   function updatew2g () {
+    saveAnimeProgress()
     w2gEmitter.emit('player', { time: Math.floor(currentTime), paused })
   }
 
@@ -283,9 +284,9 @@
   }
 
   async function loadAnimeProgress () {
-    if (!current?.media?.media?.id || !current?.media?.episode || current?.media?.failed || !media?.media?.id || !media?.episode) return
-
-    const animeProgress = await getAnimeProgress(current.media.media.id, current.media.episode)
+    let animeProgress
+    if (!current?.media?.media?.id || !current?.media?.episode || current?.media?.failed || !media?.media?.id || !media?.episode) animeProgress = await getAnimeProgress({ name: current?.media?.parseObject?.anime_title || current?.name })
+    else animeProgress = await getAnimeProgress({ mediaId: current.media.media.id, episode: current.media.episode })
     if (!animeProgress) return
 
     const currentTime = Math.max(animeProgress.currentTime - 5, 0) // Load 5 seconds before
@@ -293,13 +294,13 @@
   }
 
   function saveAnimeProgress () {
-    if (!current?.media?.media?.id || !current?.media?.episode || current?.media?.failed || !media?.media?.id || !media?.episode) return
-
-    if (buffering || paused || video.readyState < 4) return
-
-    setAnimeProgress({ mediaId: current.media.media.id, episode: current.media.episode, currentTime: video.currentTime, safeduration })
+    if (buffering || video.readyState < 4) return
+    if (!current?.media?.media?.id || !current?.media?.episode || current?.media?.failed || !media?.media?.id || !media?.episode) setAnimeProgress({ name: current?.media?.parseObject?.anime_title || current?.name, currentTime: video.currentTime, safeduration })
+    else setAnimeProgress({ mediaId: current.media.media.id, episode: current.media.episode, currentTime: video.currentTime, safeduration })
   }
-  setInterval(saveAnimeProgress, 30000)
+  setInterval(() => {
+    if (!paused) saveAnimeProgress()
+  }, 10000)
 
   function cycleSubtitles () {
     if (current && subs?.headers) {

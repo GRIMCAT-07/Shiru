@@ -1,8 +1,8 @@
 import { writable, derived } from 'simple-store-svelte'
-import { cache, caches } from '@/modules/cache.js';
+import { cache, caches } from '@/modules/cache.js'
 
 // Maximum number of entries to keep in the cache
-const maxEntries = 10000
+// const maxEntries = 10000
 
 // The cache is structured as an array of objects with the following properties:
 // mediaId, episode, currentTime, safeduration, createdAt, updatedAt
@@ -41,29 +41,29 @@ export function liveAnimeEpisodeProgress (mediaId, episode) {
   })
 }
 
-// Return an individual episode's record { mediaId, episode, currentTime, safeduration, createdAt, updatedAt }
-export function getAnimeProgress (mediaId, episode) {
+// Return an individual episode's record { name, mediaId, episode, currentTime, safeduration, createdAt, updatedAt }
+export function getAnimeProgress ({ name, mediaId, episode }) {
   const data = read()
-  return data.find(item => item.mediaId === mediaId && item.episode === episode)
+  return data.find(item => mediaId ? (item.mediaId === mediaId && item.episode === episode) : item.name === name)
 }
 
 // Set an individual episode's progress
-export function setAnimeProgress ({ mediaId, episode, currentTime, safeduration }) {
-  if (!mediaId || !episode || !currentTime || !safeduration) return
+export function setAnimeProgress ({ name, mediaId, episode, currentTime, safeduration }) {
+  if ((!name && !mediaId) || (!name && !episode) || !currentTime || !safeduration) return
   const data = read()
   // Update the existing entry or create a new one
-  const existing = data.find(item => item.mediaId === mediaId && item.episode === episode)
+  const existing = data.find(item => mediaId ? (item.mediaId === mediaId && item.episode === episode) : item.name === name)
   if (existing) {
     existing.currentTime = currentTime
     existing.safeduration = safeduration
     existing.updatedAt = Date.now()
   } else {
-    data.push({ mediaId, episode, currentTime, safeduration, createdAt: Date.now(), updatedAt: Date.now() })
+    data.push({ name, mediaId, episode, currentTime, safeduration, createdAt: Date.now(), updatedAt: Date.now() })
   }
   // Remove the oldest entries if we have too many
-  while (data.length > maxEntries) {
-    const oldest = data.reduce((a, b) => a.updatedAt < b.updatedAt ? a : b)
-    data.splice(data.indexOf(oldest), 1)
-  }
+  // while (data.length > maxEntries) {
+  //   const oldest = data.reduce((a, b) => a.updatedAt < b.updatedAt ? a : b)
+  //   data.splice(data.indexOf(oldest), 1)
+  // }
   write(data)
 }
