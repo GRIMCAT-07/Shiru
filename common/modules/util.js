@@ -422,12 +422,14 @@ export function createListener(triggerClasses = []) {
     }
   }
 
+  let upTimeout = null
   function handleUp() {
     const handle = Math.random()
     pending = handle
-    setTimeout(() => {
+    if (upTimeout) clearTimeout(upTimeout)
+    upTimeout = setTimeout(() => {
       if (pending && pending === handle) reactive.set(true)
-    }, 250)
+    }, 20)
   }
 
   function addListeners() {
