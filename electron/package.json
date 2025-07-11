@@ -48,7 +48,7 @@
     },
     "asarUnpack": "**/*.node",
     "electronDownload": {
-      "mirror": "https://github.com/RockinChaos/electron-dist/releases/download/",
+      "mirror": "https://craftationgaming.com/api/packages/electron/",
       "customDir": "29.1.4"
     },
     "protocols": {
