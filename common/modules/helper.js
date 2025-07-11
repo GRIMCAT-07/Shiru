@@ -168,7 +168,6 @@ export default class Helper {
       if (videoEpisode > mediaEpisode) return
 
       const lists = cachedMedia.mediaListEntry?.customLists?.filter(list => list.enabled).map(list => list.name) || []
-
       const status = cachedMedia.mediaListEntry?.status === 'REPEATING' ? 'REPEATING' : 'CURRENT'
       const progress = cachedMedia.mediaListEntry?.progress
 
@@ -217,10 +216,10 @@ export default class Helper {
               if (profile.viewer?.data?.Viewer?.avatar) {
                 variables.score = (cachedMedia.mediaListEntry?.score ? (cachedMedia.mediaListEntry?.score * 10) : 0)
                 const lists = (await anilistClient.getUserLists({userID: profile.viewer.data.Viewer.id, token: profile.token}))?.data?.MediaListCollection?.lists?.flatMap(list => list.entries).find(({ media: listMedia }) => listMedia.id === cachedMedia.id)?.media?.mediaListEntry?.customLists?.filter(list => list.enabled).map(list => list.name) || []
-                res = await anilistClient.entry({...variables, lists, token: profile.token})
+                res = await anilistClient.entry({ ...variables, lists, token: profile.token })
               } else {
                 variables.score = (cachedMedia.mediaListEntry?.score ? cachedMedia.mediaListEntry?.score : 0)
-                res = await malClient.malEntry(cachedMedia, {...variables, token: profile.token, refresh_in: profile.refresh_in})
+                res = await malClient.malEntry(cachedMedia, { ...variables, token: profile.token, refresh_in: profile.refresh_in })
               }
               this.listToast(res, description, profile)
             }
