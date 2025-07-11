@@ -57,7 +57,8 @@
   export let overlay
   export let playPage
   export let miniplayer = false
-  $condition = () => SUPPORTS.keybinds && ((!miniplayer && !document.querySelector('.modal.show')) || (overlay.includes('viewanime') && page === 'player'))
+  $: viewAnime = overlay.includes('viewanime')
+  $condition = () => SUPPORTS.keybinds && ((!miniplayer && !document.querySelector('.modal.show')) || (viewAnime && page === 'player'))
 
   export let files = []
   export let playableFiles = []
@@ -595,14 +596,14 @@
   let showKeybinds = false
   loadWithDefaults({
     KeyX: {
-      fn: () => screenshot(),
+      fn: () => !viewAnime && screenshot(),
       id: 'screenshot_monitor',
       icon: ScreenShare,
       type: 'icon',
       desc: 'Save Screenshot to Clipboard'
     },
     KeyI: {
-      fn: () => toggleStats(),
+      fn: () => !viewAnime && toggleStats(),
       icon: List,
       id: 'list',
       type: 'icon',
@@ -616,91 +617,89 @@
       desc: 'Toggle "Now Playing"'
     },
     Backquote: {
-      fn: () => (showKeybinds = !showKeybinds),
+      fn: () => !viewAnime && (showKeybinds = !showKeybinds),
       id: 'help_outline',
       icon: CircleHelp,
       type: 'icon',
       desc: 'Toggle Keybinds'
     },
     Space: {
-      fn: () => playPause(),
+      fn: () => !viewAnime && playPause(),
       id: 'play_arrow',
       play: Play,
       type: 'icon',
       desc: 'Play/Pause'
     },
     KeyN: {
-      fn: () => playNext(),
+      fn: () => !viewAnime && playNext(),
       id: 'skip_next',
       icon: SkipForward,
       type: 'icon',
       desc: 'Next Episode'
     },
     KeyB: {
-      fn: () => playLast(),
+      fn: () => !viewAnime && playLast(),
       id: 'skip_previous',
       icon: SkipBack,
       type: 'icon',
       desc: 'Previous Episode'
     },
     KeyA: {
-      fn: () => {
-        $settings.playerDeband = !$settings.playerDeband
-      },
+      fn: () => !viewAnime && ($settings.playerDeband = !$settings.playerDeband),
       id: 'deblur',
       icon: Contrast,
       type: 'icon',
       desc: 'Toggle Video Debanding'
     },
     KeyM: {
-      fn: () => (muted = !muted),
+      fn: () => !viewAnime && (muted = !muted),
       id: 'volume_off',
       icon: VolumeX,
       type: 'icon',
       desc: 'Toggle Mute'
     },
     KeyP: {
-      fn: () => togglePopout(),
+      fn: () => !viewAnime && togglePopout(),
       id: 'picture_in_picture',
       icon: PictureInPicture2,
       type: 'icon',
       desc: 'Toggle Picture in Picture'
     },
     KeyF: {
-      fn: () => toggleFullscreen(),
+      fn: () => !viewAnime && toggleFullscreen(),
       id: 'fullscreen',
       icon: Maximize,
       type: 'icon',
       desc: 'Toggle Fullscreen'
     },
     KeyS: {
-      fn: () => skip(),
+      fn: () => !viewAnime && skip(),
       id: '+90',
       desc: 'Skip Intro/90s'
     },
     KeyW: {
-      fn: () => { fitWidth = !fitWidth },
+      fn: () => !viewAnime && (fitWidth = !fitWidth),
       id: 'fit_width',
       icon: Proportions,
       type: 'icon',
       desc: 'Toggle Video Cover'
     },
     KeyD: {
-      fn: () => toggleCast(),
+      fn: () => !viewAnime && toggleCast(),
       id: 'cast',
       icon: Cast,
       type: 'icon',
       desc: 'Toggle Cast [broken]'
     },
     KeyC: {
-      fn: () => cycleSubtitles(),
+      fn: () => !viewAnime && cycleSubtitles(),
       id: 'subtitles',
       icon: Captions,
       type: 'icon',
       desc: 'Cycle Subtitles'
     },
     KeyV: {
-      fn: () => toggleGain(),
+      fn: () => !viewAnime && toggleGain(),
       id: 'toggle_gain',
       icon: SlidersVertical,
       type: 'icon',
@@ -708,6 +707,7 @@
     },
     ArrowLeft: {
       fn: e => {
+        if (viewAnime) return
         e.stopImmediatePropagation()
         e.preventDefault()
         rewind()
@@ -719,6 +719,7 @@
     },
     ArrowRight: {
       fn: e => {
+        if (viewAnime) return
         e.stopImmediatePropagation()
         e.preventDefault()
         forward()
@@ -730,6 +731,7 @@
     },
     ArrowUp: {
       fn: e => {
+        if (viewAnime) return
         e.stopImmediatePropagation()
         e.preventDefault()
         if (volumeBoosted) setGain({ target: { value: Math.min(3, gain + 0.05) } })
@@ -742,6 +744,7 @@
     },
     ArrowDown: {
       fn: e => {
+        if (viewAnime) return
         e.stopImmediatePropagation()
         e.preventDefault()
         if (volumeBoosted) setGain({ target: { value: Math.max(0, gain - 0.05) } })
@@ -753,21 +756,21 @@
       desc: 'Volume Down'
     },
     BracketLeft: {
-      fn: () => { playbackRate = video.defaultPlaybackRate -= 0.1 },
+      fn: () => !viewAnime && (playbackRate = video.defaultPlaybackRate -= 0.1),
       id: 'history',
       icon: RotateCcw,
       type: 'icon',
       desc: 'Decrease Playback Rate'
     },
     BracketRight: {
-      fn: () => { playbackRate = video.defaultPlaybackRate += 0.1 },
+      fn: () => !viewAnime && (playbackRate = video.defaultPlaybackRate += 0.1),
       id: 'update',
       icon: RotateCw,
       type: 'icon',
       desc: 'Increase Playback Rate'
     },
     Backslash: {
-      fn: () => { playbackRate = video.defaultPlaybackRate = 1 },
+      fn: () => !viewAnime && (playbackRate = video.defaultPlaybackRate = 1),
       icon: RefreshCcw,
       id: 'schedule',
       type: 'icon',
