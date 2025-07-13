@@ -201,7 +201,6 @@ export default new class AnimeResolver {
           .replace(/\s*part\s*1\+2/i, '') // Primary Misfit of Demon King fix.
           .replace(/PANTY AND STOCKING/i, 'PANTY & STOCKING') // PANTY & STOCKING fix.
           .replace(/Link Click (Season\s*3|S\s*3|\s*03)/i, 'Link Click: Bridon Arc') // Link Click S3 fix.
-          .replace(/Symphogear (Season\s*2|S\s*2|\s*02)/i, 'Symphogear G') // Not the releasers fault, Anilist is missing the "Season 2/2nd Season" synonym so this is difficult to resolve when G and GX is only different by 1 character.
           .replace(/Symphogear G (Season\s*2|S\s*2|\s*02)/i, 'Symphogear G') // Symphogear S2 fix. No you are not playing Season 2 of Symphogear G, why would you name it S2EXX but include the actual title.. that just makes it Season 1, aka "Symphogear G".
           .replace(/Symphogear GX (Season\s*3|S\s*3|\s*03)/i, 'Symphogear GX') // Symphogear S3 fix.... see above.
           .replace(/Symphogear AXZ (Season\s*4|S\s*4|\s*04)/i, 'Symphogear AXZ') // Symphogear S4 fix.... see above.
@@ -217,6 +216,7 @@ export default new class AnimeResolver {
       if (name.match(/Yami Healer/i) && !name.match(/Isshun|Shiteita|Yakutatazu|Tsuihou|Sareta|Toshite|Tanoshiku/i)) name = name.replace(/Yami Healer/i, 'Isshun de Chiryou Shiteita no ni Yakutatazu to Tsuihou Sareta Tensai Chiyushi, Yami Healer Toshite Tanoshiku Ikiru') // stupid fix for a synonym that doesn't exist with The Brilliant Healer's New Life in the Shadows...
       if (name.match(/Kanchigai no Atelier Meister/i) && !name.match(/Mini|Short|Eiyuu|Party/i)) name = name.replace(/Kanchigai no Atelier Meister/i, 'The Unaware Atelier Meister') // stupid fix to prevent the Mini Anime from being fetched due to egregiously long romaji name in the TV series.
       if (name.match(/Prince/i) && name.match(/Tennis/i)) name = name.replace(/new /i, '') // Prince of Tennis fix.
+      if (name.match(/Kaijuu 8-gou/i) && name.match(/Mission Recon/i)) name = name.replace(/- Mission Recon| -Mission Recon|Mission Recon/i, '').replace(/Kaijuu 8-gou/i, 'Kaiju No. 8: Mission Recon') // Kaiju No. 8: Mission Recon fix...
 
       // fix incorrect marker patterns to prevent them from being detected as episode count...
       name = name
