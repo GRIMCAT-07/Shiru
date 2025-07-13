@@ -137,7 +137,7 @@
   IPC.emit('notification-unread', hasUnreadNotifications.value)
 </script>
 
-<SoftModal class='m-0 w-800 mw-0 {$notifications?.length ? `h-full` : ``} d-flex flex-column rounded bg-very-dark pt-0 py-30 pl-20 pr-30 mx-20 scrollbar-none' bind:showModal={$notifyView} {close} id='notificationModal'>
+<SoftModal class='m-0 w-1000 mw-0 {$notifications?.length ? `h-full` : ``} d-flex flex-column rounded bg-very-dark pt-0 py-30 pl-20 pr-30 mx-20 scrollbar-none' bind:showModal={$notifyView} {close} id='notificationModal'>
   {#if $notifyView}
     <div class='d-flex mt-30'>
       <h3 class='mb-0 font-weight-bold text-white title mr-5 font-size-24 ml-20'>Notifications</h3>
@@ -164,7 +164,7 @@
         {@const behind = !announcement && !delayed && notification.episode && ($mediaCache[notification?.id]?.mediaListEntry?.status !== 'COMPLETED' && (($mediaCache[notification?.id]?.mediaListEntry?.progress || -1) < ((!notification.season ? notification.episode : $mediaCache[notification?.id].episodes) - 1)))}
         {@const watched = !announcement && !delayed && !notWatching && !behind && notification.episode && ($mediaCache[notification?.id]?.mediaListEntry?.status === 'COMPLETED' || ($mediaCache[notification?.id]?.mediaListEntry?.progress >= (!notification.season ? notification.episode : $mediaCache[notification?.id].episodes)))}
         {#if watched && !notification.read}{(notification.read = true) && updateSort() && ''}{/if}
-        <div class='notification-item shadow-lg position-relative d-flex align-items-center mx-20 my-5 p-5 scale pointer' class:mt-20={index === 0} role='button' tabindex='0' use:hoverExit={() => { notification.prompt = false; delete notification.prompt }} use:click={() => { if (!behind || notification.prompt) { notification.prompt = false; delete notification.prompt; notification.read = true; onclick(notification) } else { notification.prompt = true } } } on:contextmenu|preventDefault={() => { notification.read = true; onclick(notification, true); }} class:not-reactive={!$reactive} class:read={notification.read} class:behind={(behind && !notWatching) || delayed} class:current={!behind && !notWatching} class:not-watching={notWatching} class:watched={watched} class:announcement={announcement}>
+        <div class='notification-item shadow-lg position-relative d-flex align-items-center mx-20 my-5 p-5 scale pointer' class:mt-10={index === 0} role='button' tabindex='0' use:hoverExit={() => { notification.prompt = false; delete notification.prompt }} use:click={() => { if (!behind || notification.prompt) { notification.prompt = false; delete notification.prompt; notification.read = true; onclick(notification) } else { notification.prompt = true } } } on:contextmenu|preventDefault={() => { notification.read = true; onclick(notification, true); }} class:not-reactive={!$reactive} class:read={notification.read} class:behind={(behind && !notWatching) || delayed} class:current={!behind && !notWatching} class:not-watching={notWatching} class:watched={watched} class:announcement={announcement}>
           {#if notification.heroImg}
             <div class='position-absolute top-0 left-0 w-full h-full'>
               <img src={notification.heroImg} alt='bannerImage' class='hero-img img-cover w-full h-full' />
@@ -323,7 +323,7 @@
     left: 0;
     right: 0;
     height: 1.2rem;
-    margin-top: 12rem;
+    margin-top: 11.3rem;
     box-shadow: 0 1.2rem 1.2rem #131416;
     pointer-events: none;
     z-index: 1;
