@@ -5,6 +5,7 @@
   import { playAnime } from '@/views/TorrentSearch/TorrentModal.svelte'
   import { anilistClient } from '@/modules/anilist.js'
   import { episodesList } from '@/modules/episodes.js'
+  import AnimeResolver from '@/modules/animeresolver.js'
   import { getMediaMaxEp } from '@/modules/anime.js'
   import { client } from '@/modules/torrent/torrent.js'
   import { getContext, createEventDispatcher } from 'svelte'
@@ -41,11 +42,8 @@
   })
 
   export function playFile (file) {
-    if (!isNaN(file)) {
-      handleCurrent(videos?.[file])
-    } else {
-      handleCurrent(file)
-    }
+    if (!isNaN(file)) handleCurrent(videos?.[file])
+    else handleCurrent(file)
   }
 
   function updatew2g () {
@@ -1445,6 +1443,8 @@
           {media?.title}
         {:else if media?.media?.title} <!-- useful when a torrent is EXTREMELY slow at loading... -->
           {anilistClient.title(media?.media)}
+        {:else if current}
+          {AnimeResolver.cleanFileName(current.name)}
         {/if}
       </div>
       <div class='font-weight-normal overflow-hidden text-truncate text-muted font-scale-16'>

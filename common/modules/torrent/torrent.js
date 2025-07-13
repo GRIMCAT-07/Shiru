@@ -3,6 +3,7 @@ import { page } from '@/App.svelte'
 import { settings } from '@/modules/settings.js'
 import { cache, caches } from '@/modules/cache.js'
 import { SUPPORTS } from '@/modules/support.js'
+import { status } from '@/modules/networking.js'
 import { toast } from 'svelte-sonner'
 import clipboard from '@/modules/clipboard.js'
 import { deepEqual } from '@/modules/util.js'
@@ -66,6 +67,8 @@ settings.subscribe(value => {
     client.send('settings', _settings)
   }
 })
+
+status.subscribe(value => client.send('networking', value))
 
 if (!settings.value.disableStartupTorrent) {
   client.send('load', cache.getEntry(caches.GENERAL, 'loadedTorrent'))

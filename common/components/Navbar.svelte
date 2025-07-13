@@ -41,7 +41,7 @@
     <NavbarLink click={() => { page = 'schedule' }} _page='schedule' icon='schedule' text='Schedule' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
       <CalendarSearch size='3.6rem' class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
     </NavbarLink>
-    {#if $media?.media}
+    {#if $media?.media || (playPage && (Object.keys($media).length > 0))}
       {@const currentMedia = $view}
       {@const active = $view && !$notifyView && !$profileView && !$actionPrompt && 'active'}
       {@const wasOverlay = ($view || $profileView || $notifyView || $actionPrompt || $rss)}
@@ -54,7 +54,7 @@
         } else {
           $view = (currentMedia?.id === $media?.media.id && active ? null : $media?.media)
         }
-      }} rbClick={() => { $view = (currentMedia?.id === $media?.media.id && active ? null : $media?.media) }} _page={playPage ? 'player' : ''} icon='queue_music' text={$media?.display ? 'Last Watched' : 'Now Playing'} {page} overlay={active} nowPlaying={!playPage && ($view?.id === $media?.media?.id)} let:active>
+      }} rbClick={() => { if ($media?.media) $view = (currentMedia?.id === $media.media.id && active ? null : $media.media) }} _page={playPage ? 'player' : ''} icon='queue_music' text={$media?.display ? 'Last Watched' : 'Now Playing'} {page} overlay={active} nowPlaying={!playPage && ($view?.id === $media?.media?.id)} let:active>
         <svelte:component this={playPage ? TvMinimalPlay : $media?.display ? History : ListVideo} size='3.6rem' class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
       </NavbarLink>
     {/if}

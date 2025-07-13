@@ -159,7 +159,7 @@ export default new class AnimeResolver {
     return res.data.Media
   }
 
-  async findAndCacheTitle(fileName) {
+  async findAndCacheTitle(fileName, findAnime = true) {
     const parseObjs = await anitomyscript(fileName)
     const TYPE_EXCLUSIONS = ['ED', 'ENDING', 'NCED', 'NCOP', 'OP', 'OPENING', 'PREVIEW', 'PV']
 
@@ -171,7 +171,7 @@ export default new class AnimeResolver {
       if (obj.anime_type && TYPE_EXCLUSIONS.includes((Array.isArray(obj.anime_type) ? obj.anime_type[0] : obj.anime_type).toUpperCase())) continue // skip non-episode media
       uniq[key] = obj
     }
-    await this.findAnimesByTitle(Object.values(uniq))
+    if (findAnime) await this.findAnimesByTitle(Object.values(uniq))
     return parseObjs
   }
 

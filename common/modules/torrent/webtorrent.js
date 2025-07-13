@@ -20,6 +20,7 @@ export default class TorrentClient extends WebTorrent {
   player = ''
   /** @type {ReturnType<spawn>} */
   playerProcess = null
+  networking = 'online'
 
   constructor (ipc, storageQuota, serverMode, settings, controller) {
     debug(`Initializing TorrentClient with settings: ${JSON.stringify(settings)}`)
@@ -149,7 +150,7 @@ export default class TorrentClient extends WebTorrent {
     setTimeout(() => {
       if (this.destroyed || torrent.destroyed) return
       if (torrent.progress !== 1) {
-        if (torrent.numPeers === 0) this.dispatchError('No peers found for torrent, try using a different torrent.')
+        if (torrent.numPeers === 0 && this.networking !== 'offline') this.dispatchError('No peers found for torrent, try using a different torrent.')
       }
     }, 30000).unref?.()
   }
@@ -222,7 +223,7 @@ export default class TorrentClient extends WebTorrent {
     setTimeout(() => {
       if (this.destroyed || torrent.destroyed || skipVerify) return
       if (!torrent.progress && !torrent.ready) {
-        if (torrent.numPeers === 0) this.dispatchError('No peers found for torrent, try using a different torrent.')
+        if (torrent.numPeers === 0 && this.networking !== 'offline') this.dispatchError('No peers found for torrent, try using a different torrent.')
       }
     }, 30000).unref?.()
   }
@@ -502,6 +503,8 @@ export default class TorrentClient extends WebTorrent {
         }
         this.dispatch('untrack', data.data)
         break
+      } case 'networking': {
+        this.networking = data.data
       } case 'debug': {
         Debug.disable()
         if (data.data) Debug.enable(data.data)

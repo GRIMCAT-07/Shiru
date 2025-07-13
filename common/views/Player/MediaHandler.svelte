@@ -35,9 +35,7 @@
   function handleCurrent ({ detail }) {
     const nextMedia = detail?.media
     debug(`Handling current media: ${JSON.stringify(nextMedia?.parseObject)}`)
-    if (nextMedia?.parseObject) {
-      handleMedia(nextMedia)
-    }
+    if (nextMedia?.parseObject) handleMedia(nextMedia)
   }
 
   export function findInCurrent (obj) {
@@ -54,7 +52,7 @@
     )
 
     if (!targetFile) return false
-    if (oldNowPlaying.media?.id !== obj.media.id) {
+    if (oldNowPlaying?.media?.id !== obj?.media?.id) {
       handleMedia(obj, { media: obj.media, episode: obj.episode })
       handleFiles(fileList, targetFile).catch(e => {
             toast.error('File Error', {
@@ -110,8 +108,9 @@
       }
   }
 
-  async function handleMedia ({ media, episode, episodeRange, parseObject }, newPlaying) {
-    if (media || episode || parseObject) {
+  async function handleMedia (opts, newPlaying) {
+    if (opts?.media || opts?.episode || opts?.parseObject) {
+      const { media, episode, episodeRange, parseObject } = opts
       const zeroEpisode = media && await checkForZero(media)
       const ep = (Number(episode || parseObject?.episode_number) === 0) || (zeroEpisode && !episode) ? 0 : (Number(episode || parseObject?.episode_number) || null)
       const streamingTitle = media?.streamingEpisodes?.find(episode => episodeRx.exec(episode.title) && Number(episodeRx.exec(episode.title)?.[1]) === ep)
@@ -160,11 +159,9 @@
           parseObject,
           ...details
       })
-      if (!newPlaying) {
-          setMediaSession(nowPlaying.value)
-      }
+      if (!newPlaying) setMediaSession(nowPlaying.value)
       debug(`Now playing as been set to: ${JSON.stringify(details)}`)
-    }
+    } else nowPlaying.set({ failed: true }) // If the file exists, we should always play it.
   }
 
   // find the best media in batch to play
@@ -282,18 +279,25 @@
     videoFiles = cleanFiles(videoFiles)
 
     // assign any resolved media to their video files that haven't failed to be resolved.
-    const resolved = await AnimeResolver.resolveFileAnime(videoFiles.map(file => file.name))
+    let resolved = []
+    try {
+        resolved = await AnimeResolver.resolveFileAnime(videoFiles.map(file => file.name))
+    } catch (e) { debug(e) }
+
     videoFiles.forEach((file) => {
         const parseObject = resolved.find(({ parseObject }) => AnimeResolver.cleanFileName(file.name).includes(parseObject.file_name))
         if (parseObject && !parseObject.failed) file.media = parseObject
     })
 
     // Identify files that still need to be resolved, attempting again using the torrent name instead.
-    const failedToResolve = videoFiles.filter(file => !file.media)
+    let failedToResolve = videoFiles.filter(file => !file.media)
     if (failedToResolve.length) {
         debug('Some media files failed to resolve using the file name, trying again using the torrent name...')
         const torrentName = [...new Set(torrentNames)][0] // temporary, may need to handle multiple torrents in the future.
-        const resolvedByName = await AnimeResolver.resolveFileAnime(failedToResolve.map(file => `${torrentName} ${file.name}`))
+        let resolvedByName = []
+        try {
+            resolvedByName = await AnimeResolver.resolveFileAnime(failedToResolve.map(file => `${torrentName} ${file.name}`))
+        } catch (e) { debug(e) }
         failedToResolve.forEach((file) => {
             const parseObject = resolvedByName.find(({ parseObject }) => AnimeResolver.cleanFileName(`${torrentName} ${file.name}`).includes(parseObject.file_name))
             const failedEntry = resolved.find(resolvedFile => AnimeResolver.cleanFileName(resolvedFile.parseObject.file_name) === AnimeResolver.cleanFileName(file.name))
@@ -304,6 +308,15 @@
                 if (parseObject?.episode && (String(parseObject?.episode || '') === String(failedEntry?.parseObject?.video_resolution || '').replace('p', ''))) delete parseObject.episode
             }
             if (parseObject) file.media = parseObject
+        })
+    }
+
+    failedToResolve = videoFiles.filter(file => !file.media)
+    if (failedToResolve.length) {
+        resolved = await AnimeResolver.findAndCacheTitle(AnimeResolver.cleanFileName(videoFiles.map(file => file.name)), false)
+        failedToResolve.forEach((file) => {
+            const parseObject = resolved.find((parseObject) => AnimeResolver.cleanFileName(file.name).includes(parseObject?.file_name))
+            if (parseObject) file.media = { parseObject: { ...parseObject, failed: true } }
         })
     }
     videoFiles?.sort((a, b) => a.media?.media?.id - b.media?.media?.id) // group media ids together for easier readability.
@@ -364,7 +377,7 @@
               if (seasonB === undefined) return -1
               return  seasonA - seasonB
           })
-      } else result.sort((a, b) => (b.media?.parseObject?.anime_season ?? 1) - (a.media?.parseObject?.anime_season ?? 1))
+      } else result.sort((a, b) => Number(a.media?.parseObject?.episode_number ?? 1) - Number(b.media?.parseObject?.episode_number ?? 1)).sort((a, b) => Number(b.media?.parseObject?.anime_season ?? 1) - Number(a.media?.parseObject?.anime_season ?? 1))
       return result
   }
 

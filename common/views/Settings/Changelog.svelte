@@ -1,5 +1,7 @@
 <script context='module'>
   import ChangelogSk from '@/components/skeletons/ChangelogSk.svelte'
+  import Debug from 'debug'
+  const debug = Debug('ui:changelog-view')
 
   let changeLog = getChanges()
   window.addEventListener('online', () => changeLog = getChanges())
