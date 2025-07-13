@@ -163,7 +163,7 @@
 <SettingCard title='RSS Feed' description={'When each RSS feed updates with new entries, notifications will be sent depending on your list status.\n\nThese notifications will combine with Anilist and Releases notifications for the in-app notification tray.'}>
   <div>
     {#each settings.rssNotify as status, i}
-      <div class='input-group mb-10 w-150 mw-full'>
+      <div class='input-group mb-10 w-210 mw-full'>
         <select id='rss-notify-{i}' class='w-100 form-control mw-full bg-dark' bind:value={settings.rssNotify[i]} >
           <option disabled value=''>Select a status</option>
           {#each listStatus.filter(option => !settings.rssNotify.includes(option[1]) || status === option[1]) as option}
