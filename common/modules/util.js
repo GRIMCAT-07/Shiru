@@ -298,6 +298,10 @@ export function matchKeys(nest, phrase, keys, threshold = 0.4) {
   for (const key of keys) {
     const value = getNestedValue(nest, key)
     if (typeof value === 'string') setNestedValue(cleanedNest, key, cleanText(value))
+    else if (Array.isArray(value)) {
+      const cleanedArray = value.filter(v => typeof v === 'string').map(cleanText)
+      if (cleanedArray.length) setNestedValue(cleanedNest, key, cleanedArray)
+    }
   }
   if (new Fuse([cleanedNest], { includeScore: true, threshold, keys: keys }).search(cleanedPhrase).length > 0) return true
   const fuse = new Fuse([cleanedPhrase], { includeScore: true, threshold })
