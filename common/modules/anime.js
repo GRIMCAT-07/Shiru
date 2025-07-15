@@ -736,7 +736,7 @@ export function setStatus (status, other = {}, media) {
     id: media.id,
     idMal: media.idMal,
     status,
-    score: media.mediaListEntry?.score || 0,
+    score: media.mediaListEntry?.score ? Helper.isAniAuth() ? (media.mediaListEntry?.score * 10) : media.mediaListEntry?.score : 0, // AniList score scale is out of 100, others use a scale of 10,
     repeat: media.mediaListEntry?.repeat || 0,
     ...fuzzyDate,
     ...other
