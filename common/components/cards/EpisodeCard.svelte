@@ -43,13 +43,13 @@
     }))
   }
   function setClickState() {
-    if (!$prompt && media?.mediaListEntry?.status !== 'COMPLETED' && (media?.mediaListEntry?.progress || -1) < (data.episode - 1)) prompt.set(true)
+    if (!$prompt && data.episode && !Array.isArray(data.episode) && (data.episode - 1) >= 1 && media?.mediaListEntry?.status !== 'COMPLETED' && (media?.mediaListEntry?.progress || -1) < (data.episode - 1)) prompt.set(true)
     else data.onclick ? data.onclick() : data.episode ? promptTorrent() : viewMedia()
     clicked.set(true)
     setTimeout(() => clicked.set(false))
   }
   function setHoverState (state, tapped) {
-    if (!$prompt && media?.mediaListEntry?.status !== 'COMPLETED' && (media?.mediaListEntry?.progress || -1) < (data.episode - 1)) prompt.set(!!tapped)
+    if (!$prompt && data.episode && !Array.isArray(data.episode) && (data.episode - 1) >= 1 && media?.mediaListEntry?.status !== 'COMPLETED' && (media?.mediaListEntry?.progress || -1) < (data.episode - 1)) prompt.set(!!tapped)
     if (!$prompt || !$clicked) preview = state
   }
 
