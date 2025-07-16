@@ -93,7 +93,7 @@
 {#if !SUPPORTS.isAndroid}
   <SettingCard title='Close Action' description='Choose the functionality of the close button for the app. You can choose to receive a Prompt to Minimize or Close, default to Minimize, or default to Closing the app.'>
     <div>
-      <select class='form-control bg-dark w-300 mw-full' bind:value={settings.closeAction}>
+      <select class='form-control bg-dark w-300 mw-full text-truncate' bind:value={settings.closeAction}>
         <option value='Prompt'>Prompt</option>
         <option value='Minimize'>Minimize</option>
         <option value='Close'>Close</option>
@@ -103,32 +103,32 @@
 {/if}
 <SettingCard title='Query Complexity' description="Complex queries result in slower loading times but help in reducing the chances of hitting AniList's rate limit. Simple queries split up the requests into multiple queries which are requested as needed.">
   <div>
-    <select class='form-control bg-dark w-300 mw-full' bind:value={settings.queryComplexity}>
+    <select class='form-control bg-dark w-300 mw-full text-truncate' bind:value={settings.queryComplexity}>
       <option value='Complex'>Complex (slow)</option>
       <option value='Simple'>Simple (fast)</option>
     </select>
   </div>
 </SettingCard>
 <SettingCard title='Reset Notifications' description='Resets all notifications that have been cached, this is not recommended unless you are experiencing issues. This will also reset the last time you have been notified, so expect previous notifications to appear again.'>
-  <button type='button' use:click={() => cache.resetNotifications()} class='btn btn-primary d-flex align-items-center justify-content-center'><span>Reset Notifications</span></button>
+  <button type='button' use:click={() => cache.resetNotifications()} class='btn btn-primary d-flex align-items-center justify-content-center '><span class='text-truncate'>Reset Notifications</span></button>
 </SettingCard>
 <SettingCard title='Reset History' description='Resets all history data that has been cached, this is not recommended unless you are experiencing issues. You will lose your local episode progress, subtitle choices, volume boost, and magnet links history.'>
-  <button type='button' use:click={() => cache.resetHistory()} class='btn btn-primary d-flex align-items-center justify-content-center'><span>Reset History</span></button>
+  <button type='button' use:click={() => cache.resetHistory()} class='btn btn-primary d-flex align-items-center justify-content-center'><span class='text-truncate'>Reset History</span></button>
 </SettingCard>
 <SettingCard title='Reset Caches' description='Resets everything the app has cached, this is not recommended unless you are experiencing issues. Caching speeds up load times and decreases down time. This does not reset the notifications or history cache. THIS WILL FORCE RESTART THE APP!'>
-  <button type='button' use:click={() => cache.resetCaches()} class='btn btn-primary d-flex align-items-center justify-content-center'><span>Reset Caches</span></button>
+  <button type='button' use:click={() => cache.resetCaches()} class='btn btn-primary d-flex align-items-center justify-content-center'><span class='text-truncate'>Reset Caches</span></button>
 </SettingCard>
 <SettingCard title='Settings Management' description='Import saved settings from your clipboard, export your current configuration to back it up or share with others, and restore everything back to default values if needed. This is especially useful for syncing preferences across devices, sharing settings with friends, or starting fresh with recommended defaults.'>
   <div class='d-inline-flex flex-column'>
-    <button use:click={importSettings} class='btn btn-primary d-flex align-items-center justify-content-center' type='button'><span>Import from Clipboard</span></button>
-    <button use:click={exportSettings} class='btn btn-primary mt-5 d-flex align-items-center justify-content-center' type='button'><span>Export to Clipboard</span></button>
-    <button use:click={resetSettings} class='btn btn-danger mt-5 d-flex align-items-center justify-content-center' type='button' data-toggle='tooltip' data-placement='top' data-title='Restores All Settings Back To Their Recommended Defaults'><span>Reset to Defaults</span></button> <!--TODO: Add a prompt for the user  -->
+    <button use:click={importSettings} class='btn btn-primary d-flex align-items-center justify-content-center' type='button'><span class='text-truncate'>Import from Clipboard</span></button>
+    <button use:click={exportSettings} class='btn btn-primary mt-5 d-flex align-items-center justify-content-center' type='button'><span class='text-truncate'>Export to Clipboard</span></button>
+    <button use:click={resetSettings} class='btn btn-danger mt-5 d-flex align-items-center justify-content-center' type='button' data-toggle='tooltip' data-placement='top' data-title='Restores All Settings Back To Their Recommended Defaults'><span class='text-truncate'>Reset to Defaults</span></button> <!--TODO: Add a prompt for the user  -->
   </div>
 </SettingCard>
 
 <h4 class='mb-10 font-weight-bold'>Debug Settings</h4>
 <SettingCard title='Logging Levels' description='Enable logging of specific parts of the app.{!SUPPORTS.isAndroid ? ` These logs are saved to ${window.version?.platform === `win32` ? `%appdata%` : `~/config`}/Shiru/logs/main.log.` : ``}'>
-  <select class='form-control bg-dark w-300 mw-full' bind:value={$debug}>
+  <select class='form-control bg-dark w-300 mw-full text-truncate' bind:value={$debug}>
     <option value='' selected>None</option>
     <option value='*'>All</option>
     <option value='torrent:*,webtorrent:*,simple-peer,bittorrent-protocol,bittorrent-dht,bittorrent-lsd,torrent-discovery,bittorrent-tracker:*,ut_metadata,nat-pmp,nat-api'>Torrent</option>
@@ -136,7 +136,7 @@
   </select>
 </SettingCard>
 <SettingCard title='Toast Levels' description='Changes what toasts are shown in the app, limiting what toasts are shown could be useful if an api is down to prevent spam.'>
-  <select class='form-control bg-dark w-300 mw-full' bind:value={settings.toasts}>
+  <select class='form-control bg-dark w-300 mw-full text-truncate' bind:value={settings.toasts}>
     <option value='All' selected>All</option>
     <option value='Warnings / Successes'>Warnings / Successes</option>
     <option value='Errors'>Errors</option>
@@ -144,17 +144,17 @@
   </select>
 </SettingCard>
 <SettingCard title='App and Device Info' description='Copy app and device debug info and capabilities, such as GPU information, GPU capabilities, version information and settings to clipboard.'>
-  <button type='button' use:click={() => IPC.emit('get-device-info')} class='btn btn-primary d-flex align-items-center justify-content-center'><span>Copy To Clipboard</span></button>
+  <button type='button' use:click={() => IPC.emit('get-device-info')} class='btn btn-primary d-flex align-items-center justify-content-center'><span class='text-truncate'>Copy To Clipboard</span></button>
 </SettingCard>
 {#if !SUPPORTS.isAndroid}
   <SettingCard title='Log Output' description='Copy debug logs to clipboard. Once you enable a logging level you can use this to quickly copy the created logs to clipboard instead of navigating to the log file in directories.'>
-    <button type='button' use:click={() => IPC.emit('get-log-contents')} class='btn btn-primary d-flex align-items-center justify-content-center'><span>Copy To Clipboard</span></button>
+    <button type='button' use:click={() => IPC.emit('get-log-contents')} class='btn btn-primary d-flex align-items-center justify-content-center'><span class='text-truncate'>Copy To Clipboard</span></button>
   </SettingCard>
   <SettingCard title='Open Torrent Devtools' description="Open devtools for the detached torrent process, this allows to inspect code execution and memory. DO NOT PASTE ANY CODE IN THERE, YOU'RE LIKELY BEING SCAMMED IF SOMEONE TELLS YOU TO!">
-    <button type='button' use:click={() => IPC.emit('torrent-devtools')} class='btn btn-primary d-flex align-items-center justify-content-center'><span>Open Devtools</span></button>
+    <button type='button' use:click={() => IPC.emit('torrent-devtools')} class='btn btn-primary d-flex align-items-center justify-content-center'><span class='text-truncate'>Open Devtools</span></button>
   </SettingCard>
   <SettingCard title='Open UI Devtools' description="Open devtools for the UI process, this allows to inspect media playback information, rendering performance and more. DO NOT PASTE ANY CODE IN THERE, YOU'RE LIKELY BEING SCAMMED IF SOMEONE TELLS YOU TO!">
-    <button type='button' use:click={() => IPC.emit('ui-devtools')} class='btn btn-primary d-flex align-items-center justify-content-center'><span>Open Devtools</span></button>
+    <button type='button' use:click={() => IPC.emit('ui-devtools')} class='btn btn-primary d-flex align-items-center justify-content-center'><span class='text-truncate'>Open Devtools</span></button>
   </SettingCard>
 {/if}
 <Changelog {version} class='d-lg-none' />

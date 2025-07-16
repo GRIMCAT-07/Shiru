@@ -22,7 +22,7 @@
     </div>
   </SettingCard>
   <SettingCard title='DNS Over HTTPS URL' description='What URL to use for querying DNS Over HTTPS.'>
-    <input type='url' class='form-control bg-dark w-300 mw-full' bind:value={settings.doHURL} placeholder={defaults.doHURL} />
+    <input type='url' class='form-control bg-dark w-300 mw-full text-truncate' bind:value={settings.doHURL} placeholder={defaults.doHURL} />
   </SettingCard>
 {/if}
 

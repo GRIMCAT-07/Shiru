@@ -21,7 +21,7 @@
 {#if SUPPORTS.discord}
   <h4 class='mb-10 font-weight-bold'>Rich Presence Settings</h4>
   <SettingCard title='Discord Rich Presence' description={'Enables the use of Discord rich presence to display app activity.\nFull enables complete rich presence support showing anime details, limited reduces what is seen not showing the currently played anime and episode, disabled completely disables rich presence.'}>
-    <select class='form-control bg-dark w-100 mw-full' bind:value={settings.enableRPC}>
+    <select class='form-control bg-dark w-100 mw-full text-truncate' bind:value={settings.enableRPC}>
       <option value='full' selected>Full</option>
       <option value='limited'>Limited</option>
       <option value='disabled'>Disabled</option>
@@ -56,7 +56,7 @@
   </SettingCard>
 {/if}
 <SettingCard title='Card Type' description='What type of cards to display in menus.'>
-  <select class='form-control bg-dark w-100 mw-full' bind:value={settings.cards}>
+  <select class='form-control bg-dark w-100 mw-full text-truncate' bind:value={settings.cards}>
     <option value='small' selected>Small</option>
     <option value='full'>Full</option>
   </select>
@@ -82,7 +82,7 @@
   </div>
 </SettingCard>
 <SettingCard title='Adult Content' description={'Adult enables searching for adult (18+) rated anime, typically series with nudity.\nHentai enables searching straight up Hentai. This includes adding the Hentai home feed, Hentai genre, and Hentai related tags for search queries.'}>
-  <select class='form-control bg-dark w-100 mw-full' bind:value={settings.adult}>
+  <select class='form-control bg-dark w-100 mw-full text-truncate' bind:value={settings.adult}>
     <option value='none' selected>None</option>
     <option value='adult'>Adult</option>
     <option value='hentai'>Hentai</option>
@@ -99,7 +99,7 @@
 {#if SUPPORTS.angle}
   <h4 class='mb-10 font-weight-bold'>Rendering Settings</h4>
   <SettingCard title='ANGLE Backend' description="What ANGLE backend to use for rendering. DON'T CHANGE WITHOUT REASON! On some Windows machines D3D9 might help with flicker. Changing this setting to something your device doesn't support might prevent Shiru from opening which will require a full reinstall. While Vulkan is an available option it might not be fully supported on Linux.">
-    <select class='form-control bg-dark w-300 mw-full' bind:value={settings.angle} on:change={updateAngle}>
+    <select class='form-control bg-dark w-300 mw-full text-truncate' bind:value={settings.angle} on:change={updateAngle}>
       <option value='default' selected>Default</option>
       <option value='d3d9'>D3D9</option>
       <option value='d3d11'>D3D11</option>
@@ -121,7 +121,7 @@
 </SettingCard>
 {#if Helper.isAniAuth()}
   <SettingCard title='AniList Notifications' description='Get notifications from your AniList account, showing when episodes have aired and any new anime titles you are following have been added to the database. Limited will only get important notifications like when a new season is announced.'>
-    <select class='form-control bg-dark w-150 mw-full' bind:value={settings.aniNotify}>
+    <select class='form-control bg-dark w-150 mw-full text-truncate' bind:value={settings.aniNotify}>
       <option value='all' selected>All</option>
       <option value='limited'>Limited</option>
       <option value='none'>None</option>
@@ -131,7 +131,7 @@
 {#each ['Sub', 'Dub', 'Hentai'] as type}
   {#if type !== 'Hentai' || settings.adult === 'hentai'}
     <SettingCard title='{type} Announcements' description={`Get ${type} announcement notifications when an airing date is confirmed.\nChoose to get all announcements, updates on sequels for related anime you're following, or turn off notifications entirely.`}>
-      <select class='form-control bg-dark w-150 mw-full' bind:value={settings[`${type.toLowerCase()}Announce`]}>
+      <select class='form-control bg-dark w-150 mw-full text-truncate' bind:value={settings[`${type.toLowerCase()}Announce`]}>
         <option value='all' selected>All</option>
         <option value='following' selected>Following</option>
         <option value='none'>None</option>
@@ -143,7 +143,7 @@
   <div>
     {#each settings.releasesNotify as status, i}
       <div class='input-group mb-10 w-210 mw-full'>
-        <select id='dubs-notify-{i}' class='w-100 form-control mw-full bg-dark' bind:value={settings.releasesNotify[i]} >
+        <select id='dubs-notify-{i}' class='w-100 form-control mw-full bg-dark text-truncate' bind:value={settings.releasesNotify[i]} >
           <option disabled value=''>Select a status</option>
           {#each listStatus.filter(option => !settings.releasesNotify.includes(option[1]) || status === option[1]) as option}
             <option value='{option[1]}'>{option[0]}</option>
@@ -158,13 +158,13 @@
   </div>
 </SettingCard>
 <SettingCard title='RSS Default URL' description='URL of the API used to query data for torrents. Useful for proxies if your ISP blocks some domains. Needs to be CORS enabled.'>
-  <input type='url' class='form-control bg-dark w-300 mw-full' bind:value={settings.toshoURL} placeholder={defaults.toshoURL} />
+  <input type='url' class='form-control bg-dark w-300 mw-full text-truncate' bind:value={settings.toshoURL} placeholder={defaults.toshoURL} />
 </SettingCard>
 <SettingCard title='RSS Feed' description={'When each RSS feed updates with new entries, notifications will be sent depending on your list status.\n\nThese notifications will combine with Anilist and Releases notifications for the in-app notification tray.'}>
   <div>
     {#each settings.rssNotify as status, i}
       <div class='input-group mb-10 w-210 mw-full'>
-        <select id='rss-notify-{i}' class='w-100 form-control mw-full bg-dark' bind:value={settings.rssNotify[i]} >
+        <select id='rss-notify-{i}' class='w-100 form-control mw-full bg-dark text-truncate' bind:value={settings.rssNotify[i]} >
           <option disabled value=''>Select a status</option>
           {#each listStatus.filter(option => !settings.rssNotify.includes(option[1]) || status === option[1]) as option}
             <option value='{option[1]}'>{option[0]}</option>
@@ -192,8 +192,8 @@
   <div>
     {#each settings.rssFeedsNew as _, i}
       <div class='input-group mb-10 w-500 mw-full'>
-        <input type='text' class='form-control w-150 mw-full bg-dark flex-reset' placeholder='New Releases' autocomplete='off' bind:value={settings.rssFeedsNew[i][0]} />
-        <input id='rss-feed-{i}' type='text' list='rss-feed-list-{i}' class='w-400 form-control mw-full bg-dark' placeholder={settings.toshoURL + 'rss2?qx=1&q="[SubsPlease] "'} autocomplete='off' bind:value={settings.rssFeedsNew[i][1]} />
+        <input type='text' class='form-control w-150 mw-full bg-dark text-truncate' placeholder='New Releases' autocomplete='off' bind:value={settings.rssFeedsNew[i][0]} />
+        <input id='rss-feed-{i}' type='text' list='rss-feed-list-{i}' class='w-400 form-control mw-full bg-dark text-truncate' placeholder={settings.toshoURL + 'rss2?qx=1&q="[SubsPlease] "'} autocomplete='off' bind:value={settings.rssFeedsNew[i][1]} />
         <datalist id='rss-feed-list-{i}'>
           <option value='SubsPlease'>{settings.toshoURL + 'rss2?qx=1&q="[SubsPlease] "'}</option>
           <option value='Erai-raws [Multi-Sub]'>{settings.toshoURL + 'rss2?qx=1&q="[Erai-raws] "'}</option>
@@ -223,7 +223,7 @@
         <div class='position-relative flex-shrink-1 w-150'>
           <input
             type='text'
-            class='form-control bg-dark fix-border-right text-capitalize'
+            class='form-control bg-dark fix-border-right text-capitalize text-truncate'
             placeholder='Name'
             autocomplete='off'
             bind:value={settings.customSections[i][0]}

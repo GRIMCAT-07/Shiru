@@ -61,7 +61,7 @@
   </div>
 </SettingCard>
 <SettingCard title='Torrent Quality' description="What quality to use when trying to find torrents. None might rarely find less results than specific qualities. This doesn't exclude other qualities from being found like 4K or weird DVD resolutions.">
-  <select class='form-control bg-dark w-300 mw-full' bind:value={settings.rssQuality}>
+  <select class='form-control bg-dark w-300 mw-full text-truncate' bind:value={settings.rssQuality}>
     <option value='1080' selected>1080p</option>
     <option value='720'>720p</option>
     <option value='540'>540p</option>
@@ -70,7 +70,7 @@
   </select>
 </SettingCard>
 <SettingCard title='Torrent Order' description='Sorts the results by the preferred order. The auto-selected torrent will still consider your Preferred Audio setting.'>
-  <select class='form-control bg-dark w-300 mw-full' bind:value={settings.torrentSort}>
+  <select class='form-control bg-dark w-300 mw-full text-truncate' bind:value={settings.torrentSort}>
     <option value='seeders' selected>Seeders</option>
     <option value='smallest' selected>Smallest</option>
     <option value='new' selected>Newest</option>
@@ -80,7 +80,7 @@
   </select>
 </SettingCard>
 <SettingCard title='Preferred Audio' description='Prioritizes results matching the preferred language, otherwise will default to Japanese. This language will be loaded automatically when the video is loaded.'>
-  <select class='form-control bg-dark w-300 mw-full' bind:value={settings.audioLanguage}>
+  <select class='form-control bg-dark w-300 mw-full text-truncate' bind:value={settings.audioLanguage}>
     <option value='eng'>English</option>
     <option value='jpn' selected>Japanese</option>
     <option value='chi'>Chinese</option>
@@ -177,7 +177,7 @@
     </div>
   {/if}
   <div class='input-group wm-1200 mb-20'>
-    <input placeholder='https://example.com/index.json, gh:user/repo, or npm:package_name' type='url' class='form-control bg-dark-light mw-full rounded-2 h-43 border' disabled={pendingSource} class:cursor-wait={pendingSource} bind:value={sourceUrl} />
+    <input placeholder='https://example.com/index.json, gh:user/repo, or npm:package_name' type='url' class='form-control bg-dark-light mw-full rounded-2 h-43 border text-truncate' disabled={pendingSource} class:cursor-wait={pendingSource} bind:value={sourceUrl} />
     <button class='ml-10 btn btn-primary d-flex align-items-center justify-content-center rounded-2 w-200 h-43 font-scale-16' disabled={pendingSource || !sourceUrl?.length} class:cursor-wait={pendingSource} type='button' use:click={() => addSource()}><SquarePlus class='mr-10' size='1.8rem' /><span>Add Source</span></button>
   </div>
   <div class='wm-1200'>
@@ -196,7 +196,7 @@
             {/if}
           </div>
           <span class='font-weight-semi-bold ml-10 overflow-hidden text-truncate mr-5 font-scale-18'>{extension.host.replace(/^[^:]+:/, '')}</span>
-          <span class='font-weight-semi-bold ml-auto text-muted text-nowrap'>{extension.count} Extensions</span>
+          <span class='font-weight-semi-bold ml-auto text-muted text-nowrap text-truncate'>{extension.count} Extensions</span>
           <button type='button' use:click={() => removeSource(extension.host)} class='btn btn-square d-flex align-items-center justify-content-center ml-10 bg-transparent shadow-none border-0' title='Remove Source' style='color: var(--accent-color)' disabled={pendingSource} class:cursor-wait={pendingSource}><Trash2 size='1.8rem' /></button>
         </div>
       {/each}
@@ -206,7 +206,7 @@
     {#if sources?.length && sources.filter(source => !Object.values(settings.sourcesNew)?.some(existing => existing.update === source))?.length}
       <div class='wm-1200'>
         <button type='button' class='btn w-full h-full p-5 rounded-2 d-flex align-items-center' class:bg-dark-light={!viewSources} class:bg-primary={viewSources} use:click={()=> { viewSources = !viewSources }}>
-          <span class='ml-10'>{sources.filter(source => !Object.values(settings.sourcesNew)?.some(existing => existing.update === source))?.length} Available Sources</span>
+          <span class='ml-10 text-truncate'>{sources.filter(source => !Object.values(settings.sourcesNew)?.some(existing => existing.update === source))?.length} Available Sources</span>
           <svelte:component this={ viewSources ? ChevronUp : ChevronDown } class='ml-auto mr-10' size='2.2rem' />
         </button>
       </div>

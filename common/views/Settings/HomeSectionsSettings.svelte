@@ -60,8 +60,8 @@
     <div class='input-group-prepend' class:d-none={!SUPPORTS.isAndroid}>
       <button use:click={() => swapItem(index, index + 1)} class='input-group-text d-flex align-items-center px-5 pointer'><ArrowDown size='1.8rem' /></button>
     </div>
-    <div class='position-relative flex-shrink-1 w-150 mw-full'>
-      <select class='form-control flex-shrink-1 bg-dark fix-border' on:change={(event) => { if (event.target.value !== homeSections[index][0]) homeSections[index] = allowedHomeSections.find(([title]) => title === event.target.value) }} bind:value={homeSections[index][0]}>
+    <div class='position-relative flex-shrink-1 mw-full'>
+      <select class='form-control flex-shrink-1 bg-dark fix-border text-truncate' on:change={(event) => { if (event.target.value !== homeSections[index][0]) homeSections[index] = allowedHomeSections.find(([title]) => title === event.target.value) }} bind:value={homeSections[index][0]}>
         {#each allowedHomeSections as section}
           {#if !homeSections.some(([title]) => title === section[0]) || homeSections[index][0] === section[0]}
             <option>{section[0]}</option>
@@ -71,7 +71,7 @@
     </div>
     <div class='position-relative flex-shrink-1 w-150 bg-dark mw-full'>
       {(homeSections[index][1]?.includes('N/A') && homeSections[index][1] !== 'N/A') ? (homeSections[index][1] = 'N/A') : ''} <!-- hack because shit be weird sometimes -->
-      <select class='form-control bg-dark fix-border' bind:value={homeSections[index][1]} disabled={homeSections[index][1]?.includes('N/A')}>
+      <select class='form-control bg-dark fix-border text-truncate' bind:value={homeSections[index][1]} disabled={homeSections[index][1]?.includes('N/A')}>
         <option value='N/A' selected hidden>N/A</option>
         <option value='TRENDING_DESC'>Trending</option>
         <option value='POPULARITY_DESC'>Popularity</option>

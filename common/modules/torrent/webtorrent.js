@@ -505,6 +505,7 @@ export default class TorrentClient extends WebTorrent {
         break
       } case 'networking': {
         this.networking = data.data
+        break
       } case 'debug': {
         Debug.disable()
         if (data.data) Debug.enable(data.data)
