@@ -132,9 +132,24 @@ export default new class AnimeResolver {
       titleObjects.push({ ...titleObjects.at(-1), isAdult: true })
       return titleObjects
     })
-
     debug(`Finding ${titleObjects?.length} titles: ${titleObjects?.map(obj => obj.title).join(', ')}`)
-    for (const chunk of chunks(titleObjects, 55)) {
+
+    const missingTitles = []
+    for (const titleObj of titleObjects) {
+      let foundInCache = false
+      for (const media of Object.values(mediaCache.value)) {
+        if (!this.animeNameCache?.[titleObj.key] && this.isVerified(media, { anime_title: titleObj.title, anime_year: titleObj.year }, ['title.userPreferred', 'title.english', 'title.romaji', 'title.native', 'synonyms'], titleObj.title.length > 15 ? 0.2 : titleObj.title.length > 9 ? 0.15 : 0.1)) {
+          this.animeNameCache[titleObj.key] = media
+          debug(`Cache hit: ${titleObj.title} -> ${media?.id}: ${media?.title?.userPreferred}`)
+          foundInCache = true
+          break
+        }
+      }
+      if (!this.animeNameCache?.[titleObj.key] && !foundInCache) missingTitles.push(titleObj)
+    }
+
+    debug(`Missing ${missingTitles?.length} titles as they were not found in the media cache, titles: ${missingTitles?.map(obj => obj.title).join(', ')}`)
+    for (const chunk of chunks(missingTitles, 55)) {
       // single title has a complexity of 8.1, al limits complexity to 500, so this can be at most 62, undercut it to ~~60~~ 55, al pagination is 50, but at most we'll do 30 titles since isAdult duplicates each title
       const search = await anilistClient.alSearchCompound(chunk)
       if (!search || search?.errors) return
