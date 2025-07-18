@@ -2,6 +2,7 @@ import { anilistClient } from '@/modules/anilist.js'
 import { mediaCache } from '@/modules/cache.js'
 import { anitomyscript, hasZeroEpisode } from '@/modules/anime.js'
 import { chunks, matchKeys } from '@/modules/util.js'
+import levenshtein from 'js-levenshtein'
 import Debug from 'debug'
 
 const debug = Debug('ui:animeresolver')
@@ -107,6 +108,22 @@ export default new class AnimeResolver {
   }
 
   /**
+   * @param {import('./al.d.ts').Media} media
+   * @param {string} name
+   * @param {number} threshold (optional, percentage of title length)
+   * @returns {boolean}
+   */
+  matchesTitle(media, name, threshold = 0.2) {
+    if (!media) return false
+    const target = name.toLowerCase()
+    const maxDistance = Math.floor(target.length * threshold)
+    for (const title of [ ...Object.values(media.title || {}), ...(media.synonyms || [])].filter(Boolean)) {
+      if (levenshtein(title.toLowerCase(), target) <= maxDistance) return true
+    }
+    return false
+  }
+
+  /**
    * resolve anime name based on file name and store it
    * @param {import('anitomyscript').AnitomyResult[]} parseObjects
    */
@@ -138,7 +155,7 @@ export default new class AnimeResolver {
     for (const titleObj of titleObjects) {
       let foundInCache = false
       for (const media of Object.values(mediaCache.value)) {
-        if (!this.animeNameCache?.[titleObj.key] && this.isVerified(media, { anime_title: titleObj.title, anime_year: titleObj.year }, ['title.userPreferred', 'title.english', 'title.romaji', 'title.native', 'synonyms'], titleObj.title.length > 15 ? 0.2 : titleObj.title.length > 9 ? 0.15 : 0.1)) {
+        if (!this.animeNameCache?.[titleObj.key] && this.matchesTitle(media, titleObj.title, titleObj.title.length > 15 ? 0.15 : titleObj.title.length > 9 ? 0.1 : 0.05)) {
           this.animeNameCache[titleObj.key] = media
           debug(`Cache hit: ${titleObj.title} -> ${media?.id}: ${media?.title?.userPreferred}`)
           foundInCache = true
@@ -148,7 +165,7 @@ export default new class AnimeResolver {
       if (!this.animeNameCache?.[titleObj.key] && !foundInCache) missingTitles.push(titleObj)
     }
 
-    debug(`Missing ${missingTitles?.length} titles as they were not found in the media cache, titles: ${missingTitles?.map(obj => obj.title).join(', ')}`)
+    if (missingTitles?.length > 0) debug(`Missing ${missingTitles?.length} titles as they were not found in the media cache, titles: ${missingTitles?.map(obj => obj.title).join(', ')}`)
     for (const chunk of chunks(missingTitles, 55)) {
       // single title has a complexity of 8.1, al limits complexity to 500, so this can be at most 62, undercut it to ~~60~~ 55, al pagination is 50, but at most we'll do 30 titles since isAdult duplicates each title
       const search = await anilistClient.alSearchCompound(chunk)
