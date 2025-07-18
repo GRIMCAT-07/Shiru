@@ -44,7 +44,10 @@ export function liveAnimeEpisodeProgress (mediaId, episode) {
 // Return an individual episode's record { name, mediaId, episode, currentTime, safeduration, createdAt, updatedAt }
 export function getAnimeProgress ({ name, mediaId, episode }) {
   const data = read()
-  return data.find(item => mediaId ? (item.mediaId === mediaId && item.episode === episode) : item.name === name)
+  const dataName = name && data.find(item => item.name === name)
+  const dataId = mediaId && data.find(item => item.mediaId === mediaId && item.episode === episode)
+  if (dataName && dataId && (dataName.updatedAt > dataId.updatedAt)) return dataName
+  return dataId || dataName
 }
 
 // Set an individual episode's progress
