@@ -285,7 +285,7 @@
                 <div class='h-full w-full px-20 pt-15 d-flex flex-column'>
                   <div class='w-full d-flex flex-row mb-15'>
                     <div class='text-white font-weight-bold font-size-16 overflow-hidden title'>
-                      {#if resolvedTitle && !resolvedTitle.includes(episode)}{episode}. {/if}{resolvedTitle || 'Episode ' + episode}
+                      {#if resolvedTitle && !new RegExp(`(?:\\b|\\D)${episode}(?:\\b|\\D)`).test(resolvedTitle)}{episode}. {/if}{resolvedTitle || 'Episode ' + episode}
                     </div>
                     {#if length}
                       <div class='ml-auto pl-5'>
