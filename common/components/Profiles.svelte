@@ -63,7 +63,6 @@
 <script>
   export let overlay
 
-  let modal
   function close () {
     $profileView = false
     $profileAdd = false

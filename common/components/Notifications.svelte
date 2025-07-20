@@ -29,17 +29,13 @@
 <script>
   export let overlay
 
-  let modal
   const { reactive, init } = createListener(['btn'])
   function close () {
     $notifyView = false
     if (overlay.includes('notifications')) overlay = overlay.filter(item => item !== 'notifications')
     updateSort()
   }
-  function checkClose ({ keyCode }) {
-    if (keyCode === 27) close()
-  }
-  $: $notifyView && (modal?.focus(), setOverlay())
+  $: $notifyView && setOverlay()
   $: !$notifyView && close()
   $: init($notifyView)
   $: {

@@ -114,6 +114,10 @@
   width: 80rem !important
 }
 
+.w-1000 {
+  width: 100rem
+}
+
 .wh-25 {
   width: 2.5rem;
   height: 2.5rem;
