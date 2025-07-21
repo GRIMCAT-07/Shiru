@@ -1,6 +1,7 @@
 <script context='module'>
   import SectionsManager, { sections } from '@/modules/sections.js'
   import { anilistClient, currentSeason, currentYear } from '@/modules/anilist.js'
+  import { animeSchedule } from '@/modules/animeschedule.js'
   import { settings } from '@/modules/settings.js'
   import Helper from '@/modules/helper.js'
   import { writable } from 'svelte/store'
@@ -28,13 +29,17 @@
 
   for (const sectionTitle of settings.value.homeSections) manager.add(mappedSections[sectionTitle[0]])
 
-  if (Helper.getUser()) {
-    const userSections = ['Continue Watching', 'Sequels You Missed', 'Stories You Missed', 'Planning List', 'Completed List', 'Paused List', 'Dropped List', 'Watching List']
-    Helper.getClient().userLists.subscribe(value => {
+  const continueWatching = 'Continue Watching'
+  if (Helper.getUser()) refreshSections(Helper.getClient().userLists, [continueWatching, 'Sequels You Missed', 'Stories You Missed', 'Planning List', 'Completed List', 'Paused List', 'Dropped List', 'Watching List'])
+  if (Helper.isMalAuth()) refreshSections(animeSchedule.subAiredLists, continueWatching) // When authorized with Anilist, this is already automatically handled.
+  refreshSections(animeSchedule.dubAiredLists, continueWatching)
+
+  function refreshSections(list, sections) {
+    list.subscribe((value) => {
       if (!value) return
       for (const section of manager.sections) {
         // remove preview value, to force UI to re-request data, which updates it once in viewport
-        if (userSections.includes(section.title) && !section.hide) section.preview.value = section.load(1, 50, section.variables)
+        if (sections.includes(section.title) && !section.hide) section.preview.value = section.load(1, 50, section.variables)
       }
     })
   }

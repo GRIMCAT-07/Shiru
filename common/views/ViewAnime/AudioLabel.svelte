@@ -34,6 +34,7 @@
     }
 
     $: if (media) setLabel()
+    malDubs.dubLists.subscribe(() => setLabel())
     function setLabel() {
         const dubLists = malDubs.dubLists.value
         if (media?.idMal && dubLists?.dubbed) {
