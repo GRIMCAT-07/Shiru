@@ -159,9 +159,9 @@
 
       // fix for when multi-header sub releases aren't properly updated on Anilist, but the exact same dub multi-header release exists. Should prevent any episodes being marked unreleased if a dub clearly exists for it, therefore the sub exists.
       let _dubAiring = dubAiring
-      if (_dubAiring && validatedAiringAt && new Date(validatedAiringAt).getTime() <= (Date.now() + 7 * 24 * 60 * 60 * 1000)) {
+      if (_dubAiring && validatedAiringAt && media.status !== 'FINISHED') {
         _dubAiring = await dubAiring
-        if (_dubAiring?.airdate && new Date(_dubAiring.airdate).getTime() <= (Date.now() + 7 * 24 * 60 * 60 * 1000)) validatedAiringAt = new Date(_dubAiring.airdate)
+        if (_dubAiring?.airdate && new Date(_dubAiring.airdate).getTime() < new Date(validatedAiringAt).getTime()) validatedAiringAt = _dubAiring.airdate
       }
 
       let zeroSummary
@@ -250,7 +250,7 @@
   {:then _}
     {#if episodeList}
       {#each currentEpisodes as { zeroEpisode, episode, image, summary, rating, title, length, airdate, filler, dubAiring}, index}
-        {#if media?.status === 'FINISHED' || (episodeOrder ? (index === 0 || (currentEpisodes[index - 1]?.airdate && ((new Date(currentEpisodes[index - 1].airdate).getTime() <= new Date().getTime())) || (media?.status !== 'NOT_YET_RELEASED' && currentEpisodes[index - 1]?.airdate === airdate))) : (index === currentEpisodes.length - 1 || ((new Date(currentEpisodes[index + 1]?.airdate).getTime() <= new Date().getTime())) || (currentEpisodes[index + 1]?.airdate === airdate)))}
+        {#if media?.status === 'FINISHED' || (episodeOrder ? (index === 0 || (currentEpisodes[index - 1]?.airdate && ((new Date(currentEpisodes[index - 1].airdate).getTime() <= new Date().getTime())) || (media?.status !== 'NOT_YET_RELEASED' && airdate && currentEpisodes[index - 1]?.airdate && (currentEpisodes[index - 1]?.airdate === airdate)))) : (index === currentEpisodes.length - 1 || (currentEpisodes[index + 1]?.airdate && (new Date(currentEpisodes[index + 1]?.airdate).getTime() <= new Date().getTime())) || (currentEpisodes[index + 1]?.airdate && currentEpisodes[index + 1]?.airdate === airdate)))}
           {#await Promise.all([title, filler, dubAiring])}
             {#each Array.from({length: Math.min(episodeCount || 0, maxEpisodes)}) as _, index}
               <div class='w-full px-20 content-visibility-auto scale h-150' class:my-20={!mobileList || index !== 0}>
