@@ -4,7 +4,7 @@ import Bottleneck from 'bottleneck'
 
 import { alToken, settings } from '@/modules/settings.js'
 import { malDubs } from '@/modules/anime/animedubs.js'
-import { getRandomInt, sleep, matchKeys } from '@/modules/util.js'
+import { getRandomInt, sleep } from '@/modules/util.js'
 import { printError, status } from '@/modules/networking.js'
 import { cache, caches, mediaCache } from '@/modules/cache.js'
 import { malClient } from '@/modules/myanimelist.js'
@@ -24,13 +24,12 @@ export const currentYear = date.getFullYear()
  * @param {import('./al.d.ts').Media & {lavenshtein?: number}} media
  * @param {string} name
  */
-function getDistanceFromTitle(media, name) {
+export function getDistanceFromTitle(media, name) {
   if (media) {
     const titles = Object.values(media.title).filter(v => v).map(title => lavenshtein(title.toLowerCase(), name.toLowerCase()))
     const synonyms = media.synonyms.filter(v => v).map(title => lavenshtein(title.toLowerCase(), name.toLowerCase()) + 2)
     const distances = [...titles, ...synonyms]
-    media.lavenshtein = distances.reduce((prev, curr) => prev < curr ? prev : curr)
-    return media
+    return { ...media, lavenshtein: distances.reduce((prev, curr) => prev < curr ? prev : curr) }
   }
 }
 
@@ -599,13 +598,16 @@ class AnilistClient {
       if (!media.length) continue
       const titleObject = flattenedTitles[Number(variableName.slice(1))]
       if (searchResults[titleObject.key]) continue
-      for (const mediaItem of media) {
-        if (matchKeys(mediaItem, titleObject.title, ['title.userPreferred', 'title.english', 'title.romaji', 'title.native', 'synonyms'], titleObject.title.length > 15 ? 0.2 : titleObject.title.length > 9 ? 0.15 : 0.1)) {
-          searchResults[titleObject.key] = mediaItem.id
-          break
-        }
-      }
-      searchResults[titleObject.key] = !searchResults[titleObject.key] ? media.map(media => getDistanceFromTitle(media, titleObject.title)).reduce((prev, curr) => prev.lavenshtein <= curr.lavenshtein ? prev : curr).id : searchResults[titleObject.key]
+      searchResults[titleObject.key] = media.map(media => getDistanceFromTitle(media, titleObject.title)).reduce((prev, curr) => prev.lavenshtein <= curr.lavenshtein ? prev : curr).id
+    // Convoluted and not as good as distance matching, better to return more than less.// Convoluted and not as good as distance matching, better to return more than less.
+    //   if (searchResults[titleObject.key]) continue
+    //   for (const mediaItem of media) {
+    //     if (matchKeys(mediaItem, titleObject.title, ['title.userPreferred', 'title.english', 'title.romaji', 'title.native', 'synonyms'], titleObject.title.length > 15 ? 0.2 : titleObject.title.length > 9 ? 0.15 : 0.1)) {
+    //       searchResults[titleObject.key] = mediaItem.id
+    //       break
+    //     }
+    //   }
+    //   searchResults[titleObject.key] = !searchResults[titleObject.key] ? media.map(media => getDistanceFromTitle(media, titleObject.title)).reduce((prev, curr) => prev.lavenshtein <= curr.lavenshtein ? prev : curr).id : searchResults[titleObject.key]
     }
 
     const ids = Object.values(searchResults)

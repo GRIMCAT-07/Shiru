@@ -1,4 +1,4 @@
-import { anilistClient } from '@/modules/anilist.js'
+import { anilistClient, getDistanceFromTitle } from '@/modules/anilist.js'
 import { mediaCache } from '@/modules/cache.js'
 import { anitomyscript, hasZeroEpisode } from '@/modules/anime/anime.js'
 import { chunks, matchKeys } from '@/modules/util.js'
@@ -107,13 +107,13 @@ export default new class AnimeResolver {
     return [...titles]
   }
 
-  /**
+/*  /!**
    * @param {import('../al.d.ts').Media} media
    * @param {string} name
    * @param {number} threshold (optional, percentage of title length)
    * @returns {boolean}
-   */
-  matchesTitle(media, name, threshold = 0.2) {
+   *!/
+  matchesTitle(media, name, threshold = 0.2) { // Decent but is still hit-miss, #isVerified is more accurate.
     if (!media) return false
     const target = name.toLowerCase()
     const maxDistance = Math.floor(target.length * threshold)
@@ -121,7 +121,7 @@ export default new class AnimeResolver {
       if (levenshtein(title.toLowerCase(), target) <= maxDistance) return true
     }
     return false
-  }
+  }*/
 
   /**
    * resolve anime name based on file name and store it
@@ -154,8 +154,14 @@ export default new class AnimeResolver {
     const missingTitles = []
     for (const titleObj of titleObjects) {
       let foundInCache = false
+      const candidates = []
       for (const media of Object.values(mediaCache.value)) {
-        if (!this.animeNameCache?.[titleObj.key] && this.matchesTitle(media, titleObj.title, titleObj.title.length > 15 ? 0.15 : titleObj.title.length > 9 ? 0.1 : 0.05)) {
+        const scoredMedia = getDistanceFromTitle(media, titleObj.title)
+        if (scoredMedia?.lavenshtein != null) candidates.push(scoredMedia)
+      }
+      candidates.sort((a, b) => a.lavenshtein - b.lavenshtein)
+      for (const media of candidates.slice(0, 25)) {
+        if (!this.animeNameCache?.[titleObj.key] && this.isVerified(media, { anime_title: titleObj.title, anime_year: titleObj.year }, ['title.userPreferred', 'title.english', 'title.romaji', 'title.native', 'synonyms'], titleObj.title.length > 15 ? 0.15 : titleObj.title.length > 9 ? 0.1 : 0.05)) {
           this.animeNameCache[titleObj.key] = media
           debug(`Cache hit: ${titleObj.title} -> ${media?.id}: ${media?.title?.userPreferred}`)
           foundInCache = true
