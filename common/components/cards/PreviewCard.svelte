@@ -11,6 +11,7 @@
   /** @type {import('@/modules/al.d.ts').Media} */
   export let media
   export let element
+  export let _variables
   export let type = null
 
   $: maxEp = getMediaMaxEp(media)
@@ -76,22 +77,24 @@
     <div class='font-scale-20 font-weight-bold text-truncate d-inline-block w-full text-white' title={anilistClient.title(media)}>
       {anilistClient.title(media)}
     </div>
-    <div class='d-flex flex-row'>
-      <button class='btn btn-secondary flex-grow-1 text-dark font-weight-bold shadow-none border-0 d-flex align-items-center justify-content-center' use:click={play} disabled={media.status === 'NOT_YET_RELEASED'}>
-        <Play class='pr-10 z-10' fill='currentColor' size='2.2rem'/>
-        {playButtonText}
-      </button>
-      {#if Helper.isAuthorized()}
-        <Scoring {media} previewAnime={true}/>
-      {/if}
-      {#if Helper.isAniAuth()}
-        <button class='btn btn-square ml-10 d-flex align-items-center justify-content-center shadow-none border-0' title={media.isFavourite ? 'Unfavourite' : 'Favourite'} use:click={toggleFavourite} disabled={!Helper.isAniAuth()}>
-          <div class='favourite d-flex align-items-center justify-content-center'>
-            <Heart color={media.isFavourite ? 'var(--tertiary-color)' : 'currentColor'} fill={media.isFavourite ? 'var(--tertiary-color)' : 'transparent'} size='1.7rem'/>
-          </div>
+    {#if !_variables?.fileEdit}
+      <div class='d-flex flex-row'>
+        <button class='btn btn-secondary flex-grow-1 text-dark font-weight-bold shadow-none border-0 d-flex align-items-center justify-content-center' use:click={play} disabled={media.status === 'NOT_YET_RELEASED'}>
+          <Play class='pr-10 z-10' fill='currentColor' size='2.2rem'/>
+          {playButtonText}
         </button>
-      {/if}
-    </div>
+        {#if Helper.isAuthorized()}
+          <Scoring {media} previewAnime={true}/>
+        {/if}
+        {#if Helper.isAniAuth()}
+          <button class='btn btn-square ml-10 d-flex align-items-center justify-content-center shadow-none border-0' title={media.isFavourite ? 'Unfavourite' : 'Favourite'} use:click={toggleFavourite} disabled={!Helper.isAniAuth()}>
+            <div class='favourite d-flex align-items-center justify-content-center'>
+              <Heart color={media.isFavourite ? 'var(--tertiary-color)' : 'currentColor'} fill={media.isFavourite ? 'var(--tertiary-color)' : 'transparent'} size='1.7rem'/>
+            </div>
+          </button>
+        {/if}
+      </div>
+    {/if}
     <div class='text-truncate pb-10'>
       <div class='details text-white text-capitalize pt-10 d-flex flex-wrap'>
         {#if type || type === 0}

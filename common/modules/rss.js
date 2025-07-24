@@ -1,4 +1,4 @@
-import { getRandomInt, DOMPARSER } from '@/modules/util.js'
+import { getRandomInt, DOMPARSER, base32toHex } from '@/modules/util.js'
 import { settings } from '@/modules/settings.js'
 import { cache, caches } from '@/modules/cache.js'
 import { toast } from 'svelte-sonner'
@@ -132,7 +132,7 @@ class RSSMediaManager {
     const newReleases = res.filter(({ date }) => date?.getTime() > oldDate)
     debug(`Found ${newReleases?.length} new releases, notifying...`)
 
-    for (const { media, parseObject, episode, link, date } of newReleases) {
+    for (const { media, parseObject, episode, link, hash, date } of newReleases) {
       const notify = (!media?.mediaListEntry && settings.value.rssNotify?.includes('NOTONLIST')) || (media?.mediaListEntry && settings.value.rssNotify?.includes(media?.mediaListEntry?.status))
       const dubbed = malDubs.isDubMedia(parseObject)
       if (notify && (!settings.value.preferDubs || dubbed || !malDubs.isDubMedia(media))) {
@@ -175,6 +175,7 @@ class RSSMediaManager {
             season: !episode && parseObject.anime_title.match(/S(\d{2})/),
             dub: dubbed,
             click_action: 'TORRENT',
+            hash: hash,
             magnet: link
           }
         }))
@@ -190,6 +191,7 @@ class RSSMediaManager {
         episodeData: undefined,
         date: undefined,
         link: undefined,
+        hash: undefined,
         onclick: undefined
       }
       if (res.media?.id) {
@@ -201,7 +203,15 @@ class RSSMediaManager {
       }
       res.date = items[i].date
       res.link = items[i].link
-      res.onclick = () => add(items[i].link, { media: res.media, episode: res.episode })
+      try {
+        const match = res.link.match(/\b([a-fA-F0-9]{40}|[A-Z2-7]{32})\b/)
+        if (match) {
+          let hash = match[1].toLowerCase()
+          if (hash.length === 32) res.hash = base32toHex(hash)
+          else res.hash = hash
+        }
+      } catch (e) {}
+      res.onclick = () => add(res.link, { media: res.media, episode: res.episode }, res.hash || res.link)
       return res
     })
   }

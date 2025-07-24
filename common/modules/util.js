@@ -562,6 +562,7 @@ export const generalDefaults = {
  * @property {any} [lastSubtitle]
  * @property {any} [lastSearched]
  * @property {any} [lastSchedule]
+ * @property {any} [animeResolvedHash]
  * @property {any} [animeEpisodeProgress]
  */
 export const historyDefaults = {
@@ -570,6 +571,7 @@ export const historyDefaults = {
   lastSubtitle: undefined,
   lastSearched: undefined,
   lastSchedule: undefined,
+  animeResolvedHash: [],
   animeEpisodeProgress: []
 }
 

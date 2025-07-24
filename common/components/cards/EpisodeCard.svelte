@@ -1,18 +1,23 @@
+<script context='module'>
+  import AudioLabel from '@/views/ViewAnime/AudioLabel.svelte'
+  import EpisodePreviewCard from '@/components/cards/EpisodePreviewCard.svelte'
+  import { Play, RefreshCwOff } from 'lucide-svelte'
+  import { onDestroy, onMount } from 'svelte'
+  import { writable } from 'simple-store-svelte'
+  import { getContext } from 'svelte'
+  import { playActive } from '@/components/TorrentButton.svelte'
+  import { createListener, since } from '@/modules/util.js'
+  const { reactive, init } = createListener(['torrent-button', 'cont-button'])
+  init(true)
+</script>
 <script>
   import { statusColorMap } from '@/modules/anime.js'
   import { episodesList } from '@/modules/episodes.js'
-  import EpisodePreviewCard from '@/components/cards/EpisodePreviewCard.svelte'
   import { hoverClick, hoverExit } from '@/modules/click.js'
-  import { writable } from 'svelte/store'
-  import { since } from '@/modules/util.js'
-  import AudioLabel from '@/views/ViewAnime/AudioLabel.svelte'
-  import { getContext } from 'svelte'
   import { liveAnimeEpisodeProgress } from '@/modules/animeprogress.js'
   import { anilistClient } from '@/modules/anilist.js'
   import { settings } from '@/modules/settings.js'
   import { mediaCache } from '@/modules/cache.js'
-  import { Play, RefreshCwOff } from 'lucide-svelte'
-  import { onDestroy, onMount } from 'svelte'
   export let data
   export let section = false
 
@@ -33,18 +38,9 @@
   function viewMedia () {
     $view = media
   }
-  function promptTorrent() {
-    window.dispatchEvent(new CustomEvent('play-anime', {
-      detail: {
-        id: data.media?.id,
-        episode: data.episode,
-        torrentOnly: false
-      }
-    }))
-  }
   function setClickState() {
     if (!$prompt && data.episode && !Array.isArray(data.episode) && (data.episode - 1) >= 1 && media?.mediaListEntry?.status !== 'COMPLETED' && (media?.mediaListEntry?.progress || -1) < (data.episode - 1)) prompt.set(true)
-    else data.onclick ? data.onclick() : data.episode ? promptTorrent() : viewMedia()
+    else data.episode ? (media ? playActive(data.hash, { media, episode: data.episode }, data.link) : data.onclick()) : viewMedia()
     clicked.set(true)
     setTimeout(() => clicked.set(false))
   }
@@ -59,11 +55,11 @@
 
   let sinceInterval
   $: timeSince = data?.date && since(data?.date)
-  onMount(() => (sinceInterval = setInterval(() => timeSince = data?.date && since(data?.date), 60_000)))
+  onMount(() => sinceInterval = setInterval(() => timeSince = data?.date && since(data?.date), 60_000))
   onDestroy(() => clearInterval(sinceInterval))
 </script>
 
-<div class='d-flex p-20 pb-10 position-relative episode-card' class:mb-150={section} use:hoverExit={() => setTimeout(() => { if (!preview) prompt.set(false) })} use:hoverClick={[setClickState, setHoverState, viewMedia]} role='none'>
+<div class='d-flex p-20 pb-10 position-relative episode-card' class:mb-150={section} class:not-reactive={!$reactive} use:hoverExit={() => setTimeout(() => { if (!preview) prompt.set(false) })} use:hoverClick={[setClickState, setHoverState, viewMedia]} role='none'>
   {#if preview}
     <EpisodePreviewCard {data} bind:prompt={$prompt} />
   {/if}
@@ -80,7 +76,7 @@
           on:loadeddata={() => { hide = false }} />
       {/if}
       {#if data.failed}
-        <div class='pr-10 pt-10 z-10 position-absolute top-0 right-0 text-danger failed' title='Failed to resolve media'>
+        <div class='pl-10 pt-10 z-10 position-absolute top-0 left-0 text-danger icon-shadow' title='Failed to resolve media'>
           <RefreshCwOff size='3rem' />
         </div>
       {/if}
@@ -166,7 +162,7 @@
 </div>
 
 <style>
-  .failed {
+  .icon-shadow {
     filter: drop-shadow(0 0 .4rem rgba(0, 0, 0, 1))
   }
   .episode-card:hover {

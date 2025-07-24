@@ -19,7 +19,8 @@
 
   const view = getContext('view')
   function viewMedia () {
-    $view = media
+    if (_variables?.fileEdit) _variables.fileEdit(media)
+    else $view = media
   }
 
   let airingInterval

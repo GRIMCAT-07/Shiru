@@ -1,42 +1,11 @@
 <script context='module'>
-  import { writable } from 'simple-store-svelte'
   import { click } from '@/modules/click.js'
   import { matchPhrase } from '@/modules/util.js'
   import { settings } from '@/modules/settings.js'
-  import { client } from '@/modules/torrent/torrent.js'
+  import { loadedTorrent, completedTorrents, seedingTorrents, stagingTorrents } from '@/modules/torrent/torrent.js'
   import ErrorCard from '@/components/cards/ErrorCard.svelte'
   import TorrentDetails from '@/views/TorrentManager/TorrentDetails.svelte'
   import { Search, RefreshCw, Package, Percent, Activity, Scale, Gauge, CloudDownload, CloudUpload, Sprout, Magnet, Timer } from 'lucide-svelte'
-  export const loadedTorrent = writable({})
-  export const stagingTorrents = writable([])
-  export const seedingTorrents = writable([])
-  export const completedTorrents = writable([])
-  client.on('activity', ({ detail }) => {
-    loadedTorrent.update(() => ({ ...detail.current }))
-    stagingTorrents.update(() => Array.from(new Map(detail.staging.map(torrent => [torrent.infoHash, torrent])).values()))
-    seedingTorrents.update(() => Array.from(new Map(detail.seeding.map(torrent => [torrent.infoHash, torrent])).values()))
-  })
-  client.on('completedStats', ({ detail }) => {
-    completedTorrents.update(torrents => [...Array.from(new Map(detail.map(torrent => [torrent.infoHash, torrent])).values()), ...torrents])
-  })
-  client.on('staging', ({ detail }) => {
-    const found = structuredClone(loadedTorrent.value?.infoHash === detail || seedingTorrents.value.find(torrent => torrent.infoHash === detail) || completedTorrents.value.find(torrent => torrent.infoHash === detail))
-    if (loadedTorrent.value?.infoHash === detail) loadedTorrent.update(() => ({}))
-    seedingTorrents.update(torrents => torrents.filter(torrent => torrent.infoHash !== detail))
-    completedTorrents.update(torrents => torrents.filter(torrent => torrent.infoHash !== detail))
-    if (found) (found.incomplete ? stagingTorrents : seedingTorrents).update(prev => [found, ...prev.filter(torrent => torrent.infoHash !== detail)])
-  })
-  client.on('completed', ({ detail }) => {
-    if (loadedTorrent.value?.infoHash === detail.infoHash) loadedTorrent.update(() => ({}))
-    stagingTorrents.update(arr => arr.filter(torrent => torrent.infoHash !== detail.infoHash))
-    seedingTorrents.update(arr => arr.filter(torrent => torrent.infoHash !== detail.infoHash))
-    completedTorrents.update(prev => [detail, ...prev.filter(torrent => torrent.infoHash !== detail.infoHash)])
-  })
-  client.on('untrack',  ({ detail }) => {
-    stagingTorrents.update(arr => arr.filter(torrent => torrent.infoHash !== detail))
-    seedingTorrents.update(arr => arr.filter(torrent => torrent.infoHash !== detail))
-    completedTorrents.update(arr => arr.filter(torrent => torrent.infoHash !== detail))
-  })
 </script>
 <script>
   let searchText = ''

@@ -1,8 +1,10 @@
 <script context='module'>
   import { derived, writable } from 'simple-store-svelte'
   import { click, hoverExit } from '@/modules/click.js'
+  import { getHash } from '@/modules/anime/animehash.js'
   import { createListener, matchPhrase, matchKeys, debounce, since } from '@/modules/util.js'
   import { Search, MailCheck, MailOpen, Play, X } from 'lucide-svelte'
+  import TorrentButton, { playActive } from '@/components/TorrentButton.svelte'
   import ErrorCard from '@/components/cards/ErrorCard.svelte'
   import SoftModal from '@/components/SoftModal.svelte'
   import IPC from '@/modules/ipc.js'
@@ -12,6 +14,9 @@
   export const notifyView = writable(false)
   export const notifications = writable(cache.getEntry(caches.NOTIFICATIONS, 'notifications') || [])
   export const hasUnreadNotifications = derived(notifications, _notifications => _notifications?.filter(notification => notification.read !== true)?.length)
+
+  const { reactive, init } = createListener(['torrent-button', 'read-button', 'continue-button'])
+  init(true)
 
   let debounceNotify = false
   const debounceBatch = debounce(() => {
@@ -28,8 +33,6 @@
 </script>
 <script>
   export let overlay
-
-  const { reactive, init } = createListener(['btn'])
   function close () {
     $notifyView = false
     if (overlay.includes('notifications')) overlay = overlay.filter(item => item !== 'notifications')
@@ -37,10 +40,9 @@
   }
   $: $notifyView && setOverlay()
   $: !$notifyView && close()
-  $: init($notifyView)
   $: {
     if (!$notifyView) updateSort()
-    else currentNotifications = $notifications.slice(0, notificationCount)
+    else currentNotifications = filterResults($notifications, searchText).slice(0, notificationCount)
   }
   function setOverlay() {
     if (!overlay.includes('notifications')) overlay = [...overlay, 'notifications']
@@ -93,19 +95,9 @@
 
   function onclick(notification, view) {
     close()
-    if (notification.click_action === 'VIEW' || view) {
+    if (view) {
       window.dispatchEvent(new CustomEvent('open-anime', { detail: { id: notification.id } }))
-    } else if (notification.click_action === 'PLAY') {
-      window.dispatchEvent(new CustomEvent('play-anime', {
-        detail: {
-          id: notification.id,
-          episode: notification.episode,
-          torrentOnly: true
-        }
-      }))
-    } else if (notification.click_action === 'TORRENT') {
-      window.dispatchEvent(new CustomEvent('play-torrent', { detail: { magnet: notification.magnet } }))
-    }
+    } else playActive(notification.hash, { media: { id: notification.id }, episode: notification.episode }, notification.magnet, notification.click_action === 'PLAY')
   }
 
   function updateSort() {
@@ -133,7 +125,7 @@
   IPC.emit('notification-unread', hasUnreadNotifications.value)
 </script>
 
-<SoftModal class='m-0 w-1000 mw-0 {$notifications?.length ? `h-full` : ``} d-flex flex-column rounded bg-very-dark pt-0 py-30 pl-20 pr-30 mx-20 scrollbar-none' bind:showModal={$notifyView} {close} id='notificationModal'>
+<SoftModal class='m-0 w-1000 mw-0 mh-full d-flex flex-column rounded bg-very-dark pt-0 py-30 pl-20 pr-30 mx-20 scrollbar-none' bind:showModal={$notifyView} {close} id='notificationModal'>
   {#if $notifyView}
     <div class='d-flex mt-30'>
       <h3 class='mb-0 font-weight-bold text-white title mr-5 font-size-24 ml-20'>Notifications</h3>
@@ -148,17 +140,18 @@
         data-option='search'
         placeholder='Filter notifications by their titles' bind:value={searchText} on:input={(event) => { container.scrollTo({top: 0}); notificationCount = notificationCountDefault; currentNotifications = filterResults($notifications, event.target.value).slice(0, notificationCount) }} />
     </div>
-    <div class='shadow-overlay' />
+    <div class='shadow-overlay' class:d-none={!$notifications?.length} />
     {#if $notifications?.length && !currentNotifications?.length}
       <ErrorCard promise={{ errors: [ { message: 'found no results' }]}}/>
     {/if}
-    <div bind:this={container} class='notification-list mt-10 overflow-y-auto' class:h-full={$notifications?.length} class:mh-350={currentNotifications.length > 0} on:scroll={handleScroll}>
+    <div bind:this={container} class='notification-list mt-10 overflow-y-auto' on:scroll={handleScroll}>
       {#each currentNotifications as notification, index}
         {@const delayed = notification.delayed}
         {@const announcement = notification.click_action === 'VIEW' && !delayed}
         {@const notWatching = !announcement && !delayed && ((!$mediaCache[notification?.id]?.mediaListEntry?.progress) || ($mediaCache[notification?.id]?.mediaListEntry?.progress === 0 && ($mediaCache[notification?.id]?.mediaListEntry?.status !== 'CURRENT' || $mediaCache[notification?.id]?.mediaListEntry?.status !== 'REPEATING' && $mediaCache[notification?.id]?.mediaListEntry?.status !== 'COMPLETED')))}
         {@const behind = !announcement && !delayed && notification.episode && !Array.isArray(notification.episode) && (notification.episode - 1) >= 1 && ($mediaCache[notification?.id]?.mediaListEntry?.status !== 'COMPLETED' && (($mediaCache[notification?.id]?.mediaListEntry?.progress || -1) < ((!notification.season ? notification.episode : $mediaCache[notification?.id].episodes) - 1)))}
         {@const watched = !announcement && !delayed && !notWatching && !behind && notification.episode && ($mediaCache[notification?.id]?.mediaListEntry?.status === 'COMPLETED' || ($mediaCache[notification?.id]?.mediaListEntry?.progress >= (!notification.season ? notification.episode : $mediaCache[notification?.id].episodes)))}
+        {@const resolvedHash = getHash(notification.id, { episode: notification.episode, client: true }, false, true)}
         {#if watched && !notification.read}{(notification.read = true) && updateSort() && ''}{/if}
         <div class='notification-item shadow-lg position-relative d-flex align-items-center mx-20 my-5 p-5 scale pointer' class:mt-10={index === 0} role='button' tabindex='0' use:hoverExit={() => { notification.prompt = false; delete notification.prompt }} use:click={() => { if (!behind || notification.prompt) { notification.prompt = false; delete notification.prompt; notification.read = true; onclick(notification) } else { notification.prompt = true } } } on:contextmenu|preventDefault={() => { notification.read = true; onclick(notification, true); }} class:not-reactive={!$reactive} class:read={notification.read} class:behind={(behind && !notWatching) || delayed} class:current={!behind && !notWatching} class:not-watching={notWatching} class:watched={watched} class:announcement={announcement}>
           {#if notification.heroImg}
@@ -171,14 +164,21 @@
             <img src={notification.icon || './404_cover.png'} alt='icon' class='notification-icon rounded-5 w-auto' />
           </div>
           <div class='notification-content z-10 w-full'>
-            <p class='notification-title overflow-hidden font-weight-bold my-0 mr-40 font-scale-18 {SUPPORTS.isAndroid ? `line-clamp-1` : `line-clamp-2`}'>{notification.title}</p>
-            <button type='button' class='position-absolute right-0 top-0 mr-5 mt-5 btn btn-square d-flex align-items-center justify-content-center' class:not-allowed={watched} class:not-reactive={watched} use:click={() => { if (!watched) notification.prompt = false; delete notification.prompt; notification.read = !notification.read } }>
-              {#if notification.read}
-                <MailOpen size='1.7rem' strokeWidth='3'/>
-              {:else}
-                <MailCheck size='1.7rem' strokeWidth='3'/>
-              {/if}
-            </button>
+            <div class='d-flex'>
+              <p class='notification-title overflow-hidden font-weight-bold my-0 mt-5 mr-10 font-scale-18 {SUPPORTS.isAndroid ? `line-clamp-1` : `line-clamp-2`}'>{notification.title}</p>
+              <div class='ml-auto d-flex'>
+                {#if notification.hash || resolvedHash}
+                  <TorrentButton class='btn btn-square mr-5' hash={[...(notification.hash && notification.hash !== resolvedHash ? [notification.hash] : []), ...(resolvedHash ? [resolvedHash] : [])]} torrentID={notification.magnet} search={{ media: { id: notification.id }, episode: notification.episode }}/>
+                {/if}
+                <button type='button' class='read-button btn btn-square d-flex align-items-center justify-content-center' class:not-allowed={watched} class:not-reactive={watched} use:click={() => { if (!watched) notification.prompt = false; delete notification.prompt; notification.read = !notification.read } }>
+                  {#if notification.read}
+                    <MailOpen size='1.7rem' strokeWidth='3'/>
+                  {:else}
+                    <MailCheck size='1.7rem' strokeWidth='3'/>
+                  {/if}
+                </button>
+              </div>
+            </div>
             <p class='font-size-12 my-0 mr-40'>{notification.message}</p>
             <div class='d-flex justify-content-between align-items-center mt-5'>
               <p class='font-size-10 text-muted my-0'>{since(new Date(notification.timestamp * 1000))}</p>
@@ -209,7 +209,7 @@
                 Your Current Progress Is At <b>Episode {$mediaCache[notification?.id]?.mediaListEntry?.progress}</b>
               {/if}
             </p>
-            <button type='button' class='btn btn-lg btn-secondary w-230 h-33 text-dark font-size-16 font-weight-bold shadow-none border-0 d-flex align-items-center mt-10 mb-auto' use:click={() => { notification.prompt = false; delete notification.prompt; notification.read = true; onclick(notification) } }>
+            <button type='button' class='continue-button btn btn-lg btn-secondary w-230 h-33 text-dark font-size-16 font-weight-bold shadow-none border-0 d-flex align-items-center mt-10 mb-auto' use:click={() => { notification.prompt = false; delete notification.prompt; notification.read = true; onclick(notification) } }>
               <Play class='mr-10' fill='currentColor' size='1.4rem' />
               Continue Anyway?
             </button>
@@ -219,7 +219,7 @@
     </div>
     <div class='d-flex flex-column justify-content-between align-items-center'>
       {#if $notifications?.length}
-        <button type='button' class='btn text-light font-weight-bold shadow-none border-0 d-flex align-items-center mt-20' disabled={searchText?.length} on:click={() => markAll($hasUnreadNotifications && $hasUnreadNotifications > 0)}>
+        <button type='button' class='read-button btn text-light font-weight-bold shadow-none border-0 d-flex align-items-center mt-20' disabled={searchText?.length} on:click={() => markAll($hasUnreadNotifications && $hasUnreadNotifications > 0)}>
           {#if $hasUnreadNotifications && $hasUnreadNotifications > 0}
             <MailCheck strokeWidth='3' class='mr-10' size='1.7rem' />
             Mark All As Read
@@ -240,15 +240,6 @@
 <style>
   .h-33 {
     height: 3.3rem !important;
-  }
-  .mr-40 {
-    margin-right: 4rem !important;
-  }
-  .mr-50 {
-    margin-right: 5rem;
-  }
-  .mh-350 {
-    min-height: 35rem;
   }
   .scale {
     transition: transform 0.2s ease;

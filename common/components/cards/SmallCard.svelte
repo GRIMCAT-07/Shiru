@@ -22,7 +22,8 @@
   mediaCache.subscribe((value) => { if (value && (JSON.stringify(value[media?.id]) !== JSON.stringify(media))) media = value[media?.id] })
   const view = getContext('view')
   function viewMedia() {
-    $view = media
+    if (_variables?.fileEdit) _variables.fileEdit(media)
+    else $view = media
   }
 
   let preview = false
@@ -77,7 +78,7 @@
 
 <div bind:this={container} class='d-flex p-md-20 p-15 position-relative small-card-ct {$reactive ? `` : `not-reactive`}' use:hoverClick={[viewMedia, setHoverState, viewMedia]} on:focus={handleFocus}>
   {#if preview}
-    <PreviewCard {media} {type} bind:element={previewCard}/>
+    <PreviewCard {media} {type} {_variables} bind:element={previewCard}/>
   {/if}
   <div class='item load-in small-card d-flex flex-column pointer {airingInfo?.episode.match(/out for/i) ? `airing` : ``}'>
     {#if airingInfo}

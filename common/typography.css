@@ -1,3 +1,6 @@
+.font-scale-12 {
+  font-size: 1.2rem;
+}
 .font-scale-14 {
   font-size: 1.4rem;
 }
@@ -33,11 +36,14 @@
 
 /* Fixes unreasonably large text for portrait screens on mobile. */
 @media (max-width: 690px) {
-  .font-scale-16 {
-    font-size: 1.4rem !important;
+  .font-scale-12 {
+    font-size: 1rem !important;
   }
   .font-scale-14 {
     font-size: 1.2rem !important;
+  }
+  .font-scale-16 {
+    font-size: 1.4rem !important;
   }
   .font-scale-18 {
     font-size: 1.4rem !important;

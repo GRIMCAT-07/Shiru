@@ -1,0 +1,66 @@
+<script context='module'>
+    import { Download, CloudUpload, CloudDownload, FolderCheck, TvMinimalPlay } from 'lucide-svelte'
+    import { settings } from '@/modules/settings.js'
+    import { stage, loadedTorrent, stagingTorrents, seedingTorrents, completedTorrents } from '@/modules/torrent/torrent.js'
+    import { getHash } from '@/modules/anime/animehash.js'
+    import { click } from '@/modules/click.js'
+
+    export function playActive(hash, search, magnet, prompt = true) {
+        const autoFile = settings.value.rssAutofile
+        const resolvedHash = getHash(search?.media?.id, { episode: search?.episode, client: true }, false, true)
+        const activeHash = autoFile && getActiveHash([...(hash && hash !== resolvedHash ? [hash] : []), ...(resolvedHash ? [resolvedHash] : [])], false)
+        if (activeHash) { // We have a cached and active hash with the requested media and episode, its predicted we should use this.
+            window.dispatchEvent(new CustomEvent('add', { detail: { resolvedHash: activeHash, search } }))
+        } else if (autoFile && magnet) { // Nothing found, request download from magnet.
+            window.dispatchEvent(new CustomEvent('play-torrent', { detail: { magnet } }))
+        } else if (prompt) { // Nothing found and no magnet, prompt user to locate torrent.
+            window.dispatchEvent(new CustomEvent('play-anime', {
+                detail: {
+                    id: search?.media?.id,
+                    episode: search?.episode,
+                    torrentOnly: true
+                }
+            }))
+        } else { // Nothing found, no magnet, and cannot prompt, show the anime details.
+            window.dispatchEvent(new CustomEvent('open-anime', { detail: { id: search?.media?.id } }))
+        }
+    }
+
+    function getActiveHash(hash, ignoreCached = true) {
+        for (const _hash of hash) {
+            if (loadedTorrent.value?.infoHash === _hash) return _hash
+        }
+        for (const _hash of hash) {
+            if (seedingTorrents.value.some(torrent => torrent.infoHash === _hash)) return _hash
+        }
+        for (const _hash of hash) {
+            if (completedTorrents.value.some(torrent => torrent.infoHash === _hash)) return _hash
+        }
+        for (const _hash of hash) {
+            if (stagingTorrents.value.some(torrent => torrent.infoHash === _hash)) return _hash
+        }
+        return ignoreCached ? hash[0] : null
+    }
+</script>
+<script>
+    export let hash
+    export let torrentID
+    export let search
+    export let size = '1.7rem'
+    export let strokeWidth = '3'
+    $: activeHash = $loadedTorrent && $stagingTorrents && $seedingTorrents && $completedTorrents && (Array.isArray(hash) ? getActiveHash(hash) : hash)
+    $: downloaded = $completedTorrents.some(torrent => torrent.infoHash === activeHash) || $seedingTorrents.some(torrent => torrent.infoHash === activeHash) || $stagingTorrents.some(torrent => torrent.infoHash === activeHash) || $loadedTorrent.infoHash === activeHash
+</script>
+<button type='button' class='torrent-button d-flex align-items-center justify-content-center {$$restProps.class}' class:not-allowed={downloaded} class:not-reactive={downloaded} title={$completedTorrents.some(torrent => torrent.infoHash === activeHash) ? 'Completed' : $seedingTorrents.some(torrent => torrent.infoHash === activeHash) ? 'Seeding...' : $stagingTorrents.some(torrent => torrent.infoHash === activeHash) ? 'Downloading...' : $loadedTorrent.infoHash === activeHash ? 'Now Playing' : 'Queue for Download'} use:click={() => { if (!downloaded && torrentID) stage(torrentID, search, activeHash) }}>
+    <svelte:component this={$completedTorrents.some(torrent => torrent.infoHash === activeHash) ? FolderCheck : $seedingTorrents.some(torrent => torrent.infoHash === activeHash) ? CloudUpload : $stagingTorrents.some(torrent => torrent.infoHash === activeHash) ? CloudDownload : $loadedTorrent.infoHash === activeHash ? TvMinimalPlay : Download} {size} {strokeWidth} style={downloaded ? (`color: ${$completedTorrents.some(torrent => torrent.infoHash === activeHash) ? 'var(--quaternary-color)' : $seedingTorrents.some(torrent => torrent.infoHash === activeHash) ? 'var(--tertiary-color)' : $stagingTorrents.some(torrent => torrent.infoHash === activeHash) ? 'var(--warning-color)' : 'var(--quaternary-color)'}`) : ''} />
+</button>
+<style>
+    .highlight {
+        transition: transform 0.2s ease;
+        border: .1rem solid transparent;
+    }
+    .highlight:hover {
+        transform: scale(1.015);
+        border: .1rem solid var(--highlight-color);
+    }
+</style>

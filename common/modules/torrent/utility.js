@@ -116,6 +116,10 @@ export async function isVerified(targetPath, _structureHash) {
   }
 }
 
+export function getHash(data) {
+  return createHash('sha1').update(data).digest('hex')
+}
+
 export async function structureHash(targetPath) {
   try {
     const stat = await fs.stat(targetPath)

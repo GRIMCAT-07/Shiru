@@ -2,7 +2,7 @@ import WebTorrent from 'webtorrent'
 import Client from 'bittorrent-tracker'
 import HTTPTracker from 'bittorrent-tracker/lib/client/http-tracker.js' //../../node_modules/bittorrent-tracker/lib/client/http-tracker.js
 import { hex2bin, arr2hex, text2arr } from 'uint8-util'
-import { toBase64, fromBase64, saveTorrent, getTorrent, getTorrents, removeTorrent, isVerified, structureHash, stringifyQuery, errorToString, ANNOUNCE, TMP } from './utility.js'
+import { toBase64, fromBase64, saveTorrent, getTorrent, getTorrents, removeTorrent, isVerified, getHash, structureHash, stringifyQuery, errorToString, ANNOUNCE, TMP } from './utility.js'
 import { fontRx, deepEqual, sleep, subRx, videoRx } from '../util.js'
 import { SUPPORTS } from '@/modules/support.js'
 import { spawn } from 'node:child_process'
@@ -137,6 +137,7 @@ export default class TorrentClient extends WebTorrent {
     const files = torrent.files.map(file => {
       return {
         infoHash: torrent.infoHash,
+        fileHash: getHash(`${torrent.infoHash}:${file.name}:${file.size}`),
         torrent_name: torrent.name,
         name: file.name,
         type: file.type,

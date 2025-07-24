@@ -216,7 +216,7 @@
     if (!isNaN(result.seeders) && result.seeders < 10) toast('Availability Warning', { description: 'This release is poorly seeded and likely will have playback issues such as buffering!' })
     const existingMagnets = cache.getEntry(caches.HISTORY, 'lastMagnet') || {}
     cache.setEntry(caches.HISTORY, 'lastMagnet', { ...existingMagnets, [search?.media?.id]: !result.parseObject?.episode_number || Array.isArray(result.parseObject.episode_number) ? { [`batch`]: result } : { ...(existingMagnets[search?.media?.id] || {}), [`${search.episode}`]: result } })
-    add(result.link, { media: search?.media, episode: search?.episode })
+    add(result.link, { media: search?.media, episode: search?.episode }, result.hash)
     close()
   }
 
@@ -361,18 +361,18 @@
   {#if $results?.torrents?.length && !$results?.resolved && (!best || !Object.values(best)?.length)}
     <TorrentCardSk />
   {:else if $results?.torrents?.length}
-    {#if best}<TorrentCard type='best' countdown={$settings.rssAutoplay && $results?.resolved ? countdown : -1} result={best} {play} stage={(result) => stage(result.link)} media={search.media} episode={search.episode} />{/if}
+    {#if best}<TorrentCard type='best' countdown={$settings.rssAutoplay && $results?.resolved ? countdown : -1} result={best} {play} stage={(result) => stage(result.link, search, result.hash)} media={search.media} episode={search.episode} />{/if}
     {#if lastMagnet}
       {#each filterResults(lookup, searchText) as result}
         {#if ((result.link === lastMagnet.link) || (result.hash === lastMagnet.hash)) && result.seeders > 1 && ((best?.link !== lastMagnet.link) && (best?.hash !== lastMagnet.hash)) }
-          <TorrentCard type='magnet' result={result} {play} stage={(result) => stage(result.link)} media={search.media} episode={search.episode} />
+          <TorrentCard type='magnet' result={result} {play} stage={(result) => stage(result.link, search, result.hash)} media={search.media} episode={search.episode} />
         {/if}
       {/each}
     {/if}
   {/if}
   {#each filterResults(lookup, searchText) as result}
     {#if ((best?.link !== result.link) && (best?.hash !== result.hash)) && (!lastMagnet || (((result.link !== lastMagnet.link) || (result.hash !== lastMagnet.hash)) || result.seeders <= 1))}
-      <TorrentCard {result} {play} stage={(result) => stage(result.link)} media={search.media} episode={search.episode} />
+      <TorrentCard {result} {play} stage={(result) => stage(result.link, search, result.hash)} media={search.media} episode={search.episode} />
     {/if}
   {/each}
   {#if lookupHidden?.length && $results?.resolved && filterResults(lookupHidden, searchText)?.length}
@@ -383,7 +383,7 @@
     {#if viewHidden}
       {#each filterResults(lookupHidden, searchText) as result}
         {#if ((best?.link !== result.link) && (best?.hash !== result.hash)) && (!lastMagnet || (((result.link !== lastMagnet.link) || (result.hash !== lastMagnet.hash)) || result.seeders <= 1))}
-          <div class='unavailable'><TorrentCard {result} {play} stage={(result) => stage(result.link)} media={search.media} episode={search.episode} /></div>
+          <div class='unavailable'><TorrentCard {result} {play} stage={(result) => stage(result.link, search, result.hash)} media={search.media} episode={search.episode} /></div>
         {/if}
       {/each}
     {/if}

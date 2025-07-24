@@ -1,15 +1,19 @@
+<script context='module'>
+  import AudioLabel from '@/views/ViewAnime/AudioLabel.svelte'
+  import TorrentButton from '@/components/TorrentButton.svelte'
+  import { getContext } from 'svelte'
+  import { CalendarDays, Play, Tv, RefreshCwOff } from 'lucide-svelte'
+</script>
 <script>
   import { statusColorMap, formatMap } from '@/modules/anime.js'
   import { episodesList } from '@/modules/episodes.js'
   import { since } from '@/modules/util.js'
   import { click } from '@/modules/click.js'
+  import { getHash } from '@/modules/anime/animehash.js'
   import { liveAnimeEpisodeProgress } from '@/modules/animeprogress.js'
   import { anilistClient } from '@/modules/anilist.js'
   import { settings } from '@/modules/settings.js'
   import { mediaCache } from '@/modules/cache.js'
-  import AudioLabel from '@/views/ViewAnime/AudioLabel.svelte'
-  import { getContext } from 'svelte'
-  import { CalendarDays, Play, Tv, RefreshCwOff } from 'lucide-svelte'
 
   export let data
   export let prompt
@@ -26,6 +30,8 @@
   function viewMedia () {
     $view = media
   }
+
+  $: resolvedHash = getHash(media?.id, { episode: data?.episode, client: true }, false, true)
 </script>
 
 <div class='position-absolute w-400 mh-400 absolute-container top-0 m-auto bg-dark-light z-30 rounded overflow-hidden pointer d-flex flex-column'>
@@ -43,8 +49,13 @@
         autoplay />
     {/if}
     {#if data.failed}
-      <div class='pr-10 pt-10 z-10 position-absolute top-0 right-0 text-danger failed' title='Failed to resolve media'>
+      <div class='pl-10 pt-10 z-10 position-absolute top-0 left-0 text-danger icon-shadow' title='Failed to resolve media'>
         <RefreshCwOff size='3rem' />
+      </div>
+    {/if}
+    {#if data.hash || resolvedHash}
+      <div class='pr-5 pt-5 z-10 position-absolute top-0 right-0 text-danger icon-shadow'>
+        <TorrentButton class='btn btn-square shadow-none bg-transparent highlight h-40 w-40' hash={[...(data.hash && data.hash !== resolvedHash ? [data.hash] : []), ...(resolvedHash ? [resolvedHash] : [])]} torrentID={data.link} search={{ media, episode: data.episode }} size={'3rem'} strokeWidth={'2.3'}/>
       </div>
     {/if}
     <Play class='mb-5 ml-5 pl-10 pb-10 z-10' fill='currentColor' size='3rem' />
@@ -162,7 +173,7 @@
         Your Current Progress Is At <b>Episode {media?.mediaListEntry?.progress}</b>
       {/if}
     </p>
-    <button class='btn btn-lg btn-secondary w-250 text-dark font-weight-bold shadow-none border-0 d-flex align-items-center justify-content-center mt-10' use:click={() => { data.onclick() || viewMedia() }}>
+    <button class='cont-button btn btn-lg btn-secondary w-250 text-dark font-weight-bold shadow-none border-0 d-flex align-items-center justify-content-center mt-10' use:click={() => { data.onclick() || viewMedia() }}>
       <Play class='mr-10' fill='currentColor' size='1.6rem' />
       Continue Anyway?
     </button>
@@ -170,7 +181,7 @@
 </div>
 
 <style>
-  .failed {
+  .icon-shadow {
     filter: drop-shadow(0 0 .4rem rgba(0, 0, 0, 1))
   }
   .overlay {

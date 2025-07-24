@@ -1,6 +1,7 @@
 <script context='module'>
   import { writable } from 'simple-store-svelte'
   import AnimeResolver from '@/modules/animeresolver.js'
+  import { setHash, getHash, getId } from '@/modules/anime/animehash.js'
   import { videoRx, matchPhrase } from '@/modules/util.js'
   import { tick } from 'svelte'
   import { toast } from 'svelte-sonner'
@@ -51,7 +52,14 @@
         (file.media?.episode === obj.episode || obj.media.episodes === 1 || (!obj.media.episodes && (obj.episode === 1 || !obj.episode) && (oldNowPlaying.episode === 1 || !oldNowPlaying.episode))) // movie check
     )
 
-    if (!targetFile) return false
+    if (!targetFile) {
+      const resolvedHash = getHash(obj.media?.id, { episode: obj.episode, client: true }, false, true)
+      if (resolvedHash) { // We have a cached and active hash with the requested media and episode, its predicted we should use this.
+          window.dispatchEvent(new CustomEvent('add', { detail: { resolvedHash, search: { media: obj.media, episode: obj.episode } } }))
+          return true
+      }
+      return false
+    }
     if (oldNowPlaying?.media?.id !== obj?.media?.id) {
       handleMedia(obj, { media: obj.media, episode: obj.episode })
       handleFiles(fileList, targetFile).catch(e => {
@@ -82,10 +90,11 @@
    * This is useful for series like "I'm Living With a Otaku NEET Kunoichi?!", where two or more episodes are merged into one file.
    *
    * An episode range is displayed visually in the player, but for auto-completion, the highest episode number is used when the full video file is watched.
+   * @param {Object} current - The currently playing video file.
    * @param {number} duration - The duration of the video in seconds.
    */
-  async function handleRanged({ detail: duration }) {
-      if (duration && (duration > 120) && nowPlaying.value?.episode && nowPlaying.value?.media?.duration) {
+  async function handleRanged({ detail: { current, duration } }) {
+      if (duration && (duration > 120) && nowPlaying.value?.episode && nowPlaying.value?.media?.duration && !nowPlaying.value?.episodeRange) {
           // We need check the mappings to verify that the episode isn't actually an ultra-long premiere episode like "Oshi No Ko", Anilist doesn't differentiate these so we need to manually check.
           const mappings = (!nowPlaying.value.media.episodes || !nowPlaying.value.media.episodes <= 100) && (await getAniMappings(nowPlaying.value.media.id) || {})?.episodes
           const episode = mappings && (mappings[nowPlaying.value.episode] || Object.values(mappings)?.find(episode => ((episode.episode || episode.episodeNumber) && Number((episode.episode || episode.episodeNumber))) === Number(nowPlaying.value.episode) && episode.length > 1))
@@ -97,11 +106,26 @@
               const finalEpisode = nowPlaying.value.episode * episodeMultiplier
               if (startingEpisode !== finalEpisode) {
                   debug(`Multiple episodes have been detected in the video file for: ${JSON.stringify(nowPlaying.value.parseObject)}`)
-                  handleMedia({
+                  current.media.episodeRange = {
+                      first: startingEpisode,
+                      last: finalEpisode
+                  }
+                  await handleMedia({
                       media: nowPlaying.value.media,
-                      episode: finalEpisode,
-                      episodeRange: `${startingEpisode} ~ ${finalEpisode}`,
+                      episode: nowPlaying.value.episode,
+                      episodeRange: current.media.episodeRange,
                       parseObject: nowPlaying.value.parseObject
+                  })
+                  setTimeout(() =>{
+                      setHash(current.infoHash, {
+                          fileHash: current.fileHash,
+                          mediaId: current.media.media.id,
+                          episodeRange: current.media.episodeRange,
+                          episode: current.media.episode || current.media.parseObject.episode_number,
+                          season: current.media.season || current.media.parseObject.anime_season,
+                          parseObject: current.media.parseObject,
+                          failed: current.media.failed
+                      })
                   })
               }
           }
@@ -280,14 +304,36 @@
 
     // assign any resolved media to their video files that haven't failed to be resolved.
     let resolved = []
-    try {
-        resolved = await AnimeResolver.resolveFileAnime(videoFiles.map(file => file.name))
-    } catch (e) { debug(e) }
+    for (const file of videoFiles) {
+        const cached = getId(file.infoHash, { fileHash: file.fileHash })
+        if (cached && cached.mediaId && mediaCache.value[cached.mediaId]) file.media = { ...cached, media: mediaCache.value[cached.mediaId] }
+    }
 
-    videoFiles.forEach((file) => {
-        const parseObject = resolved.find(({ parseObject }) => AnimeResolver.cleanFileName(file.name).includes(parseObject.file_name))
-        if (parseObject && !parseObject.failed) file.media = parseObject
-    })
+    let uncachedMedia = videoFiles.filter(file => !file.media)
+    if (uncachedMedia?.length) {
+        try {
+            resolved = await AnimeResolver.resolveFileAnime(uncachedMedia.map(file => file.name))
+        } catch (e) {
+            debug(e)
+        }
+    }
+
+    if (resolved?.length) {
+        videoFiles.forEach((file) => {
+            const parseObject = resolved.find(({parseObject}) => AnimeResolver.cleanFileName(file.name).includes(parseObject.file_name))
+            if (parseObject && !parseObject.failed) {
+                file.media = parseObject
+                 setHash(file.infoHash, {
+                     fileHash: file.fileHash,
+                     mediaId: parseObject.media?.id,
+                     episode: parseObject.episode,
+                     season: parseObject.season,
+                     parseObject: parseObject.parseObject,
+                     failed: parseObject.failed
+                 })
+            }
+        })
+    }
 
     // Identify files that still need to be resolved, attempting again using the torrent name instead.
     let failedToResolve = videoFiles.filter(file => !file.media)
@@ -307,7 +353,17 @@
                 if (parseObject?.parseObject?.episode_number && (String(parseObject?.parseObject?.episode_number || '') === String(failedEntry?.parseObject?.video_resolution || '').replace('p', ''))) delete parseObject.parseObject.episode_number
                 if (parseObject?.episode && (String(parseObject?.episode || '') === String(failedEntry?.parseObject?.video_resolution || '').replace('p', ''))) delete parseObject.episode
             }
-            if (parseObject) file.media = parseObject
+            if (parseObject) {
+                file.media = parseObject
+                setHash(file.infoHash, {
+                    fileHash: file.fileHash,
+                    mediaId: parseObject.media?.id,
+                    episode: parseObject.episode,
+                    season: parseObject.season,
+                    parseObject: parseObject.parseObject,
+                    failed: parseObject.failed
+                })
+            }
         })
     }
 
@@ -449,4 +505,4 @@
   export let playPage = false
 </script>
 
-<Player files={$processed} playableFiles={$processedFiles} {miniplayer} media={$nowPlaying} bind:playFile bind:page bind:overlay bind:playPage on:current={handleCurrent} on:duration={handleRanged} />
+<Player files={$processed} playableFiles={$processedFiles} {miniplayer} media={$nowPlaying} bind:playFile bind:page bind:overlay bind:playPage on:current={handleCurrent} updateCurrent={handleCurrent} on:duration={handleRanged} />

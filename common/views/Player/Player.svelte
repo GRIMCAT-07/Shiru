@@ -19,11 +19,12 @@
   import Helper from '@/modules/helper.js'
 
   import { w2gEmitter, state } from '@/views/WatchTogether/WatchTogether.svelte'
+  import FileManager, { managerView } from '@/views/Player/FileManager/FileManager.svelte'
   import Keybinds, { loadWithDefaults, condition } from 'svelte-keybinds'
   import { SUPPORTS } from '@/modules/support.js'
   import 'rvfc-polyfill'
   import IPC from '@/modules/ipc.js'
-  import { X, Minus, ArrowDown, ArrowUp, Captions, Cast, CircleHelp, Contrast, FastForward, Keyboard, EllipsisVertical, List, Eye, FilePlus2, ListMusic, ListVideo, Maximize, Minimize, Pause, PictureInPicture, PictureInPicture2, Play, Proportions, RefreshCcw, Rewind, RotateCcw, RotateCw, ScreenShare, SkipBack, SkipForward, Users, Volume1, Volume2, VolumeX, SlidersVertical } from 'lucide-svelte'
+  import { X, Minus, ArrowDown, ArrowUp, Captions, Cast, CircleHelp, Contrast, FastForward, Keyboard, EllipsisVertical, List, Eye, FilePlus2, ListMusic, ListVideo, Maximize, Minimize, Pause, PictureInPicture, PictureInPicture2, Play, Proportions, RefreshCcw, Rewind, RotateCcw, RotateCw, ScreenShare, SkipBack, SkipForward, Users, Volume1, Volume2, VolumeX, SlidersVertical, SquarePen } from 'lucide-svelte'
   import Debug from 'debug'
 
   const debug = Debug('ui:player')
@@ -42,6 +43,7 @@
   })
 
   export function playFile (file) {
+    window.dispatchEvent(new Event('overlay-check'))
     if (!isNaN(file)) handleCurrent(videos?.[file])
     else handleCurrent(file)
   }
@@ -56,10 +58,11 @@
   export let playPage
   export let miniplayer = false
   $: viewAnime = overlay.includes('viewanime')
-  $condition = () => SUPPORTS.keybinds && ((!miniplayer && !document.querySelector('.modal.show')) || (viewAnime && page === 'player'))
+  $condition = () => SUPPORTS.keybinds && ((!miniplayer && !overlay.length && !document.querySelector('.modal.show')) || (viewAnime && page === 'player'))
 
   export let files = []
   export let playableFiles = []
+  export let updateCurrent
   $: updateFiles(files)
   let src = null
   let video = null
@@ -93,12 +96,16 @@
   $: cache.setEntry(caches.GENERAL, 'volume', String(volume || 0))
   $: safeduration = (isFinite(duration) ? duration : currentTime) || 0
   $: {
-    if (hidden) {
-      setDiscordRPC(media, video?.currentTime)
-    } else {
-      setDiscordRPC(media, (paused && (page !== 'player')))
-    }
+    if (hidden) setDiscordRPC(media, video?.currentTime)
+    else setDiscordRPC(media, (paused && (page !== 'player')))
   }
+
+  window.addEventListener('fileEdit', () => {
+    if (current) {
+      debug('Detected a user update to the parsed file(s), now updating the media...')
+      updateCurrent({ detail: current })
+    }
+  })
 
   function setupAudio() {
     if (!audioCtx) {
@@ -339,8 +346,8 @@
       return
     }
     const playerPage = page === 'player'
-    const viewDetails = overlay?.length === 1 && overlay.includes('viewanime')
-    const overlayCount = overlay?.length
+    const viewDetails = overlay.length === 1 && overlay.includes('viewanime')
+    const overlayCount = overlay.length
     if (!video?.ended) {
       if ((!playerPage || viewDetails) && !paused && playPage && !pip) {
         pagePaused = 2
@@ -361,7 +368,7 @@
     if (!pagePaused) pagePaused = 1
   }
   async function autoPlay () {
-    emit('duration', duration)
+    emit('duration', { current, duration })
     const fillerEpisode = await episodesList.getSingleEpisode(media?.media?.idMal, media?.episode)
     filler = fillerEpisode?.filler && 'Filler'
     recap = fillerEpisode?.recap && 'Recap'
@@ -612,7 +619,14 @@
       icon: Eye,
       id: 'eye',
       type: 'icon',
-      desc: 'Toggle "Now Playing"'
+      desc: 'Toggle Now Playing'
+    },
+    KeyH: {
+      fn: () => !viewAnime && ($managerView = !$managerView),
+      icon: SquarePen,
+      id: 'squarepen',
+      type: 'icon',
+      desc: 'Toggle File Manager'
     },
     Backquote: {
       fn: () => !viewAnime && (showKeybinds = !showKeybinds),
@@ -1185,11 +1199,13 @@
 
   function checkCompletionByTime (currentTime, safeduration) {
     const threshold = $settings.playerAutocompleteThreshold / 100
-    if (safeduration && currentTime && (video?.readyState || externalPlayerReady) && (currentTime >= safeduration * threshold) && (media?.media?.episodes || (media?.media?.nextAiringEpisode?.episode >= media.episode))) {
+    if (safeduration && currentTime && (video?.readyState || externalPlayerReady) && (currentTime >= safeduration * threshold) && (media?.media?.episodes || (media?.media?.nextAiringEpisode?.episode >= (media.episodeRange?.last || media.episode)))) {
       debug(`Marking current episode as completed as it has met the ${$settings.playerAutocompleteThreshold}% threshold.`)
       completed = true
       externalPlayerReady = false
-      Helper.updateEntry(media)
+      const _media = media.episodeRange ? structuredClone(media) : media
+      if (media.episodeRange) _media.episode = media.episodeRange.last
+      Helper.updateEntry(_media)
     }
   }
   const torrent = {}
@@ -1436,6 +1452,7 @@
       {/if}
     </div>
   {/if}
+  <FileManager playing={current} files={playableFiles} {playFile} bind:overlay/>
   <div class='top z-40 row d-title'>
     <div class='stats pl-20 col-4 d-title'>
       <div class='font-weight-bold overflow-hidden text-truncate font-scale-23'>
@@ -1448,14 +1465,14 @@
         {/if}
       </div>
       <div class='font-weight-normal overflow-hidden text-truncate text-muted font-scale-16'>
-        {#if (media?.episode === 0 || media?.episode) && media?.media?.format !== 'MOVIE' && (!media?.episodeTitle || !new RegExp(`(?:\\b|\\D)${media.episodeRange || media.episode}(?:\\b|\\D)`).test(media.episodeTitle))}
+        {#if (media?.episode === 0 || media?.episode) && media?.media?.format !== 'MOVIE' && (!media?.episodeTitle || !new RegExp(`(?:\\b|\\D)${media.episode}(?:\\b|\\D)`).test(media.episodeTitle))}
           {@const maxEpisodes = getMediaMaxEp(media.media) - (media.zeroEpisode ? 1 : 0)}
-          Episode {media.episodeRange || media.episode}
+          Episode {media.episodeRange ? `${media.episodeRange.first} ~ ${media.episodeRange.last}` : media.episode}
           {#if maxEpisodes && (Number(maxEpisodes) > 1)} of {maxEpisodes}{:else if !maxEpisodes && videos && (videos.length > 1)} of {videos.length}{/if} <!-- for when the media fails to resolve, we can predict that the file length is likely the episode count. -->
         {:else if current && (videos?.length > 1)}
           Episode {videos.indexOf(current) + 1} of {videos.length} <!-- fallback for when the media fails to resolve and we also fail to resolve the episode numbers, best to indicate what file we are currently on. -->
         {/if}
-        {#if (media?.episode === 0 || media?.episode) && media?.media?.format !== 'MOVIE' && (media?.episodeTitle && !new RegExp(`(?:\\b|\\D)${media.episodeRange || media.episode}(?:\\b|\\D)`).test(media.episodeTitle))}{' - '}{/if}
+        {#if (media?.episode === 0 || media?.episode) && media?.media?.format !== 'MOVIE' && (media?.episodeTitle && !new RegExp(`(?:\\b|\\D)${media.episode}(?:\\b|\\D)`).test(media.episodeTitle))}{' - '}{/if}
         {#if media?.episodeTitle}{media.episodeTitle}{/if}
       </div>
     </div>
@@ -1595,18 +1612,19 @@
         <div class='ts mr-auto font-scale-20'>x{playbackRate.toFixed(1)}</div>
       {/if}
       <input type='file' class='d-none' id='search-subtitle' accept='.srt,.vtt,.ass,.ssa,.sub,.txt' on:input|preventDefault|stopPropagation={handleFile} bind:this={fileInput}/>
-      {#if !subHeaders?.length}
-        <div class='dropdown dropup with-arrow' use:click={toggleDropdown}>
+      <div class='dropdown dropup with-arrow' use:click={toggleDropdown}>
           <span class='icon ctrl d-flex align-items-center h-full' title='More'>
             <EllipsisVertical size='2.5rem' strokeWidth={2.5} />
           </span>
-          <div class='dropdown-menu dropdown-menu-left ctrl pt-5 pb-5 ml-10 text-capitalize hm-400 text-nowrap'>
-            <div role='button' aria-label='Add External Subtitles' class='pointer d-flex align-items-center justify-content-center font-size-16' title='Add External Subtitles' use:click={(target) => { fileInput.click(); toggleDropdown(target) }}>
-              <FilePlus2 size='2rem' strokeWidth={2.5} /> <div class='ml-10'>Add Subtitles</div>
-            </div>
+        <div class='dropdown-menu dropdown-menu-left ctrl pt-5 pb-5 ml-10 text-capitalize hm-400 text-nowrap'>
+          <div role='button' aria-label='Add External Subtitles' class='pointer d-flex align-items-center justify-content-center font-size-16 bd-highlight py-5' title='Add External Subtitles' use:click={(target) => { fileInput.click(); toggleDropdown(target) }}>
+            <FilePlus2 size='2rem' strokeWidth={2.5} /> <div class='ml-10'>Add Subtitles</div>
+          </div>
+          <div role='button' aria-label='Modify Existing Files or Change to a New File' class='pointer d-flex align-items-center justify-content-center font-size-16 bd-highlight py-5' title='Modify Existing Files or Change to a New File' use:click={(target) => { $managerView = !$managerView; toggleDropdown(target) }}>
+            <SquarePen size='2rem' strokeWidth={2.5} /> <div class='ml-10'>File Manager</div>
           </div>
         </div>
-      {/if}
+      </div>
       <span class='icon ctrl mr-5 d-flex align-items-center keybinds' title='Keybinds [`]' use:click={() => (showKeybinds = true)}>
         <Keyboard size='2.5rem' strokeWidth={2.5} />
       </span>
@@ -1977,9 +1995,6 @@
   .top {
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.4) 25%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0.1) 75%, transparent);
     transition: 0.2s opacity ease 0s;
-  }
-  .mr-40 {
-    margin-right: 4rem !important;
   }
   .mr-50 {
     margin-right: 5rem !important;

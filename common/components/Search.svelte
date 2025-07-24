@@ -24,7 +24,7 @@
   export let search
 
   let form
-  let searchTextInput = null
+  let searchTextInput = search.search || null
   let searchTags = getTags()
   $: if (clearNow) searchTags = getTags()
 
@@ -65,6 +65,7 @@
       format_not: [],
       status: [],
       status_not: [],
+      ...(search.fileEdit ? { fileEdit: search.fileEdit } : {}),
       ...(($page === 'schedule') ? { load: search.load } : { season: '', sort: ''})
     }
     searchTags.tags = []
@@ -272,46 +273,48 @@
         </button>
       </div>
     </div>
-    <div class='col-auto p-10 d-flex'>
-      <div class='align-self-end'>
-        <button
-          class='btn btn-square bg-dark-light px-5 align-self-end border-0'
-          type='button'
-          title='Hide My Anime'
-          use:click={toggleHideMyAnime}
-          disabled={search.disableHide || search.disableSearch || !Helper.isAuthorized()}
-          class:text-primary={search.hideMyAnime}>
-          <label for='hide-my-anime' class='pointer mb-0 d-flex align-items-center justify-content-center'>
-            <EyeOff size='1.625rem' />
-          </label>
-        </button>
+    {#if !search.fileEdit}
+      <div class='col-auto p-10 d-flex'>
+        <div class='align-self-end'>
+          <button
+            class='btn btn-square bg-dark-light px-5 align-self-end border-0'
+            type='button'
+            title='Hide My Anime'
+            use:click={toggleHideMyAnime}
+            disabled={search.disableHide || search.disableSearch || !Helper.isAuthorized()}
+            class:text-primary={search.hideMyAnime}>
+            <label for='hide-my-anime' class='pointer mb-0 d-flex align-items-center justify-content-center'>
+              <EyeOff size='1.625rem' />
+            </label>
+          </button>
+        </div>
       </div>
-    </div>
-    <div class='col-auto p-10 d-flex'>
-      <div class='align-self-end'>
-        <button
-          class='btn btn-square bg-dark-light px-5 align-self-end border-0'
-          type='button'
-          title='Dubbed Audio'
-          use:click={toggleSubs}
-          disabled={search.disableSearch}
-          class:text-primary={search.hideSubs}>
-          <label for='hide-subs' class='pointer mb-0 d-flex align-items-center justify-content-center'>
-            <Mic size='1.625rem' />
-          </label>
-        </button>
+      <div class='col-auto p-10 d-flex'>
+        <div class='align-self-end'>
+          <button
+            class='btn btn-square bg-dark-light px-5 align-self-end border-0'
+            type='button'
+            title='Dubbed Audio'
+            use:click={toggleSubs}
+            disabled={search.disableSearch}
+            class:text-primary={search.hideSubs}>
+            <label for='hide-subs' class='pointer mb-0 d-flex align-items-center justify-content-center'>
+              <Mic size='1.625rem' />
+            </label>
+          </button>
+        </div>
       </div>
-    </div>
-    <input type='file' class='d-none' id='search-image' accept='image/*' on:input|preventDefault|stopPropagation={handleFile} />
-    <div class='col-auto p-10 d-none' class:d-flex={!search.scheduleList}>
-      <div class='align-self-end'>
-        <button class='btn btn-square bg-dark-light px-5 align-self-end border-0' type='button' title='Image Search'>
-          <label for='search-image' class='pointer mb-0 d-flex align-items-center justify-content-center'>
-            <ImageUp size='1.625rem' />
-          </label>
-        </button>
+      <input type='file' class='d-none' id='search-image' accept='image/*' on:input|preventDefault|stopPropagation={handleFile} />
+      <div class='col-auto p-10 d-none' class:d-flex={!search.scheduleList}>
+        <div class='align-self-end'>
+          <button class='btn btn-square bg-dark-light px-5 align-self-end border-0' type='button' title='Image Search'>
+            <label for='search-image' class='pointer mb-0 d-flex align-items-center justify-content-center'>
+              <ImageUp size='1.625rem' />
+            </label>
+          </button>
+        </div>
       </div>
-    </div>
+    {/if}
     <div class='col-auto p-10 d-flex'>
       <div class='align-self-end'>
         <button class='btn btn-square bg-dark-light d-flex align-items-center justify-content-center px-5 align-self-end border-0' type='button' title='Reset Filters' use:click={searchClear} disabled={(sanitisedSearch.length <= 0) && !search.clearNext} class:text-danger={!!sanitisedSearch?.length || search.disableSearch || search.clearNext}>
