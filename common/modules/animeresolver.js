@@ -551,7 +551,7 @@ export default new class AnimeResolver {
       return false
     })
     // this is hit-miss
-    if (!res && !skip && type === 'SEQUEL') res = this.findEdge(media, type, formats = ['TV', 'TV_SHORT', 'OVA'], true)
+    if (!res && !skip && type === 'SEQUEL') res = this.findEdge(media, type, formats = ['TV', 'TV_SHORT', 'ONA', 'OVA'], true)
     return res
   }
 
