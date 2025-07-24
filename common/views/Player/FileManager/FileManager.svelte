@@ -55,6 +55,7 @@
             type='search'
             class='form-control bg-dark-light pl-40 rounded-1 h-40 text-truncate mr-50'
             autocomplete='off'
+            spellcheck='false'
             data-option='search'
             placeholder='Filter by file name or series title' bind:value={searchText} on:input={() => { container.scrollTo({top: 0}); }} />
     </div>

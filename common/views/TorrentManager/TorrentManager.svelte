@@ -30,6 +30,7 @@
           type='search'
           class='form-control bg-dark-light pl-40 rounded-1 h-40 text-truncate'
           autocomplete='off'
+          spellcheck='false'
           data-option='search'
           placeholder='Filter torrents by text, or manually specify one by pasting a magnet link or torrent file' bind:value={searchText} />
       </div>

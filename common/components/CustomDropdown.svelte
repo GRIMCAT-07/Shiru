@@ -130,6 +130,7 @@
         disabled={disabled}
         class:not-reactive={disabled}
         autocomplete='off'
+        spellcheck='false'
         bind:value={searchTextInput}
         on:keydown={(event) => filterTags(event, 'keydown')}
         on:input={(event) => filterTags(event, 'input')}

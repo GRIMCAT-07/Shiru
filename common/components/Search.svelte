@@ -171,6 +171,7 @@
           type='search'
           class='form-control bg-dark-light text-capitalize pl-35 rounded-1 text-truncate'
           autocomplete='off'
+          spellcheck='false'
           bind:value={search.search}
           data-option='search'
           disabled={search.disableSearch}
