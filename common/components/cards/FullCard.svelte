@@ -1,7 +1,7 @@
 <script>
   import { getContext } from 'svelte'
   import { onMount, onDestroy } from 'svelte'
-  import { airingAt, getAiringInfo, formatMap, getKitsuMappings, getMediaMaxEp, statusColorMap } from '@/modules/anime.js'
+  import { airingAt, getAiringInfo, formatMap, getKitsuMappings, getMediaMaxEp, statusColorMap } from '@/modules/anime/anime.js'
   import { click } from '@/modules/click.js'
   import AudioLabel from '@/views/ViewAnime/AudioLabel.svelte'
   import { anilistClient, seasons } from '@/modules/anilist.js'

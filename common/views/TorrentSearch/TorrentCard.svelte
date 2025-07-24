@@ -2,7 +2,7 @@
   import TorrentButton from '@/components/TorrentButton.svelte'
   import { click } from '@/modules/click.js'
   import { fastPrettyBytes, since, matchPhrase, createListener } from '@/modules/util.js'
-  import { getEpisodeMetadataForMedia, getKitsuMappings } from '@/modules/anime.js'
+  import { getEpisodeMetadataForMedia, getKitsuMappings } from '@/modules/anime/anime.js'
   import { Database, BadgeCheck, FileQuestion } from 'lucide-svelte'
   import { toast } from 'svelte-sonner'
 

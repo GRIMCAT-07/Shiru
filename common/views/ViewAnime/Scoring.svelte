@@ -1,7 +1,7 @@
 <script>
   import { anilistClient } from '@/modules/anilist.js'
   import { profiles, settings, sync } from '@/modules/settings.js'
-  import { getMediaMaxEp } from '@/modules/anime.js'
+  import { getMediaMaxEp } from '@/modules/anime/anime.js'
   import { codes, createListener } from '@/modules/util.js'
   import { SUPPORTS } from '@/modules/support.js'
   import { click } from '@/modules/click.js'

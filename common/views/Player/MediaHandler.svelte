@@ -1,6 +1,6 @@
 <script context='module'>
   import { writable } from 'simple-store-svelte'
-  import AnimeResolver from '@/modules/animeresolver.js'
+  import AnimeResolver from '@/modules/anime/animeresolver.js'
   import { setHash, getHash, getId } from '@/modules/anime/animehash.js'
   import { videoRx, matchPhrase } from '@/modules/util.js'
   import { tick } from 'svelte'
@@ -9,7 +9,7 @@
   import { mediaCache } from '@/modules/cache.js'
   import { episodesList } from '@/modules/episodes.js'
   import { settings } from '@/modules/settings.js'
-  import { getAniMappings, getKitsuMappings, hasZeroEpisode } from '@/modules/anime.js'
+  import { getAniMappings, getKitsuMappings, hasZeroEpisode } from '@/modules/anime/anime.js'
   import Debug from 'debug'
 
   const debug = Debug('ui:mediahandler')

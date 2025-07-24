@@ -2,7 +2,7 @@
   import { getContext } from 'svelte'
   import { onMount, onDestroy } from 'svelte'
   import PreviewCard from '@/components/cards/PreviewCard.svelte'
-  import { airingAt, getAiringInfo, getKitsuMappings, formatMap, statusColorMap } from '@/modules/anime.js'
+  import { airingAt, getAiringInfo, getKitsuMappings, formatMap, statusColorMap } from '@/modules/anime/anime.js'
   import { createListener } from '@/modules/util.js'
   import { hoverClick } from '@/modules/click.js'
   import AudioLabel from '@/views/ViewAnime/AudioLabel.svelte'

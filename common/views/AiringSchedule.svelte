@@ -3,8 +3,8 @@
   import Search from '@/views/Search.svelte'
   import { writable } from 'simple-store-svelte'
   import { anilistClient } from '@/modules/anilist.js'
-  import { nextAiring } from '@/modules/anime.js'
-  import { animeSchedule } from '@/modules/animeschedule.js'
+  import { nextAiring } from '@/modules/anime/anime.js'
+  import { animeSchedule } from '@/modules/anime/animeschedule.js'
   import { cache, caches } from '@/modules/cache.js'
   import Helper from '@/modules/helper.js'
 

@@ -11,10 +11,10 @@
   init(true)
 </script>
 <script>
-  import { statusColorMap } from '@/modules/anime.js'
+  import { statusColorMap } from '@/modules/anime/anime.js'
   import { episodesList } from '@/modules/episodes.js'
   import { hoverClick, hoverExit } from '@/modules/click.js'
-  import { liveAnimeEpisodeProgress } from '@/modules/animeprogress.js'
+  import { liveAnimeEpisodeProgress } from '@/modules/anime/animeprogress.js'
   import { anilistClient } from '@/modules/anilist.js'
   import { settings } from '@/modules/settings.js'
   import { mediaCache } from '@/modules/cache.js'

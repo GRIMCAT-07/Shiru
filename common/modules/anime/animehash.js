@@ -2,7 +2,7 @@ import { cache, caches, mediaCache } from '@/modules/cache.js'
 import { loadedTorrent, completedTorrents, seedingTorrents, stagingTorrents } from '@/modules/torrent/torrent.js'
 import { writable } from 'simple-store-svelte'
 
-// The cache is structured as an array of objects with the following properties: { hash, mediaId, episode, season, parseObject, files: [{ mediaId, episode, season, parseObject, fileHash, cachedAt, updatedAt, locked, failed }], cachedAt, updatedAt, locked, failed }
+// The cache is structured as an array of objects with the following properties: { hash, mediaId, episodeRange: { first, last }, episode, season, parseObject, files: [{ mediaId, episodeRange: { first, last }, episode, season, parseObject, fileHash, cachedAt, updatedAt, locked, failed }], cachedAt, updatedAt, locked, failed }
 const hashes = writable(cache.getEntry(caches.HISTORY, 'animeResolvedHash') || [])
 
 function write (data) {

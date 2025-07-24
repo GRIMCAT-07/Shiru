@@ -1,6 +1,6 @@
 <script>
   import { getContext, onDestroy } from 'svelte'
-  import { formatMap, genreIcons, getKitsuMappings, getMediaMaxEp, playMedia } from '@/modules/anime.js'
+  import { formatMap, genreIcons, getKitsuMappings, getMediaMaxEp, playMedia } from '@/modules/anime/anime.js'
   import { playAnime } from '@/views/TorrentSearch/TorrentModal.svelte'
   import { settings } from '@/modules/settings.js'
   import { mediaCache } from '@/modules/cache.js'

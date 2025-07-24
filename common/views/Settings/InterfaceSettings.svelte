@@ -6,7 +6,7 @@
   import SettingCard from '@/views/Settings/SettingCard.svelte'
   import { SUPPORTS } from '@/modules/support.js'
   import { Trash2 } from 'lucide-svelte'
-  import { genreList, tagList } from '@/modules/anime.js'
+  import { genreList, tagList } from '@/modules/anime/anime.js'
   import { defaults } from '@/modules/util.js'
   import CustomDropdown from '@/components/CustomDropdown.svelte'
   import Helper from '@/modules/helper.js'

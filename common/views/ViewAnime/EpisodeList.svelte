@@ -1,6 +1,6 @@
 <script context='module'>
-  import { animeSchedule } from '@/modules/animeschedule.js'
-  import { malDubs } from '@/modules/animedubs.js'
+  import { animeSchedule } from '@/modules/anime/animeschedule.js'
+  import { malDubs } from '@/modules/anime/animedubs.js'
   import { settings } from '@/modules/settings.js'
   import { past } from '@/modules/util.js'
 
@@ -35,9 +35,9 @@
   import { click } from '@/modules/click.js'
   import { onMount, onDestroy } from 'svelte'
   import { episodeByAirDate } from '@/modules/extensions/handler.js'
-  import { liveAnimeProgress } from '@/modules/animeprogress.js'
+  import { liveAnimeProgress } from '@/modules/anime/animeprogress.js'
   import { episodesList } from '@/modules/episodes.js'
-  import { getAniMappings, hasZeroEpisode, durationMap } from '@/modules/anime.js'
+  import { getAniMappings, hasZeroEpisode, durationMap } from '@/modules/anime/anime.js'
   import EpisodeListSk from '@/components/skeletons/EpisodeListSk.svelte'
   import AudioLabel from '@/views/ViewAnime/AudioLabel.svelte'
 

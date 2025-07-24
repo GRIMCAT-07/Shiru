@@ -3,7 +3,7 @@ import { writable } from 'simple-store-svelte'
 import Bottleneck from 'bottleneck'
 
 import { alToken, settings } from '@/modules/settings.js'
-import { malDubs } from '@/modules/animedubs.js'
+import { malDubs } from '@/modules/anime/animedubs.js'
 import { getRandomInt, sleep, matchKeys } from '@/modules/util.js'
 import { printError, status } from '@/modules/networking.js'
 import { cache, caches, mediaCache } from '@/modules/cache.js'

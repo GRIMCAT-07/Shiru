@@ -1,8 +1,8 @@
 <script>
     import { settings } from '@/modules/settings.js'
-    import { malDubs } from '@/modules/animedubs.js'
-    import { animeSchedule } from '@/modules/animeschedule.js'
-    import { getMediaMaxEp } from '@/modules/anime.js'
+    import { malDubs } from '@/modules/anime/animedubs.js'
+    import { animeSchedule } from '@/modules/anime/animeschedule.js'
+    import { getMediaMaxEp } from '@/modules/anime/anime.js'
     import { matchPhrase } from '@/modules/util.js'
     import { writable } from 'svelte/store'
     import { Mic, MicOff, Captions, Adult } from 'lucide-svelte'

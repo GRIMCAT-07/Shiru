@@ -5,12 +5,12 @@
   import { CalendarDays, Play, Tv, RefreshCwOff } from 'lucide-svelte'
 </script>
 <script>
-  import { statusColorMap, formatMap } from '@/modules/anime.js'
+  import { statusColorMap, formatMap } from '@/modules/anime/anime.js'
   import { episodesList } from '@/modules/episodes.js'
   import { since } from '@/modules/util.js'
   import { click } from '@/modules/click.js'
   import { getHash } from '@/modules/anime/animehash.js'
-  import { liveAnimeEpisodeProgress } from '@/modules/animeprogress.js'
+  import { liveAnimeEpisodeProgress } from '@/modules/anime/animeprogress.js'
   import { anilistClient } from '@/modules/anilist.js'
   import { settings } from '@/modules/settings.js'
   import { mediaCache } from '@/modules/cache.js'

@@ -10,7 +10,7 @@
 </script>
 
 <script>
-  import { traceAnime, genreIcons, genreList, tagList } from '@/modules/anime.js'
+  import { traceAnime, genreIcons, genreList, tagList } from '@/modules/anime/anime.js'
   import { currentYear } from '@/modules/anilist.js'
   import { settings } from '@/modules/settings.js'
   import { click } from '@/modules/click.js'

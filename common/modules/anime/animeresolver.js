@@ -1,6 +1,6 @@
 import { anilistClient } from '@/modules/anilist.js'
 import { mediaCache } from '@/modules/cache.js'
-import { anitomyscript, hasZeroEpisode } from '@/modules/anime.js'
+import { anitomyscript, hasZeroEpisode } from '@/modules/anime/anime.js'
 import { chunks, matchKeys } from '@/modules/util.js'
 import levenshtein from 'js-levenshtein'
 import Debug from 'debug'
@@ -108,7 +108,7 @@ export default new class AnimeResolver {
   }
 
   /**
-   * @param {import('./al.d.ts').Media} media
+   * @param {import('../al.d.ts').Media} media
    * @param {string} name
    * @param {number} threshold (optional, percentage of title length)
    * @returns {boolean}
@@ -538,7 +538,7 @@ export default new class AnimeResolver {
   }
 
   /**
-   * @param {import('./al.js').Media} media
+   * @param {import('../al.d.ts').Media} media
    * @param {string} type
    * @param {string[]} [formats]
    * @param {boolean} [skip]
@@ -557,8 +557,8 @@ export default new class AnimeResolver {
 
   // note: this doesn't cover anime which uses partially relative and partially absolute episode number, BUT IT COULD!
   /**
-   * @param {{ media: import('./al.js').Media , episode?:number, force?:boolean, increment?:boolean, offset?: number, rootMedia?: import('./al.js').Media }} opts
-   * @returns {Promise<{ media: import('./al.js').Media, episode: number, offset: number, increment: boolean, rootMedia: import('./al.js').Media, failed?: boolean }>}
+   * @param {{ media: import('../al.d.ts').Media , episode?:number, force?:boolean, increment?:boolean, offset?: number, rootMedia?: import('./al.js').Media }} opts
+   * @returns {Promise<{ media: import('../al.d.ts').Media, episode: number, offset: number, increment: boolean, rootMedia: import('./al.js').Media, failed?: boolean }>}
    */
   async resolveSeason (opts) {
     // media, episode, increment, offset, force
@@ -604,7 +604,7 @@ export default new class AnimeResolver {
    * @param parseObj - The parsed object containing details about the anime episode (e.g., title, episode number).
    * @param sequelNumber - How far from root we are.
    * @param root - If we are calculating FROM root.
-   * @returns {Promise<{media: import('./al.js').Media}>}
+   * @returns {Promise<{media: import('../al.d.ts').Media}>}
    */
   async resolveBySeason(media, parseObj, sequelNumber = 0, root = false) {
     if (!parseObj?.anime_season) return media

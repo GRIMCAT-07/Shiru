@@ -1,7 +1,7 @@
 <script context='module'>
   import SectionsManager, { sections } from '@/modules/sections.js'
   import { anilistClient, currentSeason, currentYear } from '@/modules/anilist.js'
-  import { animeSchedule } from '@/modules/animeschedule.js'
+  import { animeSchedule } from '@/modules/anime/animeschedule.js'
   import { settings } from '@/modules/settings.js'
   import Helper from '@/modules/helper.js'
   import { writable } from 'svelte/store'

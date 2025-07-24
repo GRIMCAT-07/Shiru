@@ -1,5 +1,5 @@
 <script>
-  import { formatMap, playMedia } from '@/modules/anime.js'
+  import { formatMap, playMedia } from '@/modules/anime/anime.js'
   import { anilistClient } from '@/modules/anilist.js'
   import { settings } from '@/modules/settings.js'
   import { mediaCache } from '@/modules/cache.js'

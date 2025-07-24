@@ -1,11 +1,11 @@
 import { settings } from '@/modules/settings.js'
 import { sleep } from '@/modules/util.js'
 import { anilistClient } from '@/modules/anilist.js'
-import { anitomyscript, getAniMappings, getMediaMaxEp } from '@/modules/anime.js'
+import { anitomyscript, getAniMappings, getMediaMaxEp } from '@/modules/anime/anime.js'
 import { client } from '@/modules/torrent/torrent.js'
 import { status } from '@/modules/networking.js'
 import { extensionManager } from '@/modules/extensions/manager.js'
-import AnimeResolver from '@/modules/animeresolver.js'
+import AnimeResolver from '@/modules/anime/animeresolver.js'
 import Debug from 'debug'
 
 const debug = Debug('ui:extensions')

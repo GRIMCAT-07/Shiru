@@ -1,5 +1,5 @@
 import { cache, caches } from '@/modules/cache.js'
-import { getKitsuMappings } from '@/modules/anime.js'
+import { getKitsuMappings } from '@/modules/anime/anime.js'
 import { codes, getRandomInt, sleep } from '@/modules/util.js'
 import { printError, status, isOffline } from '@/modules/networking.js'
 import Bottleneck from 'bottleneck'

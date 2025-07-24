@@ -9,7 +9,7 @@
   import { eta, createListener } from '@/modules/util.js'
   import { mediaCache } from '@/modules/cache.js'
   import { anilistClient } from '@/modules/anilist.js'
-  import AnimeResolver from '@/modules/animeresolver.js'
+  import AnimeResolver from '@/modules/anime/animeresolver.js'
   import { getId } from '@/modules/anime/animehash.js'
   export let data
   export let current = false

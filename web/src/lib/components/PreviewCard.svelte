@@ -1,5 +1,5 @@
 <script>
-  import { formatMap } from '@/modules/anime.js'
+  import { formatMap } from '@/modules/anime/anime.js'
   import { click } from '@/modules/click.js'
   export let media
 
