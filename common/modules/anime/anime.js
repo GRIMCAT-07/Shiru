@@ -726,7 +726,7 @@ export async function playMedia (media) {
       }
     }
   }
-  playAnime(media, ep, true)
+  playAnime(media, ep)
   media = null
 }
 

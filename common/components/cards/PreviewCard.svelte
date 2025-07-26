@@ -2,7 +2,6 @@
   import { formatMap, getKitsuMappings, getMediaMaxEp, playMedia } from '@/modules/anime/anime.js'
   import { anilistClient, seasons } from '@/modules/anilist.js'
   import { episodesList } from '@/modules/episodes.js'
-  import { onMount, onDestroy } from 'svelte'
   import { click } from '@/modules/click.js'
   import Scoring from '@/views/ViewAnime/Scoring.svelte'
   import Helper from '@/modules/helper.js'

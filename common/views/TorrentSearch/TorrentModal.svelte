@@ -6,7 +6,7 @@
 
   export const rss = writable(null)
 
-  export function playAnime (media, episode = 1, force) {
+  export function playAnime (media, episode = 1, force = false) {
     episode = Number(episode)
     episode = isNaN(episode) ? 1 : episode
     if (!force && findInCurrent({ media, episode })) {
