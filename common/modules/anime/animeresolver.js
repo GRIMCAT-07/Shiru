@@ -1,8 +1,8 @@
-import { anilistClient, getDistanceFromTitle } from '@/modules/anilist.js'
+import { anilistClient } from '@/modules/anilist.js'
 import { mediaCache } from '@/modules/cache.js'
 import { anitomyscript, hasZeroEpisode } from '@/modules/anime/anime.js'
 import { chunks, matchKeys } from '@/modules/util.js'
-import levenshtein from 'js-levenshtein'
+//import levenshtein from 'js-levenshtein'
 import Debug from 'debug'
 
 const debug = Debug('ui:animeresolver')
@@ -151,25 +151,27 @@ export default new class AnimeResolver {
     })
     debug(`Finding ${titleObjects?.length} titles: ${titleObjects?.map(obj => obj.title).join(', ')}`)
 
-    const missingTitles = []
-    for (const titleObj of titleObjects) {
-      let foundInCache = false
-      const candidates = []
-      for (const media of Object.values(mediaCache.value)) {
-        const scoredMedia = getDistanceFromTitle(media, titleObj.title)
-        if (scoredMedia?.lavenshtein != null) candidates.push(scoredMedia)
-      }
-      candidates.sort((a, b) => a.lavenshtein - b.lavenshtein)
-      for (const media of candidates.slice(0, 25)) {
-        if (!this.animeNameCache?.[titleObj.key] && this.isVerified(media, { anime_title: titleObj.title, anime_year: titleObj.year }, ['title.userPreferred', 'title.english', 'title.romaji', 'title.native', 'synonyms'], titleObj.title.length > 15 ? 0.15 : titleObj.title.length > 9 ? 0.1 : 0.05)) {
-          this.animeNameCache[titleObj.key] = media
-          debug(`Cache hit: ${titleObj.title} -> ${media?.id}: ${media?.title?.userPreferred}`)
-          foundInCache = true
-          break
-        }
-      }
-      if (!this.animeNameCache?.[titleObj.key] && !foundInCache) missingTitles.push(titleObj)
-    }
+    const missingTitles = titleObjects
+    // Works pretty well but has edge cases that cause it to choose incorrect media, primarily issues with sequel series like Shield Hero.
+    // const missingTitles = []
+    // for (const titleObj of titleObjects) {
+    //   let foundInCache = false
+    //   const candidates = []
+    //   for (const media of Object.values(mediaCache.value)) {
+    //     const scoredMedia = getDistanceFromTitle(media, titleObj.title)
+    //     if (scoredMedia?.lavenshtein != null) candidates.push(scoredMedia)
+    //   }
+    //   candidates.sort((a, b) => a.lavenshtein - b.lavenshtein)
+    //   for (const media of candidates.slice(0, 25)) {
+    //     if (!this.animeNameCache?.[titleObj.key] && this.isVerified(media, { anime_title: titleObj.title, anime_year: titleObj.year }, ['title.userPreferred', 'title.english', 'title.romaji', 'title.native', 'synonyms'], titleObj.title.length > 15 ? 0.15 : titleObj.title.length > 9 ? 0.1 : 0.05)) {
+    //       this.animeNameCache[titleObj.key] = media
+    //       debug(`Cache hit: ${titleObj.title} -> ${media?.id}: ${media?.title?.userPreferred}`)
+    //       foundInCache = true
+    //       break
+    //     }
+    //   }
+    //   if (!this.animeNameCache?.[titleObj.key] && !foundInCache) missingTitles.push(titleObj)
+    // }
 
     if (missingTitles?.length > 0) debug(`Missing ${missingTitles?.length} titles as they were not found in the media cache, titles: ${missingTitles?.map(obj => obj.title).join(', ')}`)
     for (const chunk of chunks(missingTitles, 55)) {
