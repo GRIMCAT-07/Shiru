@@ -83,7 +83,7 @@ export default class TorrentClient extends WebTorrent {
           eta: currentTorrent?.timeRemaining,
           ratio: currentTorrent?.ratio
         },
-        staging: this.torrents.filter(torrent => torrent.staging).reverse().map(torrent => ({
+        staging: this.torrents.filter(torrent => torrent.staging).map(torrent => ({
           infoHash: torrent.infoHash,
           name: torrent.name,
           size: torrent.length,
@@ -96,7 +96,7 @@ export default class TorrentClient extends WebTorrent {
           eta: torrent.timeRemaining,
           ratio: torrent.ratio
         })),
-        seeding: this.torrents.filter(torrent => torrent.seeding).reverse().map(torrent => ({
+        seeding: this.torrents.filter(torrent => torrent.seeding).map(torrent => ({
           infoHash: torrent.infoHash,
           name: torrent.name,
           size: torrent.length,
@@ -199,6 +199,7 @@ export default class TorrentClient extends WebTorrent {
       existing.staging = false
       existing.seeding = false
       existing.current = true
+      this.bumpTorrent(existing)
       this.dispatch('loaded', { id: !recover ? og_data || data : existing.torrentFile, infoHash: existing.infoHash })
       if (existing.ready) this.torrentReady(existing)
       return
@@ -211,6 +212,7 @@ export default class TorrentClient extends WebTorrent {
       deselect: this.settings.torrentStreamedDownload
     })
     torrent.current = true
+    this.bumpTorrent(torrent)
     torrent.once('verified', () => {
       if (this.destroyed) return
       if (!torrent.ready && !skipVerify) this.dispatch('info', 'Detected already downloaded files. Verifying file integrity. This might take a minute...')
@@ -244,6 +246,7 @@ export default class TorrentClient extends WebTorrent {
       deselect: false
     })
     torrent.staging = true
+    this.bumpTorrent(torrent)
     torrent.once('verified', async () => {
       if (this.destroyed) return
       if (torrent.length > await this.storageQuota(torrent.path)) this.dispatchError('File Too Big! This File Exceeds The Selected Drive\'s Available Space. Change Download Location In Torrent Settings To A Drive With More Space And Restart The App!')
@@ -267,6 +270,7 @@ export default class TorrentClient extends WebTorrent {
     if (torrent.progress < 1 && torrent.current && this.settings.torrentPersist) {
       torrent.current = false
       torrent.staging = true
+      this.bumpTorrent(torrent)
       this.dispatch('staging', torrent.infoHash)
       debug('Loaded torrent did not finish downloading, moving to staging: ' + torrent.torrentFile)
       return
@@ -288,8 +292,10 @@ export default class TorrentClient extends WebTorrent {
     if (!torrent?.destroyed) {
       torrent.current = false
       torrent.staging = false
+      this.bumpTorrent(torrent)
       if (!torrent.seeding) {
         torrent.seeding = true
+        this.bumpTorrent(torrent)
         if (type !== 'seed') this.dispatch('seeding', torrent.infoHash)
         debug('Seeding torrent: ' + torrent.torrentFile)
       }
@@ -398,8 +404,12 @@ export default class TorrentClient extends WebTorrent {
           if (found.length > await this.storageQuota(torrent.path)) this.dispatchError('File Too Big! This File Exceeds The Selected Drive\'s Available Space. Change Download Location In Torrent Settings To A Drive With More Space And Restart The App!')
           this.currentFile = found
           const currentTorrent = this.torrents.find(_torrent => _torrent.current)
-          if (currentTorrent) currentTorrent.current = false
+          if (currentTorrent) {
+            currentTorrent.current = false
+            this.bumpTorrent(currentTorrent)
+          }
           torrent.current = true
+          this.bumpTorrent(torrent)
           if (data.data.external) {
             if (this.player) {
               this.playerProcess = spawn(this.player, ['' + new URL('http://localhost:' + this.server.address().port + found.streamURL)])
@@ -586,6 +596,12 @@ export default class TorrentClient extends WebTorrent {
 
     if (!tracker) this.dispatch('scrape', { id, result: results })
     return { id, result: results }
+  }
+
+  bumpTorrent(torrent) {
+    const index = this.torrents.indexOf(torrent)
+    if (index > -1) this.torrents.splice(index, 1)
+    this.torrents.unshift(torrent)
   }
 
   async dispatch (type, data, transfer) {

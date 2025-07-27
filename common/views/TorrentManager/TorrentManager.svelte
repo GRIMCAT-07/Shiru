@@ -56,13 +56,13 @@
       {#if !searchText?.length || filteredLoaded}
         <TorrentDetails bind:data={$loadedTorrent} current={true} />
       {/if}
-      {#each filteredStaging as torrent}
+      {#each filteredStaging as torrent (torrent.infoHash)}
         <TorrentDetails data={torrent}/>
       {/each}
-      {#each filteredSeeding as torrent}
+      {#each filteredSeeding as torrent (torrent.infoHash)}
         <TorrentDetails data={torrent}/>
       {/each}
-      {#each filteredCompleted as torrent}
+      {#each filteredCompleted as torrent (torrent.infoHash)}
         <TorrentDetails data={torrent} completed={true}/>
       {/each}
     {:else}
