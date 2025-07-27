@@ -247,10 +247,12 @@ export default class TorrentClient extends WebTorrent {
     })
     torrent.staging = true
     this.bumpTorrent(torrent)
+    torrent.once('metadata', () => {
+      if (!skipVerify && type !== 'stage' && type !== 'seed' && type !== 'rescan') this.dispatch('info', 'Torrent queued for background download. Check the management page for progress...')
+    })
     torrent.once('verified', async () => {
       if (this.destroyed) return
       if (torrent.length > await this.storageQuota(torrent.path)) this.dispatchError('File Too Big! This File Exceeds The Selected Drive\'s Available Space. Change Download Location In Torrent Settings To A Drive With More Space And Restart The App!')
-      else if (!skipVerify && type !== 'stage' && type !== 'seed' && type !== 'rescan') this.dispatch('info', 'Torrent queued for background download. Check the management page for progress...')
       if (this.settings.torrentStreamedDownload && this.currentFile && this.currentFile.progress !== 1) {
         for (const file of torrent.files) {
           if (!file._destroyed && file.selected) file.deselect()
