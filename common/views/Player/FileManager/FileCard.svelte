@@ -93,10 +93,11 @@
         <div class='d-flex align-items-center justify-content-center mt-5'>
             {#if playing}<span class='badge text-dark bg-announcement' title='The current file'>Now Playing</span>{/if}
             {#if file?.locked || file.media?.locked}<span class='badge text-dark bg-success-subtle' class:ml-5={playing} title='This series was manually set by the user'>Locked</span>{/if}
+            {#if file?.failed || file.media?.failed}<span class='badge text-dark bg-danger-dim ml-auto h-26 mr-5 d-flex align-items-center justify-content-center' title='Failed to resolve the playing media based on the file name.'>Failed</span>{/if}
             {#if file.media?.media?.format === 'MOVIE'}
-                <span class='ml-auto badge text-dark bg-episode mr-5'>Movie</span>
+                <span class='badge text-dark bg-episode h-26 mr-5 d-flex align-items-center justify-content-center' class:ml-auto={!(file?.failed || file.media?.failed)}>Movie</span>
             {:else if episode}
-                <span class='ml-auto badge text-dark bg-episode mr-5 d-flex align-items-center justify-content-center' title={`Episode {episode}`}>
+                <span class='badge text-dark bg-episode mr-5 d-flex align-items-center justify-content-center' class:ml-auto={!(file?.failed || file.media?.failed)} title={`Episode {episode}`}>
                     <span class='mr-5'>Episode</span>
                     <input
                         type='text'
@@ -113,8 +114,8 @@
                             episode = targetValue?.length ? targetValue : getEpisode()
                             updateEpisode(file, event)
                         }}
-                        class='input form-control text-left text-dark text-truncate font-weight-semi-bold font-size-12 justify-content-center'
-                        style='background-color: rgb(175,175,244) !important; height: 2rem !important; width: calc(1.8rem + {(String(episode).length <= 10 ? String(episode).length : 10) * .7}rem) !important'
+                        class='input form-control h-20 text-left text-dark text-truncate font-weight-semi-bold font-size-12 justify-content-center'
+                        style='background-color: rgb(175,175,244) !important; width: calc(1.8rem + {(String(episode).length <= 10 ? String(episode).length : 10) * .7}rem) !important'
                         title='Episode Number(s)'/>
                 </span>
             {/if}
@@ -136,6 +137,9 @@
 </div>
 
 <style>
+    .h-26 {
+        height: 2.6rem !important
+    }
     .h-33 {
         height: 3.3rem !important;
     }

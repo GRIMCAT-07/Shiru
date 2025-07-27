@@ -86,6 +86,10 @@
   height: 0;
 }
 
+.h-20 {
+  height: 2rem !important;
+}
+
 .h-30 {
   height: 3rem;
 }

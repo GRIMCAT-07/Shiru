@@ -18,7 +18,7 @@ function pushFiles(files, data) {
         ...(data.season ? { season: Number(data.season) || data.season } : {}),
         parseObject: data.parseObject,
         ...(data.locked ? { locked: data.locked } : {}),
-        ...(data.failed ? { failed: data.failed } : {}),
+        ...(data.failed && !data.locked ? { failed: data.failed } : {}),
         cachedAt: Date.now(),
         updatedAt: Date.now()
     })
@@ -38,15 +38,16 @@ export function setHash(hash, data) {
                     ...(data.season ? { season: Number(data.season) || data.season } : {}),
                     parseObject: data.parseObject,
                     ...(data.locked ? { locked: data.locked } : {}),
-                    ...(data.failed ? { failed: data.failed } : {}),
+                    ...(data.failed && !data.locked ? { failed: data.failed } : {}),
                     updatedAt: Date.now()
                 })
             } else pushFiles(files, data)
             existing.files = files
-            if (!data.failed) {
+            if (!data.failed || data.locked) {
                 existing.mediaId = data.mediaId
                 existing.updatedAt = Date.now()
             }
+            if (data.locked && existing.failed) delete existing.failed
         } else {
             Object.assign(existing, {
                 hash,
@@ -56,9 +57,10 @@ export function setHash(hash, data) {
                 ...(data.season ? { season: Number(data.season) || data.season } : {}),
                 parseObject: data.parseObject,
                 ...(data.locked ? { locked: data.locked } : {}),
-                ...(data.failed ? { failed: data.failed } : {}),
+                ...(data.failed && !data.locked ? { failed: data.failed } : {}),
                 updatedAt: Date.now()
             })
+            if (data.locked && existing.failed) delete existing.failed
         }
     } else {
         const files = []
@@ -72,7 +74,7 @@ export function setHash(hash, data) {
                 ...(data.season ? { season: Number(data.season) || data.season } : {}),
                 parseObject: data.parseObject,
                 ...(data.locked ? { locked: data.locked } : {}),
-                ...(data.failed ? { failed: data.failed } : {})
+                ...(data.failed && !data.locked ? { failed: data.failed } : {})
             } : {}),
             cachedAt: Date.now(),
             updatedAt: Date.now(),

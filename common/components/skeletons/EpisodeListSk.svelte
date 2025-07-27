@@ -23,9 +23,6 @@
   .w-30 {
     width: 3rem !important;
   }
-  .h-20 {
-    height: 2rem !important;
-  }
   .episode-title {
     max-width: 40rem !important;
     margin-right: 4rem;
