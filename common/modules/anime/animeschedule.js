@@ -309,6 +309,10 @@ class AnimeSchedule {
             }
         }
 
+        // Filter out undefined media, this will only ever occur if the media isAdult or is Genre Hentai and the user doesn't have the adult or hentai setting enabled.
+        items.data.Page.media = items.data.Page.media.filter(entry => entry && entry.id)
+        combinedItems.data.Page.media = combinedItems.data.Page.media.filter(entry => entry && entry.id)
+
         const results = this.structureResolveResults(items, type)
         if (type === 'Dub' || type === 'Sub' || type === 'Hentai') {
             if (type === 'Hentai' && settings.value.adult !== 'hentai') return
@@ -368,7 +372,7 @@ class AnimeSchedule {
 
     async structureResolveResults (items, type) {
         const results = items?.data?.Page?.media?.map((media) => ({ media, episode: media.episode.aired, date: new Date(media.episode.airedAt) }))
-        return results.map(async (result) => {
+        return results.filter(result => result.media && result.media.id).map(async (result) => {
             const res = {
                 ...result,
                 parseObject: {
@@ -377,12 +381,10 @@ class AnimeSchedule {
                 episodeData: undefined,
                 onclick: undefined
             }
-            if (res.media?.id) {
-                try {
-                    res.episodeData = (await getEpisodeMetadataForMedia(res.media))?.[res.episode]
-                } catch (e) {
-                    debug(`Warn: failed fetching episode metadata for ${res.media.title?.userPreferred} episode ${res.episode}: ${e.stack} on feed (${type})`)
-                }
+            try {
+                res.episodeData = (await getEpisodeMetadataForMedia(res.media))?.[res.episode]
+            } catch (e) {
+                debug(`Warn: failed fetching episode metadata for ${res.media.title?.userPreferred} episode ${res.episode}: ${e.stack} on feed (${type})`)
             }
             res.onclick = () => {
                 window.dispatchEvent(new CustomEvent('play-anime', {
