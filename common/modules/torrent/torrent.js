@@ -227,6 +227,8 @@ window.addEventListener('torrent-unload', () => {
 
 window.addEventListener('add', (event) => add(event.detail.resolvedHash, event.detail.search, event.detail.resolvedHash))
 
+window.addEventListener('rescan', () => client.send('rescan'))
+
 function deduplicateTorrents(hash, ..._caches) {
   if (!hash) return
   for (const cacheName of _caches) {
