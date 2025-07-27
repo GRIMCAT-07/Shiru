@@ -6,7 +6,7 @@ import { writable } from 'simple-store-svelte'
 const hashes = writable(cache.getEntry(caches.HISTORY, 'animeResolvedHash') || [])
 
 function write (data) {
-    cache.setEntry(caches.HISTORY, 'hashes', data)
+    cache.setEntry(caches.HISTORY, 'animeResolvedHash', data)
 }
 
 function pushFiles(files, data) {
@@ -48,6 +48,7 @@ export function setHash(hash, data) {
                 existing.updatedAt = Date.now()
             }
             if (data.locked && existing.failed) delete existing.failed
+            if (data.locked && existingFile.failed) delete existingFile.failed
         } else {
             Object.assign(existing, {
                 hash,

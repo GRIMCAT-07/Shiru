@@ -1,6 +1,6 @@
 import { getRandomInt, DOMPARSER, base32toHex } from '@/modules/util.js'
 import { settings } from '@/modules/settings.js'
-import { cache, caches } from '@/modules/cache.js'
+import { cache, caches, mediaCache } from '@/modules/cache.js'
 import { toast } from 'svelte-sonner'
 import { add } from '@/modules/torrent/torrent.js'
 import { getEpisodeMetadataForMedia } from '@/modules/anime/anime.js'
@@ -8,6 +8,7 @@ import AnimeResolver from '@/modules/anime/animeresolver.js'
 import { anilistClient } from '@/modules/anilist.js'
 import { hasNextPage } from '@/modules/sections.js'
 import { malDubs } from '@/modules/anime/animedubs.js'
+import { getId } from '@/modules/anime/animehash.js'
 import IPC from '@/modules/ipc.js'
 import Debug from 'debug'
 
@@ -16,10 +17,21 @@ const debug = Debug('ui:rss')
 export function parseRSSNodes (nodes) {
   return nodes.map(item => {
     const pubDate = item.querySelector('pubDate')?.textContent
+    const link = item.querySelector('enclosure')?.attributes.url.value || item.querySelector('link')?.textContent || '?'
+    let hash
+    try {
+      const match = link.match(/\b([a-fA-F0-9]{40}|[A-Z2-7]{32})\b/)
+      if (match) {
+        let foundHash = match[1].toLowerCase()
+        if (foundHash.length === 32) hash = base32toHex(foundHash)
+        else hash = foundHash
+      }
+    } catch (e) {}
 
     return {
       title: item.querySelector('title')?.textContent || '?',
-      link: item.querySelector('enclosure')?.attributes.url.value || item.querySelector('link')?.textContent || '?',
+      link,
+      ...(hash ? { hash } : {}),
       seeders: item.querySelector('seeders')?.textContent ?? '?',
       leechers: item.querySelector('leechers')?.textContent ?? '?',
       downloads: item.querySelector('downloads')?.textContent ?? '?',
@@ -60,8 +72,8 @@ class RSSMediaManager {
     this.resultMap = {}
   }
 
-  getMediaForRSS (page, perPage, url, ignoreErrors) {
-    const res = this._getMediaForRSS(page, perPage, url)
+  getMediaForRSS (page, perPage, url, ignoreErrors = false, ignoreChanged = false) {
+    const res = this._getMediaForRSS(page, perPage, url, ignoreChanged)
     if (!ignoreErrors) {
       res.catch(e => {
         if (settings.value.toasts.includes('All') || settings.value.toasts.includes('Errors')) {
@@ -80,7 +92,7 @@ class RSSMediaManager {
     return array[i]
   }
 
-  async getContentChanged (page, perPage, url) {
+  async getContentChanged (page, perPage, url, ignoreChanged = false) {
     let content
     try {
       content = await getRSSContent(getReleasesRSSurl(url))
@@ -96,15 +108,15 @@ class RSSMediaManager {
 
     const pubDate = +(new Date(content.querySelector('pubDate').textContent)) * page * perPage
     const pullDate = +(new Date(content.querySelector('pubDate').textContent))
-    if (this.resultMap[url]?.date === pubDate) return false
+    if (!ignoreChanged && this.resultMap[url]?.date === pubDate) return false
 
     cache.cacheEntry(caches.RSS, `${btoa(url)}`, { mappings: true }, new XMLSerializer().serializeToString(content), Date.now() + getRandomInt(10, 15) * 60 * 1000)
     return { content, pubDate, pullDate }
   }
 
-  async _getMediaForRSS (page, perPage, url) {
+  async _getMediaForRSS (page, perPage, url, ignoreChanged = false) {
     debug(`Getting media for RSS feed ${url} page ${page} perPage ${perPage}`)
-    const changed = await this.getContentChanged(page, perPage, url)
+    const changed = await this.getContentChanged(page, perPage, url, ignoreChanged)
     if (!changed) return this.resultMap[url].result
     debug(`Feed ${url} has changed, updating`)
 
@@ -184,7 +196,40 @@ class RSSMediaManager {
   }
 
   async structureResolveResults (items) {
-    const results = await AnimeResolver.resolveFileAnime(items.map(item => item.title))
+    let resolveIndex = 0
+    let resolvedData = []
+    const processedItems = items.map(item => {
+      if (item.hash) {
+        const idData = getId(item.hash, {})
+        if (idData) {
+          return {
+            fromId: true,
+            original: item,
+            ...idData,
+            media: mediaCache.value[idData.mediaId],
+            ...(!idData.parseObject && idData.files?.length ? { parseObject: idData.files[0].parseObject } : {}),
+            ...(!idData.episode && idData.files?.length === 1 ? { episode: idData.files[0].episode || idData.files[0].parseObject?.episode_number } : {}),
+            ...(!idData.season && idData.files?.length === 1 ? { season: idData.files[0].season || idData.files[0].parseObject?.anime_season } : {}),
+            ...(!idData.failed && idData.files?.length === 1 ? { failed: idData.files[0].failed || idData.files[0].parseObject?.failed } : {})
+          }
+        }
+      }
+      return { fromId: false, original: item }
+    })
+
+    const unresolvedItems = processedItems.filter(item => !item.fromId).map(item => item.original.title)
+    if (unresolvedItems.length > 0) resolvedData = await AnimeResolver.resolveFileAnime(unresolvedItems)
+    const results = processedItems.map(item => {
+      if (item.fromId) {
+        const { original, fromId, ...rest } = item
+        return { ...item.original, ...rest }
+      } else {
+        const resolved = resolvedData[resolveIndex]
+        resolveIndex++
+        return { ...item.original, ...resolved }
+      }
+    })
+
     return results.map(async (result, i) => {
       const res = {
         ...result,
@@ -194,6 +239,9 @@ class RSSMediaManager {
         hash: undefined,
         onclick: undefined
       }
+      res.date = items[i].date
+      res.link = items[i].link
+      res.hash = items[i].hash
       if (res.media?.id) {
         try {
           res.episodeData = (await getEpisodeMetadataForMedia(res.media))?.[res.episode]
@@ -201,16 +249,6 @@ class RSSMediaManager {
           debug(`Warn: failed fetching episode metadata for ${res.media.title?.userPreferred} episode ${res.episode}: ${e.stack}`)
         }
       }
-      res.date = items[i].date
-      res.link = items[i].link
-      try {
-        const match = res.link.match(/\b([a-fA-F0-9]{40}|[A-Z2-7]{32})\b/)
-        if (match) {
-          let hash = match[1].toLowerCase()
-          if (hash.length === 32) res.hash = base32toHex(hash)
-          else res.hash = hash
-        }
-      } catch (e) {}
       res.onclick = () => add(res.link, { media: res.media, episode: res.episode }, res.hash || res.link)
       return res
     })

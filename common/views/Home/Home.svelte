@@ -3,6 +3,7 @@
   import { anilistClient, currentSeason, currentYear } from '@/modules/anilist.js'
   import { animeSchedule } from '@/modules/anime/animeschedule.js'
   import { settings } from '@/modules/settings.js'
+  import { RSSManager } from '@/modules/rss.js'
   import Helper from '@/modules/helper.js'
   import { writable } from 'svelte/store'
 
@@ -43,6 +44,17 @@
       }
     })
   }
+
+  // force update RSS feed when the user adjusts a series in the FileManager.
+  window.addEventListener('fileEdit', () => {
+    for (const section of manager.sections) {
+      // remove preview value, to force UI to re-request data, which updates it once in viewport
+      if (section.isRSS) {
+        const url = settings.value.rssFeedsNew.find(([feedTitle]) => feedTitle === section.title)?.[1]
+        if (url) section.preview.value = RSSManager.getMediaForRSS(1, 12, url, false, true)
+      }
+    }
+  })
 
   const isPreviousRSS = (i) => {
     let index = i - 1
