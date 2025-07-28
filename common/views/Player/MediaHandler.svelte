@@ -379,16 +379,22 @@
     debug(`Resolved ${videoFiles?.length} video files`, fileListToDebug(videoFiles))
 
     const resolvedFiles = videoFiles?.length
-    videoFiles = videoFiles.filter(file => {
-        if (typeof file.media?.parseObject?.anime_type === 'string') return !TYPE_EXCLUSIONS.includes(file.media?.parseObject?.anime_type.toUpperCase())
-        else if (Array.isArray(file.media?.parseObject?.anime_type)) { // rare edge cases where the type is an array, only batches like a full season + movie + special.
-            for (let animeType of file.media?.parseObject?.anime_type) {
-                if (TYPE_EXCLUSIONS.includes(animeType.toUpperCase())) return false
-            }
-        }
-        return true
-    })
-    debug(`Removed matching type exclusions for ${resolvedFiles - videoFiles?.length} video files`, fileListToDebug(videoFiles))
+    if (resolvedFiles > 1) { // Only filter if we are resolving a batch.
+      videoFiles = videoFiles.filter(file => {
+          if (typeof file.media?.parseObject?.anime_type === 'string') return !TYPE_EXCLUSIONS.includes(file.media?.parseObject?.anime_type.toUpperCase())
+          else if (Array.isArray(file.media?.parseObject?.anime_type)) { // rare edge cases where the type is an array, only batches like a full season + movie + special.
+              for (let animeType of file.media?.parseObject?.anime_type) {
+                  if (TYPE_EXCLUSIONS.includes(animeType.toUpperCase())) return false
+              }
+          } else if (!file.media?.parseObject?.anime_type) { // Could be hit-miss but its really down to release groups using proper file names
+              for (const exclusion of TYPE_EXCLUSIONS) {
+                  if ((file.name.length - exclusion.length) <= 10 && file.name.toUpperCase().includes(exclusion)) return false
+              }
+          }
+          return true
+      })
+      debug(`Removed matching type exclusions for ${resolvedFiles - videoFiles?.length} video files`, fileListToDebug(videoFiles))
+    }
 
     const newPlaying = await findPreferredPlaybackMedia(videoFiles, targetFile)
     debug(`Found preferred playback media: ${newPlaying?.media?.id}:${newPlaying?.media?.title?.userPreferred} ${newPlaying?.episode}`)
