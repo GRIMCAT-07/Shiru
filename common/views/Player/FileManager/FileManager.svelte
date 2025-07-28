@@ -45,7 +45,10 @@
 
 <SoftModal class='m-0 w-800 mw-0 mh-full d-flex flex-column rounded bg-very-dark pt-0 py-30 pl-20 pr-30 mx-20 scrollbar-none' bind:showModal={$managerView} {close} id='fileDetailModal'>
     <div class='d-flex mt-30 mb-10'>
-        <h3 class='mb-0 font-weight-bold text-white title mr-5 font-size-24 ml-20'>File Manager</h3>
+        <div class='mb-0 mr-5 ml-20'>
+            <h3 class='mb-0 font-weight-bold text-white title font-size-24'>File Manager</h3>
+            <h5 class='mb-0 mt-0 text-muted info font-size-12'>Something didn't resolve correctly? Please open an issue on GitHub so we can investigate and fix it!</h5>
+        </div>
         <button type='button' class='btn btn-square bg-dark ml-auto d-flex align-items-center justify-content-center rounded-2 flex-shrink-0' use:click={close}><X size='1.7rem' strokeWidth='3'/></button>
     </div>
     <FileCard {playFile} bind:file={playing} bind:files playing={true} bind:fileEdit class='mr-30'/>

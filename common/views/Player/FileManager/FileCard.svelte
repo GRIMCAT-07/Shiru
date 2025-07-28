@@ -93,9 +93,9 @@
         <div class='d-flex align-items-center justify-content-center mt-5'>
             {#if playing}<span class='badge text-dark bg-announcement' title='The current file'>Now Playing</span>{/if}
             {#if file?.locked || file.media?.locked}<span class='badge text-dark bg-success-subtle' class:ml-5={playing} title='This series was manually set by the user'>Locked</span>{/if}
-            {#if file?.failed || file.media?.failed}<span class='badge text-dark bg-danger-dim ml-auto h-26 mr-5 d-flex align-items-center justify-content-center' title='Failed to resolve the playing media based on the file name.'>Failed</span>{/if}
+            {#if file?.failed || file.media?.failed}<span class='badge text-dark bg-danger-dim ml-auto h-27 mr-5 d-flex align-items-center justify-content-center' title='Failed to resolve the playing media based on the file name.'>Failed</span>{/if}
             {#if file.media?.media?.format === 'MOVIE'}
-                <span class='badge text-dark bg-episode h-26 mr-5 d-flex align-items-center justify-content-center' class:ml-auto={!(file?.failed || file.media?.failed)}>Movie</span>
+                <span class='badge text-dark bg-episode h-27 mr-5 d-flex align-items-center justify-content-center' class:ml-auto={!(file?.failed || file.media?.failed)}>Movie</span>
             {:else if episode}
                 <span class='badge text-dark bg-episode mr-5 d-flex align-items-center justify-content-center' class:ml-auto={!(file?.failed || file.media?.failed)} title={`Episode {episode}`}>
                     <span class='mr-5'>Episode</span>
@@ -137,8 +137,8 @@
 </div>
 
 <style>
-    .h-26 {
-        height: 2.6rem !important
+    .h-27 {
+        height: 2.7rem !important
     }
     .h-33 {
         height: 3.3rem !important;
@@ -191,8 +191,8 @@
         object-position: center;
     }
     .file-icon-container {
-        width: 6rem !important;
-        height: 8rem !important;
+        width: 8rem !important;
+        height: 10rem !important;
     }
     .rounded-5 {
         border-radius: .5rem;

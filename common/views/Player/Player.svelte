@@ -372,13 +372,12 @@
     const fillerEpisode = await episodesList.getSingleEpisode(media?.media?.idMal, media?.episode)
     filler = fillerEpisode?.filler && 'Filler'
     recap = fillerEpisode?.recap && 'Recap'
+    resolvePrompt = current?.failed || current?.media?.failed || current?.parseObject?.failed
     skipPrompt = filler || recap
-    if ((((page === 'player') && (!overlay || overlay.length === 0)) || pip) && !filler && !recap) {
+    if ((((page === 'player') && (!overlay || overlay.length === 0)) || pip) && !resolvePrompt && !skipPrompt) {
       video.play()
       setTimeout(() => subs?.renderer?.resize(), 200) // stupid fix because video metadata doesn't update for multiple frames
-    } else {
-      video.pause()
-    }
+    } else video.pause()
   }
   function playPause () {
     paused = !paused
@@ -622,7 +621,12 @@
       desc: 'Toggle Now Playing'
     },
     KeyH: {
-      fn: () => !viewAnime && ($managerView = !$managerView),
+      fn: () => {
+        if (!viewAnime) {
+          resolvePrompt = false
+          $managerView = !$managerView
+        }
+      },
       icon: SquarePen,
       id: 'squarepen',
       type: 'icon',
@@ -928,8 +932,17 @@
   let skipPrompt = false
   function skipResponse (skip) {
     skipPrompt = false
-    if (skip) {
-      playNext()
+    if (skip) playNext()
+    else {
+      video.play()
+      setTimeout(() => subs?.renderer?.resize(), 200) // stupid fix because video metadata doesn't update for multiple frames
+    }
+  }
+  let resolvePrompt = false
+  function resolveResponse (resolve) {
+    resolvePrompt = false
+    if (resolve) {
+      $managerView = true
     } else {
       video.play()
       setTimeout(() => subs?.renderer?.resize(), 200) // stupid fix because video metadata doesn't update for multiple frames
@@ -1483,7 +1496,21 @@
       <span class='stats font-scale-24'>{fastPrettyBytes(torrent.down)}/s</span>
       <span class='icon'><ArrowUp class='block-scale-30' /></span>
       <span class='stats font-scale-24'>{fastPrettyBytes(torrent.up)}/s</span>
-      {#if skipPrompt}
+      {#if resolvePrompt}
+        <div class='position-absolute text-monospace rounded skipPrompt d-flex flex-column align-items-center text-center bg-dark-light p-20 z-50 mt-60' class:w-500={SUPPORTS.isAndroid}>
+          <div class='skipFont'>
+            Failed to <b>identify</b> the media from the file name, would you like to fix it?
+          </div>
+          <div class='d-flex justify-content-center mt-20'>
+            <button class='btn btn-primary mx-2 mr-20 d-flex align-items-center justify-content-center' type='button' use:click={() => resolveResponse(true)}>
+              <span>Yes</span>
+            </button>
+            <button class='btn btn-secondary mx-2 ml-20 d-flex align-items-center justify-content-center' type='button' use:click={() => resolveResponse(false)}>
+              <span>No</span>
+            </button>
+          </div>
+        </div>
+      {:else if skipPrompt}
         <div class='position-absolute text-monospace rounded skipPrompt d-flex flex-column align-items-center text-center bg-dark-light p-20 z-50 mt-60' class:w-500={SUPPORTS.isAndroid}>
           <div class='skipFont'>
             This episode has been marked as a <b>{filler || recap}</b>, do you want to skip?
@@ -1620,7 +1647,7 @@
           <div role='button' aria-label='Add External Subtitles' class='pointer d-flex align-items-center justify-content-center font-size-16 bd-highlight py-5' title='Add External Subtitles' use:click={(target) => { fileInput.click(); toggleDropdown(target) }}>
             <FilePlus2 size='2rem' strokeWidth={2.5} /> <div class='ml-10'>Add Subtitles</div>
           </div>
-          <div role='button' aria-label='Modify Existing Files or Change to a New File' class='pointer d-flex align-items-center justify-content-center font-size-16 bd-highlight py-5' title='Modify Existing Files or Change to a New File' use:click={(target) => { $managerView = !$managerView; toggleDropdown(target) }}>
+          <div role='button' aria-label='Modify Existing Files or Change to a New File' class='pointer d-flex align-items-center justify-content-center font-size-16 bd-highlight py-5' title='Modify Existing Files or Change to a New File' use:click={(target) => { resolvePrompt = false; $managerView = !$managerView; toggleDropdown(target) }}>
             <SquarePen size='2rem' strokeWidth={2.5} /> <div class='ml-10'>File Manager</div>
           </div>
         </div>
