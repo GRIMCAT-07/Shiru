@@ -36,7 +36,8 @@ export default class TorrentClient extends WebTorrent {
     this.settings = settings
     this.player = settings.playerPath
     this.ipc = ipc
-    this.torrentCache = path.join(this.settings.torrentPathNew || TMP || '', 'shiru-cache')
+    this.torrentPath = this.settings.torrentPathNew || TMP || ''
+    this.torrentCache = path.join(this.torrentPath, 'shiru-cache')
     fs.mkdir(this.torrentCache, { recursive: true })
     ipc.send('torrentRequest')
     this._ready = new Promise(resolve => {
@@ -127,7 +128,7 @@ export default class TorrentClient extends WebTorrent {
     debug('Loading last torrent: ' + torrent)
     if (!torrent?.length) return
     const cache = await getTorrent(this.torrentCache, torrent)
-    const skipVerify = cache?.torrentFile && (await isVerified(path.join(cache.path, cache.name), cache.structureHash))
+    const skipVerify = cache?.torrentFile && (await isVerified(path.join(this.torrentPath, cache.name), cache.structureHash))
     if (torrent) this.addTorrent(cache?.torrentFile ? fromBase64(cache?.torrentFile) : torrent, torrent, skipVerify)
   }
 
@@ -312,23 +313,11 @@ export default class TorrentClient extends WebTorrent {
           infoHash: torrent.infoHash,
           name: torrent.name,
           size: torrent.length,
-          path: torrent.path,
           structureHash: torrent.progress === 1 ? structureHash : '',
           cachedAt: Date.now(),
           updatedAt: Date.now(),
           torrentFile: toBase64(torrent.torrentFile)
         })
-      })
-    } else {
-      getTorrent(this.torrentCache, null, torrent.infoHash).then(cachedTorrent => {
-        if (cachedTorrent?.length) {
-          const updatedTorrent = structuredClone(cachedTorrent)
-          updatedTorrent.path = torrent.path
-          if (!deepEqual(updatedTorrent, cachedTorrent)) {
-            updatedTorrent.updatedAt = Date.now()
-            saveTorrent(this.torrentCache, torrent.infoHash, updatedTorrent)
-          }
-        }
       })
     }
 
@@ -365,7 +354,7 @@ export default class TorrentClient extends WebTorrent {
             missingCount++
             this.stageTorrent(fromBase64(torrent.torrentFile), null, false, 'rescan')
           }
-          else if ((await isVerified(path.join(torrent.path, torrent.name), torrent.structureHash))) {
+          else if ((await isVerified(path.join(this.torrentPath, torrent.name), torrent.structureHash))) {
             missingCount++
             const stats = { infoHash: torrent.infoHash, name: torrent.name, size: torrent.size, incomplete: !torrent.structureHash?.length }
             this.completed = Array.from(new Set([...this.completed || [], stats]))
@@ -439,7 +428,7 @@ export default class TorrentClient extends WebTorrent {
         const hash = data.data && data.data.hash
         const torrentID = data.data && data.data.id
         const cache = await getTorrent(this.torrentCache, torrentID, hash)
-        const skipVerify = cache?.torrentFile && (await isVerified(path.join(cache.path, cache.name), cache.structureHash))
+        const skipVerify = cache?.torrentFile && (await isVerified(path.join(this.torrentPath, cache.name), cache.structureHash))
         if (!skipVerify && data.data.magnet) this.dispatch('info', 'A Magnet Link has been detected and is being processed. Files will be loaded shortly...')
         this.addTorrent(cache?.torrentFile ? fromBase64(cache?.torrentFile) : torrentID, torrentID, skipVerify, hash)
         break
@@ -447,7 +436,7 @@ export default class TorrentClient extends WebTorrent {
         const hash = data.data && data.data.hash
         const torrentID = data.data && data.data.id
         const cache = await getTorrent(this.torrentCache, torrentID, hash)
-        this.stageTorrent(cache?.torrentFile ? fromBase64(cache?.torrentFile) : torrentID, torrentID, cache?.torrentFile && (await isVerified(path.join(cache.path, cache.name), cache.structureHash)))
+        this.stageTorrent(cache?.torrentFile ? fromBase64(cache?.torrentFile) : torrentID, torrentID, cache?.torrentFile && (await isVerified(path.join(this.torrentPath, cache.name), cache.structureHash)))
         break
       } case 'complete': {
         const cache = await getTorrent(this.torrentCache, null, data.data)
@@ -469,7 +458,7 @@ export default class TorrentClient extends WebTorrent {
       } case 'stage_all': {
         for (const hash of data.data) {
           const cache = await getTorrent(this.torrentCache, null, hash)
-          if (cache?.torrentFile) this.stageTorrent(fromBase64(cache?.torrentFile), hash, await isVerified(path.join(cache.path, cache.name), cache.structureHash), 'stage')
+          if (cache?.torrentFile) this.stageTorrent(fromBase64(cache?.torrentFile), hash, await isVerified(path.join(this.torrentPath, cache.name), cache.structureHash), 'stage')
           else this.dispatch('untrack', hash)
         }
         debug('Loaded staging torrents:', data.data)
@@ -477,7 +466,7 @@ export default class TorrentClient extends WebTorrent {
       } case 'seed_all': {
         for (const hash of data.data) {
           const cache = await getTorrent(this.torrentCache, null, hash)
-          if (cache?.torrentFile && await existsTorrent(cache.path, cache.name)) this.stageTorrent(fromBase64(cache?.torrentFile), hash, await isVerified(path.join(cache.path, cache.name), cache.structureHash), 'seed')
+          if (cache?.torrentFile && await existsTorrent(this.torrentPath, cache.name)) this.stageTorrent(fromBase64(cache?.torrentFile), hash, await isVerified(path.join(this.torrentPath, cache.name), cache.structureHash), 'seed')
           else this.dispatch('untrack', hash)
         }
         debug('Loaded seeding torrents:', data.data)
@@ -485,7 +474,7 @@ export default class TorrentClient extends WebTorrent {
       } case 'complete_all': {
         const stats = await Promise.all(data.data.map(async (hash) => {
           const cache = await getTorrent(this.torrentCache, null, hash)
-          if (!cache?.torrentFile || (cache.structureHash?.length && !(await isVerified(path.join(cache.path, cache.name), cache.structureHash)))) {
+          if (!cache?.torrentFile || (cache.structureHash?.length && !(await isVerified(path.join(this.torrentPath, cache.name), cache.structureHash)))) {
             this.dispatch('untrack', hash)
             return null
           }
@@ -515,7 +504,7 @@ export default class TorrentClient extends WebTorrent {
           await this.remove(untrack, { destroyStore: true })
         } else if (this.completed?.find(torrent => torrent.infoHash === data.data)) {
           await removeTorrent(this.torrentCache, data.data)
-          await removeTorrent(this.settings.torrentPathNew || TMP || '', this.completed.find(torrent => torrent.infoHash === data.data).name)
+          await removeTorrent(this.torrentPath, this.completed.find(torrent => torrent.infoHash === data.data).name)
         }
         this.dispatch('untrack', data.data)
         break
