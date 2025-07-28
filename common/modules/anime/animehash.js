@@ -47,8 +47,8 @@ export function setHash(hash, data) {
                 existing.mediaId = data.mediaId
                 existing.updatedAt = Date.now()
             }
-            if (data.locked && existing.failed) delete existing.failed
-            if (data.locked && existingFile.failed) delete existingFile.failed
+            if ((data.locked || !data.failed) && existing.failed) delete existing.failed
+            if ((data.locked || !data.failed) && existingFile.failed) delete existingFile.failed
         } else {
             Object.assign(existing, {
                 hash,
@@ -61,7 +61,7 @@ export function setHash(hash, data) {
                 ...(data.failed && !data.locked ? { failed: data.failed } : {}),
                 updatedAt: Date.now()
             })
-            if (data.locked && existing.failed) delete existing.failed
+            if ((data.locked || !data.failed) && existing.failed) delete existing.failed
         }
     } else {
         const files = []

@@ -196,7 +196,7 @@ export async function stage(torrentID, search, hash) {
     if (hash && search) setHash(hash, { mediaId: search.media?.id, episode: search.episode, client: true })
     client.send('stage', { id: torrentID, hash: (hash === torrentID && torrentID) || false })
     if (hash) {
-      let existingTorrent = seedingTorrents.value.find(torrent => torrent.infoHash === hash) || completedTorrents.value.find(torrent => torrent.infoHash === hash)
+      const existingTorrent = seedingTorrents.value.find(torrent => torrent.infoHash === hash) || completedTorrents.value.find(torrent => torrent.infoHash === hash)
       if (existingTorrent) {
         stagingTorrents.update(list => [...list, existingTorrent])
         seedingTorrents.update(torrents => torrents.filter(torrent => torrent.infoHash !== hash))
