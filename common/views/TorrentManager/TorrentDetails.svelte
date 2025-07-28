@@ -4,7 +4,7 @@
 </script>
 <script>
   import { fastPrettyBytes } from '@/modules/util.js'
-  import { add, stage, untrack, complete } from '@/modules/torrent/torrent.js'
+  import { add, stage, unload, untrack, complete } from '@/modules/torrent/torrent.js'
   import { click } from '@/modules/click.js'
   import { eta, createListener } from '@/modules/util.js'
   import { mediaCache } from '@/modules/cache.js'
@@ -114,6 +114,9 @@
       </div>
       <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details p-5' class:d-flex={!completed && !current && data.progress === 1} aria-label='Stop Seeding' title='Stop Seeding' use:click={() => { complete(infoHash); toggleDropdown() }}>
         Stop Seeding
+      </div>
+      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details p-5' class:d-flex={!completed && !current && data.progress < 1} aria-label='Stop Download' title='Stop Download' use:click={() => { unload(infoHash, true); toggleDropdown() }}>
+        Stop Download
       </div>
       <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details p-5' class:d-flex={completed && !data.incomplete} aria-label='Start Seeding' title='Start Seeding' use:click={() => { stage(infoHash, null, infoHash); toggleDropdown() }}>
         Start Seeding
