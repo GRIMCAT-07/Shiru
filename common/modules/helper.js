@@ -152,7 +152,13 @@ export default class Helper {
       debug(`Checking entry for ${cachedMedia?.title?.userPreferred}`)
 
       debug(`Media viability: ${cachedMedia?.status}, Is from failed resolve: ${failed}`)
-      if (failed) return
+      if (failed) {
+        toast.error('Failed to Update Progress', {
+          description: 'The currently playing media failed to be identified, episode progress will not be updated... You can fix this in the File Manager.',
+          duration: 9000
+        })
+        return
+      }
       if (cachedMedia.status === 'CANCELLED') return // allow for not yet released as sometimes anilist is slow at updating or a few episodes were potentially leaked.
 
       // check if media can even be watched, ex: it was resolved incorrectly

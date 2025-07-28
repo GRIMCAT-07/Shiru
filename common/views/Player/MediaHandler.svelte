@@ -114,7 +114,8 @@
                       media: nowPlaying.value.media,
                       episode: nowPlaying.value.episode,
                       episodeRange: current.media.episodeRange,
-                      parseObject: nowPlaying.value.parseObject
+                      parseObject: nowPlaying.value.parseObject,
+                      failed: nowPlaying.failed,
                   })
                   setTimeout(() =>{
                       setHash(current.infoHash, {
@@ -124,7 +125,7 @@
                           episode: current.media.episode || current.media.parseObject.episode_number,
                           season: current.media.season || current.media.parseObject.anime_season,
                           parseObject: current.media.parseObject,
-                          failed: current.media.failed
+                          failed: current.media.failed || current.media.parseObject.failed
                       })
                   })
               }
@@ -181,6 +182,7 @@
           ...(newPlaying ? newPlaying : {}),
           media,
           parseObject,
+          failed: opts.failed || parseObject?.failed,
           ...details
       })
       if (!newPlaying) setMediaSession(nowPlaying.value)
@@ -306,7 +308,7 @@
     let resolved = []
     for (const file of videoFiles) {
         const cached = getId(file.infoHash, { fileHash: file.fileHash })
-        if (cached && cached.mediaId && mediaCache.value[cached.mediaId]) file.media = { ...cached, media: mediaCache.value[cached.mediaId] }
+        if (cached && cached.mediaId && mediaCache.value[cached.mediaId]) file.media = { ...cached, failed: cached.failed || cached.parseObject?.failed, media: mediaCache.value[cached.mediaId] }
     }
 
     let uncachedMedia = videoFiles.filter(file => !file.media)
