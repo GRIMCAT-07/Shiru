@@ -508,11 +508,14 @@ export default class TorrentClient extends WebTorrent {
           }
         }
         break
-      } case 'untrack': {
+      } case 'untrack': { // User really doesn't want this, delete from cache and remove the file. (Probably should implement a prompt asking if the user wants to keep the associated files).
         const untrack = this.torrents.find(torrent => torrent.infoHash === data.data)
         if (untrack) {
-          if (!this.settings.torrentPersist) await removeTorrent(this.torrentCache, untrack.infoHash)
-          await this.remove(untrack, { destroyStore: !this.settings.torrentPersist || (untrack.progress < 1) })
+          await removeTorrent(this.torrentCache, untrack.infoHash)
+          await this.remove(untrack, { destroyStore: true })
+        } else if (this.completed?.find(torrent => torrent.infoHash === data.data)) {
+          await removeTorrent(this.torrentCache, data.data)
+          await removeTorrent(this.settings.torrentPathNew || TMP || '', this.completed.find(torrent => torrent.infoHash === data.data).name)
         }
         this.dispatch('untrack', data.data)
         break

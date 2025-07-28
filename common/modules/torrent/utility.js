@@ -98,9 +98,9 @@ export async function getTorrents(torrentCache) {
   }
 }
 
-export async function removeTorrent(torrentCache, infoHash) {
+export async function removeTorrent(folder, fileName) {
   try {
-    await fs.unlink(path.join(torrentCache, infoHash))
+    await fs.unlink(path.join(folder, fileName))
   } catch (error) {
     if (error.code === 'ENOENT') return
     throw error
