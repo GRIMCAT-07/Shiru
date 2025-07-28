@@ -98,6 +98,17 @@ export async function getTorrents(torrentCache) {
   }
 }
 
+export async function existsTorrent(folder, fileName) {
+  try {
+    await fs.access(path.join(folder, fileName))
+    return true
+  } catch (error) {
+    if (error.code === 'ENOENT') return false
+    throw error
+  }
+}
+
+
 export async function removeTorrent(folder, fileName) {
   try {
     await fs.unlink(path.join(folder, fileName))
