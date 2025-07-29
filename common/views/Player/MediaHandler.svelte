@@ -67,7 +67,7 @@
                 description: e?.message || String(e),
                 duration: 30000
             })
-          debug(e)
+          console.error(e)
         }) // targetFile is defined to force the targetFile media to load instead of the lowestUnwatched, lowestPlanning, or lowestCurrent
     } else {
       playFile(targetFile)
@@ -480,7 +480,7 @@
               description: e?.message || String(e),
               duration: 30000
           })
-          debug(e)
+          console.error(e)
       })
     return noop
   })

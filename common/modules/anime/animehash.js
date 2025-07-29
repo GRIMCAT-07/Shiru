@@ -41,6 +41,7 @@ export function setHash(hash, data) {
                     ...(data.failed && !data.locked ? { failed: data.failed } : {}),
                     updatedAt: Date.now()
                 })
+                if ((data.locked || !data.failed) && existingFile.failed) delete existingFile.failed
             } else pushFiles(files, data)
             existing.files = files
             if (!data.failed || data.locked) {
@@ -48,7 +49,6 @@ export function setHash(hash, data) {
                 existing.updatedAt = Date.now()
             }
             if ((data.locked || !data.failed) && existing.failed) delete existing.failed
-            if ((data.locked || !data.failed) && existingFile.failed) delete existingFile.failed
         } else {
             Object.assign(existing, {
                 hash,
