@@ -113,7 +113,7 @@
           {:else if data.episode}
             {#if episodeRange}
               Episodes {episodeRange.first} ~ {episodeRange.last}
-            {:else}
+            {:else if !Array.isArray(data.episode)}
               Episode {Number(data.episode) || data.episode?.replace(/\D/g, '')}
             {/if}
           {:else if media?.format === 'MOVIE' }
