@@ -62,7 +62,7 @@
             data-option='search'
             placeholder='Filter by file name or series title' bind:value={searchText} on:input={() => { container.scrollTo({top: 0}); }} />
     </div>
-    <div class='shadow-overlay' class:d-none={files?.length < 2}/>
+    <div><div class='shadow-overlay' class:d-none={files?.length < 2}/></div>
     <div bind:this={container} class='overflow-y-auto mt-10'>
         {#each filterResults(files?.filter((file) => file !== playing), searchText) as file, index}
             <FileCard {playFile} bind:file bind:files playing={file === playing} noselect={true} bind:fileEdit class='{index === 0 ? `mt-10` : ``}'/>
@@ -77,7 +77,7 @@
         left: 0;
         right: 0;
         height: 1.2rem;
-        margin-top: 22.3rem;
+        margin-top: -1rem;
         box-shadow: 0 1.2rem 1.2rem #131416;
         pointer-events: none;
         z-index: 1;
