@@ -8,6 +8,7 @@ import AnimeResolver from '@/modules/anime/animeresolver.js'
 import { anilistClient } from '@/modules/anilist.js'
 import { hasNextPage } from '@/modules/sections.js'
 import { malDubs } from '@/modules/anime/animedubs.js'
+import { episodesList } from '@/modules/episodes.js'
 import { getId } from '@/modules/anime/animehash.js'
 import IPC from '@/modules/ipc.js'
 import Debug from 'debug'
@@ -148,7 +149,7 @@ class RSSMediaManager {
       const notify = (!media?.mediaListEntry && settings.value.rssNotify?.includes('NOTONLIST')) || (media?.mediaListEntry && settings.value.rssNotify?.includes(media?.mediaListEntry?.status))
       const dubbed = malDubs.isDubMedia(parseObject)
       if (notify && (!settings.value.preferDubs || dubbed || !malDubs.isDubMedia(media))) {
-        const highestEp = Number(episode) || ((Array.isArray(episode) && episode) || (episode?.match(/\b\d+\s*[-~]\s*\d+\b/)?.[0]?.split(/[-~]/)?.map(n => +n.trim())) || (typeof episode === 'string' && episode.match(/^\d+\s*~\s*\d+$/) && episode.split(/~\s*/).map(n => +n.trim())))?.[1]
+        const highestEp = Number(episode) || episodesList.handleArray(episode, episode)
         const progress = media?.mediaListEntry?.progress
         const behind = progress < ((Number(episode) || Number(highestEp)) - 1)
         const details = {
@@ -208,6 +209,7 @@ class RSSMediaManager {
             ...idData,
             media: mediaCache.value[idData.mediaId],
             ...(!idData.parseObject && idData.files?.length ? { parseObject: idData.files[0].parseObject } : {}),
+            ...(!idData.episodeRange && idData.files?.length === 1 ? { episodeRange: idData.files[0].episodeRange || idData.files[0].parseObject?.episodeRange } : {}),
             ...(!idData.episode && idData.files?.length === 1 ? { episode: idData.files[0].episode || idData.files[0].parseObject?.episode_number } : {}),
             ...(!idData.season && idData.files?.length === 1 ? { season: idData.files[0].season || idData.files[0].parseObject?.anime_season } : {}),
             ...(!idData.failed && idData.files?.length === 1 ? { failed: idData.files[0].failed || idData.files[0].parseObject?.failed } : {})
@@ -242,14 +244,19 @@ class RSSMediaManager {
       res.date = items[i].date
       res.link = items[i].link
       res.hash = items[i].hash
+      if (!res.episodeRange && !res.parseObject?.episodeRange) {
+        const rangeEpisodes = episodesList.handleArray(res.episode, res.parseObject?.file_name)
+        if (rangeEpisodes) res.episodeRange = rangeEpisodes
+      }
       if (res.media?.id) {
+        const requestEpisode = res.episodeRange?.first || res.parseObject?.episodeRange?.first || res.episode
         try {
-          res.episodeData = (await getEpisodeMetadataForMedia(res.media))?.[res.episode]
+          res.episodeData = (await getEpisodeMetadataForMedia(res.media))?.[requestEpisode]
         } catch (e) {
-          debug(`Warn: failed fetching episode metadata for ${res.media.title?.userPreferred} episode ${res.episode}: ${e.stack}`)
+          debug(`Warn: failed fetching episode metadata for ${res.media.title?.userPreferred} episode ${requestEpisode}: ${e.stack}`)
         }
       }
-      res.onclick = () => add(res.link, { media: res.media, episode: res.episode }, res.hash || res.link)
+      res.onclick = () => add(res.link, { media: res.media, episode: res.episode, episodeRange: res.episodeRange }, res.hash || res.link)
       return res
     })
   }

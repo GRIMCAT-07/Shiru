@@ -19,12 +19,14 @@
   export let prompt
   /** @type {import('@/modules/al.d.ts').Media | null} */
   const media = data.media && mediaCache.value[data.media.id]
-  const episodeThumbnail = ((!media?.mediaListEntry?.status || !(['CURRENT', 'REPEATING', 'PAUSED', 'PLANNING'].includes(media.mediaListEntry.status) && media.mediaListEntry.progress < data.episode)) && data.episodeData?.image) || media?.bannerImage || media?.coverImage.extraLarge || ' '
+  const episodeRange = episodesList.handleArray(data?.episode, data?.parseObject?.file_name)
+  const lastEpisode = (data?.episodeRange || data?.parseObject?.episodeRange)?.last || episodeRange?.last || data?.episode
+  const episodeThumbnail = ((!media?.mediaListEntry?.status || !(['CURRENT', 'REPEATING', 'PAUSED', 'PLANNING'].includes(media.mediaListEntry.status) && media.mediaListEntry.progress < lastEpisode)) && data.episodeData?.image) || media?.bannerImage || media?.coverImage.extraLarge || ' '
   let hide = true
 
   const progress = liveAnimeEpisodeProgress(media?.id, data?.episode)
   const watched = media?.mediaListEntry?.status === 'COMPLETED'
-  const completed = !watched && media?.mediaListEntry?.progress >= data?.episode
+  const completed = !watched && media?.mediaListEntry?.progress >= lastEpisode
 
   const view = getContext('view')
   function viewMedia () {
@@ -55,13 +57,19 @@
     {/if}
     {#if data.hash || resolvedHash}
       <div class='pr-5 pt-5 z-10 position-absolute top-0 right-0 text-danger icon-shadow'>
-        <TorrentButton class='btn btn-square shadow-none bg-transparent highlight h-40 w-40' hash={[...(data.hash && data.hash !== resolvedHash ? [data.hash] : []), ...(resolvedHash ? [resolvedHash] : [])]} torrentID={data.link} search={{ media, episode: data.episode }} size={'3rem'} strokeWidth={'2.3'}/>
+        <TorrentButton class='btn btn-square shadow-none bg-transparent highlight h-40 w-40' hash={[...(data.hash && data.hash !== resolvedHash ? [data.hash] : []), ...(resolvedHash ? [resolvedHash] : [])]} torrentID={data.link} search={{ media, episode: data.episode, episodeRange: episodeRange }} size={'3rem'} strokeWidth={'2.3'}/>
       </div>
     {/if}
     <Play class='mb-5 ml-5 pl-10 pb-10 z-10' fill='currentColor' size='3rem' />
     <div class='pr-20 pb-10 font-size-16 font-weight-medium z-10'>
       {#if media?.duration}
-        {media.duration}m
+        {#if (data.episodeRange || data.parseObject?.episodeRange)}
+          {media.duration * (((data.episodeRange || data.parseObject?.episodeRange).last - (data.episodeRange || data.parseObject?.episodeRange).first) + 1)}m
+        {:else if episodeRange && Number(episodeRange.first) && Number(episodeRange.last)}
+          {media.duration * ((episodeRange.first - episodeRange.last) + 1)}m
+        {:else}
+          {media.duration}m
+        {/if}
       {/if}
     </div>
     {#if completed}
@@ -87,9 +95,10 @@
           <div class='text-muted font-size-12 title overflow-hidden' title={data.episodeData?.title?.en || data.episodeData?.title?.['x-jat'] || data.episodeData?.title?.ja || data.episodeData?.title?.jp}>
             {data.episodeData?.title?.en || data.episodeData?.title?.['x-jat'] || data.episodeData?.title?.ja || data.episodeData?.title?.jp}
           </div>
-        {:else if (data.episode && !Array.isArray(data.episode))}
+        {:else if data.episode}
+          {@const episode = (data.episodeRange || data.parseObject?.episodeRange)?.first || episodeRange?.first || data.episode}
           {#await episodesList.getKitsuEpisodes(media?.id) then mappings}
-            {@const kitsuMappings = data.episode && mappings?.data?.find(ep => ep?.attributes?.number === Number(data.episode) || data.episode)?.attributes}
+            {@const kitsuMappings = episode && mappings?.data?.find(ep => ep?.attributes?.number === Number(episode) || episode)?.attributes}
             {@const ep_title =  kitsuMappings?.titles?.en_us || kitsuMappings?.titles?.en_jp || ''}
             <div class='text-muted font-size-12 title overflow-hidden' title={ep_title}>
               {ep_title}
@@ -99,10 +108,11 @@
       </div>
       <div class='col-auto d-flex flex-column align-items-end text-right mt-3' title={data.parseObject?.file_name} >
         <div class='text-white font-weight-bold font-weight-very-bold'>
-          {#if data.episode}
-            {@const episodes = (Array.isArray(data.episode) && data.episode) || (data.parseObject?.file_name?.match(/\b\d+\s*[-~]\s*\d+\b/)?.[0]?.split(/[-~]/)?.map(n => +n.trim())) || (typeof data.episode === 'string' && data.episode.match(/^\d+\s*~\s*\d+$/) && data.episode.split(/~\s*/).map(n => +n.trim()))}
-            {#if episodes?.length > 0 && ((Number(episodes[0]) || episodes[0]) < (Number(episodes[1]) || episodes[1]))}
-              Episodes {Number(episodes[0]) || episodes[0]} ~ {Number(episodes[1]) || episodes[1]}
+          {#if data.episodeRange || data.parseObject?.episodeRange}
+            {`Episodes ${(data.episodeRange || data.parseObject.episodeRange).first} ~ ${(data.episodeRange || data.parseObject.episodeRange).last}`}
+          {:else if data.episode}
+            {#if episodeRange}
+              Episodes {episodeRange.first} ~ {episodeRange.last}
             {:else}
               Episode {Number(data.episode) || data.episode?.replace(/\D/g, '')}
             {/if}
@@ -143,9 +153,10 @@
     <div class='w-full text-muted description overflow-hidden pt-15'>
       {#if data.episodeData?.summary || data.episodeData?.overview}
         {(data.episodeData?.summary || data.episodeData?.overview).replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()}
-      {:else if (data.episode && !Array.isArray(data.episode))}
+      {:else if data.episode}
+        {@const episode = (data.episodeRange || data.parseObject?.episodeRange)?.first || episodeRange?.first || data.episode}
         {#await episodesList.getKitsuEpisodes(media?.id) then mappings}
-          {@const kitsuMappings = data.episode && mappings?.data?.find(ep => ep?.attributes?.number === Number(data.episode) || data.episode)?.attributes}
+          {@const kitsuMappings = data.episode && mappings?.data?.find(ep => ep?.attributes?.number === Number(episode) || episode)?.attributes}
           {(kitsuMappings?.synopsis || kitsuMappings?.description || media?.description || '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()}
         {/await}
       {:else}

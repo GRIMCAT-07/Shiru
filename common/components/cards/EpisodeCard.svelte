@@ -31,7 +31,9 @@
     media = mediaCache.value[data.media.id]
   }
   mediaCache.subscribe((value) => { if (value && (JSON.stringify(value[media?.id]) !== JSON.stringify(media))) media = value[media?.id] })
-  $: episodeThumbnail = ((!media?.mediaListEntry?.status || !(['CURRENT', 'REPEATING', 'PAUSED', 'PLANNING'].includes(media.mediaListEntry.status) && media.mediaListEntry.progress < data.episode)) && data.episodeData?.image) || media?.bannerImage || media?.coverImage.extraLarge || ' '
+  $: episodeRange = episodesList.handleArray(data?.episode, data?.parseObject?.file_name)
+  $: lastEpisode = (data?.episodeRange || data?.parseObject?.episodeRange)?.last || episodeRange?.last || data?.episode
+  $: episodeThumbnail = ((!media?.mediaListEntry?.status || !(['CURRENT', 'REPEATING', 'PAUSED', 'PLANNING'].includes(media.mediaListEntry.status) && media.mediaListEntry.progress < lastEpisode)) && data.episodeData?.image) || media?.bannerImage || media?.coverImage.extraLarge || ' '
   let hide = true
 
   const view = getContext('view')
@@ -51,7 +53,7 @@
 
   $: progress = liveAnimeEpisodeProgress(media?.id, data?.episode)
   $: watched = media?.mediaListEntry?.status === 'COMPLETED'
-  $: completed = !watched && media?.mediaListEntry?.progress >= data?.episode
+  $: completed = !watched && media?.mediaListEntry?.progress >= lastEpisode
 
   let sinceInterval
   $: timeSince = data?.date && since(data?.date)
@@ -83,7 +85,13 @@
       <Play class='mb-5 ml-5 pl-10 pb-10 z-10' fill='currentColor' size='3rem' />
       <div class='pr-15 pb-10 font-size-16 font-weight-medium z-10'>
         {#if media?.duration}
-          {media.duration}m
+          {#if (data.episodeRange || data.parseObject?.episodeRange)}
+            {media.duration * (((data.episodeRange || data.parseObject?.episodeRange).last - (data.episodeRange || data.parseObject?.episodeRange).first) + 1)}m
+          {:else if episodeRange && Number(episodeRange.first) && Number(episodeRange.last)}
+            {media.duration * ((episodeRange.first - episodeRange.last) + 1)}m
+          {:else}
+            {media.duration}m
+          {/if}
         {/if}
       </div>
       {#if completed}
@@ -107,9 +115,10 @@
         <div class='text-muted font-size-12 title overflow-hidden'>
           {#if data.episodeData?.title?.en || data.episodeData?.title?.['x-jat'] || data.episodeData?.title?.ja || data.episodeData?.title?.jp}
             {data.episodeData?.title?.en || data.episodeData?.title?.['x-jat'] || data.episodeData?.title?.ja || data.episodeData?.title?.jp}
-          {:else if (data.episode && !Array.isArray(data.episode))}
+          {:else if data.episode}
+            {@const episode = (data.episodeRange || data.parseObject?.episodeRange)?.first || episodeRange?.first || data.episode}
             {#await episodesList.getKitsuEpisodes(media?.id) then mappings}
-              {@const kitsuMappings = data.episode && mappings?.data?.find(ep => ep?.attributes?.number === Number(data.episode) || data.episode)?.attributes}
+              {@const kitsuMappings = episode && mappings?.data?.find(ep => ep?.attributes?.number === Number(episode) || episode)?.attributes}
               {kitsuMappings?.titles?.en_us || kitsuMappings?.titles?.en_jp || ''}
             {/await}
           {/if}
@@ -117,10 +126,11 @@
       </div>
       <div class='col-auto d-flex flex-column align-items-end text-right mt-3'>
         <div class='text-white font-weight-bold'>
-          {#if data.episode}
-            {@const episodes = (Array.isArray(data.episode) && data.episode) || (data.parseObject?.file_name?.match(/\b\d+\s*[-~]\s*\d+\b/)?.[0]?.split(/[-~]/)?.map(n => +n.trim())) || (typeof data.episode === 'string' && data.episode.match(/^\d+\s*~\s*\d+$/) && data.episode.split(/~\s*/).map(n => +n.trim()))}
-            {#if episodes?.length > 0 && ((Number(episodes[0]) || episodes[0]) < (Number(episodes[1]) || episodes[1]))}
-              Episodes {Number(episodes[0]) || episodes[0]} ~ {Number(episodes[1]) || episodes[1]}
+          {#if data.episodeRange || data.parseObject?.episodeRange}
+            {`Episodes ${(data.episodeRange || data.parseObject.episodeRange).first} ~ ${(data.episodeRange || data.parseObject.episodeRange).last}`}
+          {:else if data.episode}
+            {#if episodeRange}
+              Episodes {episodeRange.first} ~ {episodeRange.last}
             {:else}
               Episode {Number(data.episode) || data.episode?.replace(/\D/g, '')}
             {/if}
