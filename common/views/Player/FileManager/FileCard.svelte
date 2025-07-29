@@ -83,7 +83,7 @@
     </div>
     <div class='file-content z-10 w-full'>
         <div class='d-flex'>
-            <p class='file-title overflow-hidden font-weight-bold my-0 mt-5 mr-10 font-scale-18 {SUPPORTS.isAndroid ? `line-clamp-1` : `line-clamp-2`}'>{#if file.media?.media}{anilistClient.title(file.media.media)}{:else}{file.media?.parseObject?.anime_title || file.name || 'UNK'}{/if}</p>
+            <p class='file-title overflow-hidden font-weight-bold my-0 mt-10 mr-10 font-scale-18 {SUPPORTS.isAndroid ? `line-clamp-1` : `line-clamp-2`}'>{#if file.media?.media}{anilistClient.title(file.media.media)}{:else}{file.media?.parseObject?.anime_title || file.name || 'UNK'}{/if}</p>
             <button type='button' class='ml-auto btn d-flex align-items-center justify-content-center' title='Opens a prompt to select the correct series' use:click={() => { prompt = false; fileEdit(file, files, file.media?.media ? anilistClient.title(file.media.media) : file.media?.parseObject?.anime_title || '') } }>
                 <SquarePen class='mr-5' size='1.7rem' strokeWidth='3'/>
                 <span>Change Series</span>
@@ -191,8 +191,8 @@
         object-position: center;
     }
     .file-icon-container {
-        width: 8rem !important;
-        height: 10rem !important;
+        width: 6rem !important;
+        height: 8rem !important;
     }
     .rounded-5 {
         border-radius: .5rem;
