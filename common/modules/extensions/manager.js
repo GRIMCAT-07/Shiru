@@ -124,7 +124,7 @@ class ExtensionManager {
     }
 
     pending = new Map()
-    async addSource(url) {
+    async addSource(url, trusted = false) {
         if (this.pending.has(url)) return this.pending.get(url)
         const promise = (async () => {
             const config = await getManifest(url)
@@ -145,7 +145,7 @@ class ExtensionManager {
                 const extensionsNew = { ...value.extensionsNew }
                 config.forEach(extension => {
                     const key = (extension.locale || (extension.update + '/')) + extension.id
-                    sourcesNew[key] = extension
+                    sourcesNew[key] = { ...extension, trusted }
                     if (!extensionsNew[key]) extensionsNew[key] = { enabled: true }
                 })
                 return { ...value, sourcesNew, extensionsNew }
@@ -177,10 +177,11 @@ class ExtensionManager {
                         delete this.inactiveWorkers[key]
                     }
                     const worker = createWorker(extensions[key])
+                    if (SUPPORTS.isAndroid && extensions[key].trusted) worker.onmessage = async (event) => this.portMessage(event, worker) // hacky Android workaround for Access-Control-Allow-Origin error.
                     try {
                         /** @type {comlink.Remote<import('@/modules/extensions/worker.js').Worker>} */
                         const remoteWorker = await wrap(worker)
-                        const initialize = await remoteWorker.initialize(key, modules[key])
+                        const initialize = await remoteWorker.initialize(key, modules[key], { bypassCORS: SUPPORTS.isAndroid && extensions[key].trusted})
                         if (!initialize.validated) {
                             this.inactiveWorkers[key] = remoteWorker
                             throw new Error(initialize.error)
@@ -217,13 +218,36 @@ class ExtensionManager {
                     } catch (error) {
                         debug('Failed to terminate active workers during update, how did we even get here...?')
                     }
-                    if (latestValid[id]) sourcesNew[id] = latestValid[id]
+                    if (latestValid[id]) sourcesNew[id] = { ...latestValid[id], trusted: sourcesNew[id].trusted }
                 })
                 return { ...value, sourcesNew }
             })
             return true
         }
         return false
+    }
+
+    /**
+     * Handles proxied fetch requests from a worker and returns the result.
+     *
+     * Used on Android to bypass CORS by performing the fetch in the main thread.
+     *
+     * @param {MessageEvent} event - Message from the worker containing fetch details.
+     * @param {Worker} worker - The worker to send the result back to.
+     */
+    async portMessage(event, worker) {
+        const { type, requestId, url, options } = event.data || {}
+        if (type === 'FETCH') {
+            try {
+                const res = await fetch(url, options)
+                const text = await res.text()
+                let json
+                try { json = JSON.parse(text) } catch { json = {} }
+                worker.postMessage({ type: 'RESULT', requestId, ok: res.ok, status: res.status, text, json })
+            } catch (err) {
+                worker.postMessage({ type: 'RESULT', requestId, error: err.message || 'unknown error' })
+            }
+        }
     }
 
     validateConfig(config) {

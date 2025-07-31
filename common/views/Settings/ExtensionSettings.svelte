@@ -32,10 +32,10 @@
   $: failedSource = null
 
   let sourceUrl = ''
-  async function addSource(source) {
+  async function addSource(source, trusted = false) {
     if (!source?.length && !sourceUrl?.length) return
     pendingSource = true
-    failedSource = await extensionManager.addSource(source || sourceUrl)
+    failedSource = await extensionManager.addSource(source || sourceUrl, trusted)
     sourceUrl = ''
     pendingSource = false
   }
@@ -219,7 +219,7 @@
                 <Github size='2.2rem' />
               </div>
               <span class='font-weight-semi-bold ml-10 font-scale-18'>{source.startsWith('gh:') ? source.slice(3) : source}</span>
-              <button type='button' use:click={() => { addSource(source); if (missingSources.length <= 1) viewSources = !viewSources }} class='btn btn-square d-flex align-items-center justify-content-center ml-10 bg-transparent shadow-none border-0 ml-auto' title='Add Source' style='color: var(--success-color-subtle)' disabled={pendingSource} class:cursor-wait={pendingSource}><SquarePlus size='1.8rem' /></button>
+              <button type='button' use:click={() => { addSource(source, true); if (missingSources.length <= 1) viewSources = !viewSources }} class='btn btn-square d-flex align-items-center justify-content-center ml-10 bg-transparent shadow-none border-0 ml-auto' title='Add Source' style='color: var(--success-color-subtle)' disabled={pendingSource} class:cursor-wait={pendingSource}><SquarePlus size='1.8rem' /></button>
             </div>
           {/each}
         </div>

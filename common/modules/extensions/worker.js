@@ -11,9 +11,12 @@ class Worker {
 
   /**
    * Load and validate the source from code
+   * @param {string} id
+   * @param {object} module
+   * @param {{bypassCORS: boolean}} opts
    * @returns {Promise<{ validated: true } | { validated: false, error: string }>}
    */
-  async initialize(id, module) {
+  async initialize(id, module, opts) {
     try {
       let source
       if (id.startsWith('file:')) source = (await import(/* webpackIgnore: true */ module)).default
@@ -24,7 +27,17 @@ class Worker {
       }
       this.id = id
       this.source = source
-      if (!(await source.validate())) return { validated: false, error: 'Source #validate() failed' }
+
+      let validated = false
+      if (opts.bypassCORS) {
+        try { validated = await this.source.validate() } catch {}
+        if (!validated) {
+          globalThis.fetch = createBridge() // hacky Android workaround for Access-Control-Allow-Origin error.
+          validated = await this.source.validate()
+        }
+      } else validated = await this.source.validate()
+      if (!validated) return { validated: false, error: 'Source #validate() failed' }
+
       return { validated: true }
     } catch (err) {
       return { validated: false, error: err.message }
@@ -94,6 +107,39 @@ class Worker {
 
   terminate() {
     self.close()
+  }
+}
+
+/**
+ * Creates a simple fetch bridge for workers that forwards requests to the main thread.
+ * Used for bypassing CORS by letting the main thread perform the request.
+ *
+ * @returns {function(string, RequestInit=): Promise<{ok: boolean, status: number, text: function(): Promise<string>, json: function(): Promise<any>}>}
+ * A function that works like fetch but runs through the main thread.
+ */
+function createBridge() {
+  const pending = new Map()
+  let counter = 0
+
+  /**
+   * Handles fetch results sent back from the main thread.
+   * Matches them to pending requests and resolves/rejects accordingly.
+   */
+  self.addEventListener('message', (event) => {
+    const { type, requestId, ok, status, text, json, error } = event.data || {}
+    if (type !== 'RESULT') return
+    if (!pending.has(requestId)) return
+    const { resolve, reject } = pending.get(requestId)
+    pending.delete(requestId)
+    if (error) reject(new Error(error))
+    else  resolve({ ok, status, text: async () => text, json: async () => json })
+  })
+
+  /** Sends a fetch request to the main thread and waits for the result. */
+  return async function bridge(url, options = {}) {
+    const requestId = `fetch-${++counter}`
+    postMessage({ type: 'FETCH', requestId, url, options })
+    return new Promise((resolve, reject) => pending.set(requestId, { resolve, reject }))
   }
 }
 
