@@ -279,15 +279,16 @@
   .notification-title {
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    line-height: 1.2;
     text-overflow: ellipsis;
     word-wrap: break-word;
   }
 
   .line-clamp-1 {
+    line-height: 1.8;
     -webkit-line-clamp: 1;
   }
   .line-clamp-2 {
+    line-height: 1.2;
     -webkit-line-clamp: 2;
   }
 

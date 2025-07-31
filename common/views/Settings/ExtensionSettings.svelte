@@ -211,14 +211,15 @@
         </button>
       </div>
       {#if viewSources}
+        {@const missingSources = sources.filter(source => !Object.values(settings.sourcesNew)?.some(existing => existing.update === source))}
         <div class='wm-1200 mt-5'>
-          {#each sources.filter(source => !Object.values(settings.sourcesNew)?.some(existing => existing.update === source)) as source, i}
+          {#each missingSources as source, i}
             <div class='d-flex align-items-center bg-dark-light border rounded-2 p-10 mb-10'>
               <div class='d-flex align-items-center ml-10'>
                 <Github size='2.2rem' />
               </div>
               <span class='font-weight-semi-bold ml-10 font-scale-18'>{source.startsWith('gh:') ? source.slice(3) : source}</span>
-              <button type='button' use:click={() => addSource(source)} class='btn btn-square d-flex align-items-center justify-content-center ml-10 bg-transparent shadow-none border-0 ml-auto' title='Add Source' style='color: var(--success-color-subtle)' disabled={pendingSource} class:cursor-wait={pendingSource}><SquarePlus size='1.8rem' /></button>
+              <button type='button' use:click={() => { addSource(source); if (missingSources.length <= 1) viewSources = !viewSources }} class='btn btn-square d-flex align-items-center justify-content-center ml-10 bg-transparent shadow-none border-0 ml-auto' title='Add Source' style='color: var(--success-color-subtle)' disabled={pendingSource} class:cursor-wait={pendingSource}><SquarePlus size='1.8rem' /></button>
             </div>
           {/each}
         </div>
