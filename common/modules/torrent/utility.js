@@ -108,10 +108,11 @@ export async function existsTorrent(folder, fileName) {
   }
 }
 
-
 export async function removeTorrent(folder, fileName) {
   try {
-    await fs.unlink(path.join(folder, fileName))
+    const torrentPath = path.join(folder, fileName)
+    if ((await fs.lstat(torrentPath)).isDirectory()) await fs.rm(torrentPath, { recursive: true, force: true })
+    else await fs.unlink(torrentPath)
   } catch (error) {
     if (error.code === 'ENOENT') return
     throw error
