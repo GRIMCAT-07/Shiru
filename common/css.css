@@ -542,13 +542,6 @@ img[src=''], img[src=' '] {
   padding-right: 5rem;
 }
 
-@media (min-width: 769px) {
-  .px-md-50 {
-    padding-left: 5rem !important;
-    padding-right: 5rem !important;
-  }
-}
-
 .mr--8 {
   margin-right: -.8rem !important;
 }

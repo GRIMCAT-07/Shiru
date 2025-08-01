@@ -81,3 +81,16 @@
     display: block !important;
   }
 }
+
+@media (min-width: 769px) {
+  .px-md-50 {
+    padding-left: 5rem !important;
+    padding-right: 5rem !important;
+  }
+}
+
+@media (min-width: 993px) {
+  .ml-lg-280 {
+    margin-left: 28rem !important;
+  }
+}

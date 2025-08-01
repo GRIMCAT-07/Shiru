@@ -2,7 +2,7 @@
     import { readable } from 'simple-store-svelte'
 
     const mql = matchMedia('(min-width: 769px)')
-    const isMobile = readable(!mql.matches, set => {
+    export const isMobile = readable(!mql.matches, set => {
         const check = ({ matches }) => set(!matches)
         mql.addEventListener('change', check)
         return () => mql.removeEventListener('change', check)
@@ -102,7 +102,7 @@
         node.addEventListener('touchend', resizeEnd)
     }
 </script>
-<div class='miniplayer-container {active && (position.match(/top/i) || draggingPos.match(/top/i)) ? page === `settings` ? `mt-100 mt-lg-20` : `mt-20` : ``} {position} {$$restProps.class}' class:active class:animate={!dragging} class:custompos={!position}
+<div class='miniplayer-container {active && (position.match(/top/i) || draggingPos.match(/top/i)) ? page === `settings` ? `mt-100 mt-lg-20` : `mt-20` : ``} {active && (position.match(/left/i) || draggingPos.match(/left/i)) && page === `settings` ? `ml-lg-280` : ``} {position} {$$restProps.class}' class:active class:animate={!dragging} class:custompos={!position}
      style:--left={left} style:--top={top} style:--height={height} style:--width={width} style:--padding={padding} style:--maxwidth={maxwidth} style:--minwidth={minwidth}
      role='group' bind:this={container} on:dragstart|preventDefault|self>
     <div class='resize resize-{position ? (position.match(/top/i) ? `b` : `t`) + (position.match(/left/i) ? `r` : `l`) : `tl`}' class:d-none={!resize || !active} use:resizable />

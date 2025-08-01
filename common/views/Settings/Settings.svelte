@@ -29,6 +29,9 @@
 </script>
 
 <script>
+  import { isMobile } from '@/views/Player/Miniplayer.svelte'
+  import { nowPlaying as media } from '@/views/Player/MediaHandler.svelte'
+  import { cache, caches } from '@/modules/cache.js'
   import { Tabs, TabLabel, Tab } from '@/components/Tabination.js'
   import { onDestroy } from 'svelte'
   import PlayerSettings from '@/views/Settings/PlayerSettings.svelte'
@@ -95,13 +98,22 @@
     $settings.playerPath = data
   }
 
-  onDestroy(() => {
-    IPC.off('path', pathListener)
-    IPC.off('player', playerListener)
-  })
+  let miniplayerTop
+  let miniplayerPadding = getPadding()
+  const intervalId = setInterval(() => (miniplayerPadding = getPadding()), 500)
+  function getPadding() {
+    miniplayerTop = cache.getEntry(caches.GENERAL, 'posMiniplayer')?.includes('top')
+    return (miniplayerTop ? `padding-top: ` : `padding-bottom: `) + (!$isMobile ? `${(parseFloat(cache.getEntry(caches.GENERAL, 'widthMiniplayer')) || 0) * 11 / 16}px !important` : `18rem !important`)
+  }
+
   $: IPC.emit('discord-rpc', $settings.enableRPC)
   IPC.on('path', pathListener)
   IPC.on('player', playerListener)
+  onDestroy(() => {
+    clearInterval(intervalId)
+    IPC.off('path', pathListener)
+    IPC.off('player', playerListener)
+  })
 </script>
 
 <Tabs>
@@ -127,45 +139,52 @@
       <div class='shadow-overlay d-lg-none' />
       <Tab>
         <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
+          <div style={miniplayerPadding} class:d-none={!miniplayerTop || playPage || $media?.display}/>
           <PlayerSettings bind:settings={$settings} bind:playPage />
-          <div class='pb-10 d-md-none'/>
+          <div class='pb-10' class:d-md-none={miniplayerTop} class:d-none={playPage || $media?.display} style={!miniplayerTop ? miniplayerPadding : ''}/>
         </div>
       </Tab>
       <Tab>
         <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
+          <div style={miniplayerPadding} class:d-none={!miniplayerTop || playPage || $media?.display}/>
           <ClientSettings bind:settings={$settings} />
-          <div class='pb-10 d-md-none'/>
+          <div class='pb-10' class:d-md-none={miniplayerTop} class:d-none={playPage || $media?.display} style={!miniplayerTop ? miniplayerPadding : ''}/>
         </div>
       </Tab>
       <Tab>
         <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
+          <div style={miniplayerPadding} class:d-none={!miniplayerTop || playPage || $media?.display}/>
           <ViewTorrent />
-          <div class='pb-10 d-md-none'/>
+          <div class='pb-10' class:d-md-none={miniplayerTop} class:d-none={playPage || $media?.display} style={!miniplayerTop ? miniplayerPadding : ''}/>
         </div>
       </Tab>
       <Tab>
         <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
+          <div style={miniplayerPadding} class:d-none={!miniplayerTop || playPage || $media?.display}/>
           <InterfaceSettings bind:settings={$settings} />
-          <div class='pb-10 d-md-none'/>
+          <div class='pb-10' class:d-md-none={miniplayerTop} class:d-none={playPage || $media?.display} style={!miniplayerTop ? miniplayerPadding : ''}/>
         </div>
       </Tab>
       <Tab>
         <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
+          <div style={miniplayerPadding} class:d-none={!miniplayerTop || playPage || $media?.display}/>
           <ExtensionSettings bind:settings={$settings} />
-          <div class='pb-10 d-md-none'/>
+          <div class='pb-10' class:d-md-none={miniplayerTop} class:d-none={playPage || $media?.display} style={!miniplayerTop ? miniplayerPadding : ''}/>
         </div>
       </Tab>
       <Tab/> <!-- Skip Profile Tab -->
       <Tab>
         <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
+          <div style={miniplayerPadding} class:d-none={!miniplayerTop || playPage || $media?.display}/>
           <AppSettings {version} bind:settings={$settings} />
-          <div class='pb-10 d-md-none'/>
+          <div class='pb-10' class:d-md-none={miniplayerTop} class:d-none={playPage || $media?.display} style={!miniplayerTop ? miniplayerPadding : ''}/>
         </div>
       </Tab>
       <Tab>
         <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
+          <div style={miniplayerPadding} class:d-none={!miniplayerTop || playPage || $media?.display}/>
           <Changelog {version} />
-          <div class='pb-10 d-md-none'/>
+          <div class='pb-10' class:d-md-none={miniplayerTop} class:d-none={playPage || $media?.display} style={!miniplayerTop ? miniplayerPadding : ''}/>
         </div>
       </Tab>
       <Tab/> <!-- Skip Donate Tab -->
