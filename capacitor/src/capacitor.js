@@ -5,6 +5,7 @@ import { App } from '@capacitor/app'
 import { Browser } from '@capacitor/browser'
 import { IntentUri } from 'capacitor-intent-uri'
 import { LocalNotifications } from '@capacitor/local-notifications'
+import { Keyboard } from '@capacitor/keyboard'
 import { Device } from '@capacitor/device'
 import { FolderPicker } from 'capacitor-folder-picker'
 //import { Filesystem } from '@capacitor/filesystem'
@@ -15,6 +16,60 @@ IPC.on('open', url => Browser.open({ url }))
 IPC.on('intent', async url => {
   await IntentUri.openUri({ url })
   IPC.emit('intent-end')
+})
+
+let lastScrollY = null
+let scrollContainer = null
+Keyboard.addListener('keyboardWillShow', info => {
+  const active = document.activeElement
+  if (!active || !['INPUT', 'TEXTAREA', 'SELECT'].includes(active.tagName)) return
+  scrollContainer = active.closest('.scroll-container')
+  if (!scrollContainer) return
+  const scrollableContainer = getClosestScrollable(scrollContainer)
+  if (!scrollableContainer) return
+  const rect = active.getBoundingClientRect()
+  const visibleArea = window.innerHeight - info.keyboardHeight
+  if (rect.bottom > visibleArea) {
+    if (hideTimeout) {
+      clearTimeout(hideTimeout)
+      hideTimeout = null
+    }
+    lastScrollY = scrollableContainer.scrollTop
+    scrollContainer.style.paddingBottom = (info.keyboardHeight) + 'px'
+    const visibleHeight = visibleArea
+    if (rect.bottom > visibleHeight) scrollableContainer.scrollBy({ top: (rect.bottom - visibleHeight), behavior: 'smooth' })
+  }
+})
+
+let hideTimeout = null
+Keyboard.addListener('keyboardWillHide', () => {
+  if (lastScrollY !== null && scrollContainer) {
+    const scrollableContainer = getClosestScrollable(scrollContainer)
+    if (scrollableContainer) scrollableContainer.scrollTo({ top: lastScrollY, behavior: 'smooth' })
+    const _scrollContainer = scrollContainer
+    hideTimeout = setTimeout(() => _scrollContainer.style.paddingBottom = '', 250)
+    lastScrollY = null
+    scrollContainer = null
+  }
+})
+
+function getClosestScrollable(element) {
+  let current = element
+  while (current) {
+    const style = window.getComputedStyle(current)
+    if (/(auto|scroll)/.test(style.overflowY)) return current
+    current = current.parentElement
+  }
+  return null
+}
+
+// Clever hack to recenter and focus active elements (causes keyboardWillShow to trigger)
+window.addEventListener('orientationchange', () => {
+  const active = document.activeElement
+  if (active && ['INPUT', 'TEXTAREA', 'SELECT'].includes(active.tagName)) {
+    active.blur()
+    requestAnimationFrame(() => setTimeout(() => active.focus(), 800))
+  }
 })
 
 App.addListener('appUrlOpen', ({ url }) => {
@@ -177,7 +232,7 @@ const protocolRx = /shiru:\/\/([a-z0-9]+)\/(.*)/i
 
 function handleProtocol (text) {
   // Handle magnet links
-  if (text.startsWith("magnet:")) {
+  if (text.startsWith('magnet:')) {
     add(text)
     return
   }
@@ -196,7 +251,7 @@ function handleProtocol (text) {
 //   const binaryString = atob(fileContents.data)
 //   const uint8Array = new Uint8Array(binaryString.length)
 //   for (let i = 0; i < binaryString.length; i++) uint8Array[i] = binaryString.charCodeAt(i)
-//   if (uint8Array.length === 0) throw new Error("Empty file or conversion failed")
+//   if (uint8Array.length === 0) throw new Error('Empty file or conversion failed')
 //   add(uint8Array)
 // }
 

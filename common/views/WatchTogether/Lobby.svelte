@@ -55,12 +55,12 @@
 </script>
 
 <div class='d-flex flex-column root w-full position-relative px-md-20 h-full overflow-hidden'>
-  <div class='d-flex flex-md-row flex-column-reverse w-full h-full pt-20'>
+  <div class='d-flex flex-md-row flex-column-reverse w-full h-full pt-20 scroll-container pb-transition'>
     <div class='d-flex flex-column justify-content-end overflow-hidden flex-grow-1 px-20 pb-md-20'>
       {#each groupMessages($messages) as { user, messages, type, date }}
         <Message time={date} {user} {messages} {type} />
       {/each}
-      <div class='d-flex mt-20'>
+      <div class='d-flex my-10'>
         <button class='btn text-danger d-flex mt-auto align-items-center justify-content-center mr-10 border-0 px-0 shadow-none' title='Leave' type='button' use:click={cleanup} style='height: 3.75rem !important; width: 3.75rem !important;'>
           <DoorOpen size='1.8rem' strokeWidth={2.5} />
         </button>
@@ -91,17 +91,11 @@
       {/if}
     </div>
   </div>
-  <!-- {#each Object.values($peers) as peer}
-    <div class='d-flex align-items-center pb-10'>
-      {#if peer.user?.avatar?.medium}
-        <img src={peer.user?.avatar?.medium} alt='avatar' class='w-50 h-50 img-fluid rounded' />
-      {:else}
-        <span class='w-50 h-50 anon d-flex align-items-center'><User size='4rem' /></span>
-      {/if}
-      <h4 class='my-0 pl-20 mr-auto line-height-normal'>{peer.user?.name || 'Anonymous'}</h4>
-      {#if peer.user?.name}
-        <span class='pointer text-primary d-flex align-items-center' use:click={() => IPC.emit('open', 'https://anilist.co/user/' + peer.user?.name)}><ExternalLink size='2.5rem' /></span>
-      {/if}
-    </div>
-  {/each} -->
 </div>
+
+<style>
+  .pb-transition {
+    transition: padding .4s ease;
+    will-change: padding;
+  }
+</style>

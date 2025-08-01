@@ -13,7 +13,7 @@
   const incoming = type === 'incoming'
 </script>
 
-<div class='message d-flex flex-row mt-15' class:flex-row={incoming} class:flex-row-reverse={!incoming}>
+<div class='message d-flex flex-row mt-15 overflow-y-auto' class:flex-row={incoming} class:flex-row-reverse={!incoming}>
   <img src={user?.avatar?.medium || user?.picture || 'https://s4.anilist.co/file/anilistcdn/user/avatar/large/default.png'} alt='ProfilePicture' class='w-50 h-50 rounded-circle p-5 mt-auto' />
   <div class='d-flex flex-column px-10 align-items-start flex-auto' class:align-items-start={incoming} class:align-items-end={!incoming}>
     <div class='pb-5 d-flex flex-row align-items-center px-5'>
@@ -25,7 +25,7 @@
       </div>
     </div>
     {#each messages as message}
-      <div class='bg-dark-light py-10 px-15 rounded-top rounded-right mb-5 select-all pre-wrap' style='max-width: calc(100% - 10rem)'
+      <div class='bg-dark-light py-10 px-15 rounded-top rounded-right mb-5 select-all pre-wrap text-break-word' style='max-width: calc(100% - 10rem)'
         class:bg-dark-light={incoming} class:bg-accent={!incoming}
         class:rounded-right={incoming} class:rounded-left={!incoming}>
         {message}

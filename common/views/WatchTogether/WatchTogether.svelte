@@ -2,6 +2,7 @@
   import { EventEmitter } from 'events'
   import { writable } from 'simple-store-svelte'
   import { client } from '@/modules/torrent/torrent.js'
+  import { SUPPORTS } from '@/modules/support.js'
   import { toast } from 'svelte-sonner'
   import { page } from '@/App.svelte'
   import IPC from '@/modules/ipc.js'
@@ -65,33 +66,27 @@
   $: checkInvite(joinText)
 </script>
 
-<div class='d-flex h-full align-items-center flex-column px-md-20'>
+<div class='d-flex h-full align-items-center flex-column px-md-20 overflow-y-auto scroll-container'>
   {#if !$state}
-    <div class='font-size-50 font-weight-bold pt-20 mt-20 root'>Watch Together</div>
-    <div class='d-flex flex-row flex-wrap justify-content-center align-items-center h-full mb-20 pb-20 root position-relative w-full'>
-      <div class='card d-flex flex-column align-items-center w-300 h-300 justify-content-end'>
-        <Plus size='6rem' class='d-flex align-items-center h-full' />
-        <button class='btn btn-primary btn-lg mt-10 btn-block d-flex align-items-center justify-content-center' type='button' use:click={() => joinLobby()}><span>Create Lobby</span></button>
-      </div>
+    <div class='font-scale-50 font-weight-bold pt-20 mt-20 root'>Watch Together</div>
+    <div class='d-flex flex-row flex-wrap justify-content-center align-items-center h-auto mb-20 pb-20 root position-relative w-full' class:h-full={!SUPPORTS.isAndroid}>
       <div class='card d-flex flex-column align-items-center w-300 h-300 justify-content-end'>
         <UserPlus size='6rem' class='d-flex align-items-center h-full' />
-        <h2 class='font-weight-bold'>Join Lobby</h2>
+        <h2 class='font-weight-bold font-scale-34'>Join Lobby</h2>
         <input
           type='text'
-          class='form-control h-50'
+          class='form-control h-80 text-center'
           autocomplete='off'
           bind:value={joinText}
           data-option='search'
-          placeholder='Lobby code or link' />
+          placeholder='Lobby Code or Link' />
+      </div>
+      <div class='card d-flex flex-column align-items-center w-300 h-300 justify-content-end'>
+        <Plus size='6rem' class='d-flex align-items-center h-full' />
+        <button class='btn btn-primary btn-lg mt-10 btn-block d-flex align-items-center justify-content-center' type='button' use:click={() => joinLobby()}><span>Create Lobby</span></button>
       </div>
     </div>
   {:else}
     <Lobby {state} {invite} />
   {/if}
 </div>
-
-<style>
-  .font-size-50 {
-    font-size: 5rem;
-  }
-</style>

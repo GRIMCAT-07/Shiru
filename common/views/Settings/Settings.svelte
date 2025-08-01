@@ -140,52 +140,66 @@
       <div class='shadow-overlay d-lg-none' />
       <Tab>
         <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
-          <div class:d-none={!miniplayerTop || !miniplayerActive} style={miniplayerPadding} />
-          <PlayerSettings bind:settings={$settings} bind:playPage />
-          <div class='pb-10' class:d-md-none={miniplayerTop} style={!miniplayerTop && miniplayerActive ? miniplayerPadding : ''}/>
+          <div class='scroll-container'>
+            <div class='page pb-100' style={miniplayerActive ? miniplayerPadding : ''}>
+              <PlayerSettings bind:settings={$settings} bind:playPage />
+            </div>
+          </div>
         </div>
       </Tab>
       <Tab>
         <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
-          <div class:d-none={!miniplayerTop || !miniplayerActive} style={miniplayerPadding} />
-          <ClientSettings bind:settings={$settings} />
-          <div class='pb-10' class:d-md-none={miniplayerTop} style={!miniplayerTop && miniplayerActive ? miniplayerPadding : ''}/>
+          <div class='scroll-container'>
+            <div class='page pb-100' style={miniplayerActive ? miniplayerPadding : ''}>
+              <ClientSettings bind:settings={$settings} />
+            </div>
+          </div>
         </div>
       </Tab>
       <Tab>
         <div class='root h-full w-full overflow-y-md-auto p-20 pt-15'>
-          <div class:d-none={!miniplayerTop || !miniplayerActive} style={miniplayerPadding} />
-          <ViewTorrent />
-          <div class='pb-10' class:d-md-none={miniplayerTop} style={!miniplayerTop && miniplayerActive ? miniplayerPadding : ''}/>
+          <div class='scroll-container'>
+            <div class='page pb-100' style={miniplayerActive ? miniplayerPadding : ''}>
+              <ViewTorrent />
+            </div>
+          </div>
         </div>
       </Tab>
       <Tab>
         <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
-          <div class:d-none={!miniplayerTop || !miniplayerActive} style={miniplayerPadding} />
-          <InterfaceSettings bind:settings={$settings} />
-          <div class='pb-10' class:d-md-none={miniplayerTop} style={!miniplayerTop && miniplayerActive ? miniplayerPadding : ''}/>
+          <div class='scroll-container'>
+            <div class='page pb-100' style={miniplayerActive ? miniplayerPadding : ''}>
+              <InterfaceSettings bind:settings={$settings} />
+            </div>
+          </div>
         </div>
       </Tab>
       <Tab>
         <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
-          <div class:d-none={!miniplayerTop || !miniplayerActive} style={miniplayerPadding} />
-          <ExtensionSettings bind:settings={$settings} />
-          <div class='pb-10' class:d-md-none={miniplayerTop} style={!miniplayerTop && miniplayerActive ? miniplayerPadding : ''}/>
+          <div class='scroll-container'>
+            <div class='page pb-100' style={miniplayerActive ? miniplayerPadding : ''}>
+              <ExtensionSettings bind:settings={$settings} />
+            </div>
+          </div>
         </div>
       </Tab>
       <Tab/> <!-- Skip Profile Tab -->
       <Tab>
         <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
-          <div class:d-none={!miniplayerTop || !miniplayerActive} style={miniplayerPadding} />
-          <AppSettings {version} bind:settings={$settings} />
-          <div class='pb-10' class:d-md-none={miniplayerTop} style={!miniplayerTop && miniplayerActive ? miniplayerPadding : ''}/>
+          <div class='scroll-container'>
+            <div class='page pb-100' style={miniplayerActive ? miniplayerPadding : ''}>
+              <AppSettings {version} bind:settings={$settings} />
+            </div>
+          </div>
         </div>
       </Tab>
       <Tab>
         <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
-          <div class:d-none={!miniplayerTop || !miniplayerActive} style={miniplayerPadding} />
-          <Changelog {version} />
-          <div class='pb-10' class:d-md-none={miniplayerTop} style={!miniplayerTop && miniplayerActive ? miniplayerPadding : ''}/>
+          <div class='scroll-container'>
+            <div class='page pb-100' style={miniplayerActive ? miniplayerPadding : ''}>
+              <Changelog {version} />
+            </div>
+          </div>
         </div>
       </Tab>
       <Tab/> <!-- Skip Donate Tab -->
@@ -196,6 +210,9 @@
 <style>
   .mt-75 {
     margin-top: 7.5rem;
+  }
+  .pb-100 {
+    padding-bottom: 10rem;
   }
   .settings :global(select.form-control:invalid) {
     color: var(--dm-input-placeholder-text-color);

@@ -98,6 +98,9 @@ importers:
       '@capacitor/ios':
         specifier: ^6.1.2
         version: 6.1.2(@capacitor/core@6.1.2)
+      '@capacitor/keyboard':
+        specifier: ^6.0.2
+        version: 6.0.3(@capacitor/core@6.1.2)
       '@capacitor/local-notifications':
         specifier: ^6.1.0
         version: 6.1.0(patch_hash=mt4j7xcmtdpmadktuymv52y4qa)(@capacitor/core@6.1.2)
@@ -155,7 +158,7 @@ importers:
         version: 4.1.5
       webpack-cli:
         specifier: ^5.1.4
-        version: 5.1.4(webpack-dev-server@5.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.4)(webpack-cli@5.1.4)(webpack@5.91.0))(webpack@5.93.0)
+        version: 5.1.4(webpack-dev-server@5.0.2)(webpack@5.93.0)
       webpack-merge:
         specifier: ^6.0.1
         version: 6.0.1
@@ -378,6 +381,11 @@ packages:
     resolution: {integrity: sha512-HaeW68KisBd/7TmavzPDlL2bpoDK5AjR2ZYrqU4TlGwM88GtQfvduBCAlSCj20X0w/4+rWMkseD9dAAkacjiyQ==}
     peerDependencies:
       '@capacitor/core': ^6.1.0
+
+  '@capacitor/keyboard@6.0.3':
+    resolution: {integrity: sha512-V/mURxBI68HvClYjrGBlOriWkwYN7r+cWid/igJz/3scNc/V81DgQ9fpoLr4W0I5NY7YxOesjIJLuLO+LT18mQ==}
+    peerDependencies:
+      '@capacitor/core': ^6.0.0
 
   '@capacitor/local-notifications@6.1.0':
     resolution: {integrity: sha512-EjEnbApdFiZYeJgxKIDtgFRNSmeHySnyAeyoTn6HUTYMkTOaHFGAd7NU964k7gbX4al/CBp0cMA8iMG0c7kh1w==}
@@ -6260,6 +6268,10 @@ snapshots:
     dependencies:
       '@capacitor/core': 6.1.2
 
+  '@capacitor/keyboard@6.0.3(@capacitor/core@6.1.2)':
+    dependencies:
+      '@capacitor/core': 6.1.2
+
   '@capacitor/local-notifications@6.1.0(patch_hash=mt4j7xcmtdpmadktuymv52y4qa)(@capacitor/core@6.1.2)':
     dependencies:
       '@capacitor/core': 6.1.2
@@ -7452,7 +7464,7 @@ snapshots:
   '@webpack-cli/configtest@2.1.1(webpack-cli@5.1.4)(webpack@5.93.0)':
     dependencies:
       webpack: 5.93.0(webpack-cli@5.1.4)
-      webpack-cli: 5.1.4(webpack-dev-server@5.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.4)(webpack-cli@5.1.4)(webpack@5.91.0))(webpack@5.93.0)
+      webpack-cli: 5.1.4(webpack-dev-server@5.0.2)(webpack@5.93.0)
 
   '@webpack-cli/info@2.0.2(webpack-cli@5.1.4)(webpack@5.91.0)':
     dependencies:
@@ -7462,19 +7474,19 @@ snapshots:
   '@webpack-cli/info@2.0.2(webpack-cli@5.1.4)(webpack@5.93.0)':
     dependencies:
       webpack: 5.93.0(webpack-cli@5.1.4)
-      webpack-cli: 5.1.4(webpack-dev-server@5.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.4)(webpack-cli@5.1.4)(webpack@5.91.0))(webpack@5.93.0)
-
-  '@webpack-cli/serve@2.0.5(webpack-cli@5.1.4)(webpack-dev-server@5.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.4)(webpack-cli@5.1.4)(webpack@5.91.0))(webpack@5.93.0)':
-    dependencies:
-      webpack: 5.93.0(webpack-cli@5.1.4)
-      webpack-cli: 5.1.4(webpack-dev-server@5.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.4)(webpack-cli@5.1.4)(webpack@5.91.0))(webpack@5.93.0)
-    optionalDependencies:
-      webpack-dev-server: 5.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.4)(webpack-cli@5.1.4)(webpack@5.91.0)
+      webpack-cli: 5.1.4(webpack-dev-server@5.0.2)(webpack@5.93.0)
 
   '@webpack-cli/serve@2.0.5(webpack-cli@5.1.4)(webpack-dev-server@5.0.2)(webpack@5.91.0)':
     dependencies:
       webpack: 5.91.0(webpack-cli@5.1.4)
       webpack-cli: 5.1.4(webpack-dev-server@5.0.2)(webpack@5.91.0)
+    optionalDependencies:
+      webpack-dev-server: 5.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.4)(webpack-cli@5.1.4)(webpack@5.91.0)
+
+  '@webpack-cli/serve@2.0.5(webpack-cli@5.1.4)(webpack-dev-server@5.0.2)(webpack@5.93.0)':
+    dependencies:
+      webpack: 5.93.0(webpack-cli@5.1.4)
+      webpack-cli: 5.1.4(webpack-dev-server@5.0.2)(webpack@5.93.0)
     optionalDependencies:
       webpack-dev-server: 5.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.4)(webpack-cli@5.1.4)(webpack@5.91.0)
 
@@ -12408,25 +12420,6 @@ snapshots:
   webidl-conversions@4.0.2:
     optional: true
 
-  webpack-cli@5.1.4(webpack-dev-server@5.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.4)(webpack-cli@5.1.4)(webpack@5.91.0))(webpack@5.93.0):
-    dependencies:
-      '@discoveryjs/json-ext': 0.5.7
-      '@webpack-cli/configtest': 2.1.1(webpack-cli@5.1.4)(webpack@5.93.0)
-      '@webpack-cli/info': 2.0.2(webpack-cli@5.1.4)(webpack@5.93.0)
-      '@webpack-cli/serve': 2.0.5(webpack-cli@5.1.4)(webpack-dev-server@5.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.4)(webpack-cli@5.1.4)(webpack@5.91.0))(webpack@5.93.0)
-      colorette: 2.0.20
-      commander: 10.0.1
-      cross-spawn: 7.0.3
-      envinfo: 7.13.0
-      fastest-levenshtein: 1.0.16
-      import-local: 3.2.0
-      interpret: 3.1.1
-      rechoir: 0.8.0
-      webpack: 5.93.0(webpack-cli@5.1.4)
-      webpack-merge: 5.10.0
-    optionalDependencies:
-      webpack-dev-server: 5.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.4)(webpack-cli@5.1.4)(webpack@5.91.0)
-
   webpack-cli@5.1.4(webpack-dev-server@5.0.2)(webpack@5.91.0):
     dependencies:
       '@discoveryjs/json-ext': 0.5.7
@@ -12442,6 +12435,25 @@ snapshots:
       interpret: 3.1.1
       rechoir: 0.8.0
       webpack: 5.91.0(webpack-cli@5.1.4)
+      webpack-merge: 5.10.0
+    optionalDependencies:
+      webpack-dev-server: 5.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.4)(webpack-cli@5.1.4)(webpack@5.91.0)
+
+  webpack-cli@5.1.4(webpack-dev-server@5.0.2)(webpack@5.93.0):
+    dependencies:
+      '@discoveryjs/json-ext': 0.5.7
+      '@webpack-cli/configtest': 2.1.1(webpack-cli@5.1.4)(webpack@5.93.0)
+      '@webpack-cli/info': 2.0.2(webpack-cli@5.1.4)(webpack@5.93.0)
+      '@webpack-cli/serve': 2.0.5(webpack-cli@5.1.4)(webpack-dev-server@5.0.2)(webpack@5.93.0)
+      colorette: 2.0.20
+      commander: 10.0.1
+      cross-spawn: 7.0.3
+      envinfo: 7.13.0
+      fastest-levenshtein: 1.0.16
+      import-local: 3.2.0
+      interpret: 3.1.1
+      rechoir: 0.8.0
+      webpack: 5.93.0(webpack-cli@5.1.4)
       webpack-merge: 5.10.0
     optionalDependencies:
       webpack-dev-server: 5.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.4)(webpack-cli@5.1.4)(webpack@5.91.0)
@@ -12572,7 +12584,7 @@ snapshots:
       watchpack: 2.4.2
       webpack-sources: 3.2.3
     optionalDependencies:
-      webpack-cli: 5.1.4(webpack-dev-server@5.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.4)(webpack-cli@5.1.4)(webpack@5.91.0))(webpack@5.93.0)
+      webpack-cli: 5.1.4(webpack-dev-server@5.0.2)(webpack@5.93.0)
     transitivePeerDependencies:
       - '@swc/core'
       - esbuild
