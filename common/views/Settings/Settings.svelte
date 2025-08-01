@@ -152,7 +152,7 @@
         </div>
       </Tab>
       <Tab>
-        <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
+        <div class='root h-full w-full overflow-y-md-auto p-20 pt-15'>
           <div style={miniplayerPadding} class:d-none={!miniplayerTop || playPage || $media?.display}/>
           <ViewTorrent />
           <div class='pb-10' class:d-md-none={miniplayerTop} class:d-none={playPage || $media?.display} style={!miniplayerTop ? miniplayerPadding : ''}/>

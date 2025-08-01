@@ -247,7 +247,7 @@
     will-change: transform;
   }
   .scale:hover{
-    transform: scale(1.04);
+    transform: scale(1.02);
   }
   .font-size-10 {
     font-size: 1rem;
