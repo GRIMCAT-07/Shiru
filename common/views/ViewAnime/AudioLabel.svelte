@@ -5,7 +5,8 @@
     import { getMediaMaxEp } from '@/modules/anime/anime.js'
     import { matchPhrase } from '@/modules/util.js'
     import { writable } from 'svelte/store'
-    import { Mic, MicOff, Captions, Adult } from 'lucide-svelte'
+    import { onDestroy, afterUpdate } from 'svelte'
+    import { Mic, MicOff, Captions, Adult, ClockFading } from 'lucide-svelte'
 
     /** @type {import('@/modules/al.d.ts').Media} */
     export let media = null
@@ -44,26 +45,62 @@
             getDubEpisodes(animeSchedule.dubAiredLists.value)
         }
     }
+
+    let audioContainer
+    function handleUpdate() {
+        if (!audioContainer) return
+        const items = Array.from(audioContainer.querySelectorAll('.audio-label'))
+        if (!items.length) return
+        items.forEach(i => i.classList.remove('first-audio'))
+        let rows = {}
+        items.forEach(item => {
+            const top = item.offsetTop
+            if (!rows[top]) rows[top] = []
+            rows[top].push(item)
+        })
+        Object.values(rows).forEach(rowItems => rowItems[0]?.classList.add('first-audio'))
+    }
+
+    let observer = null
+    $: {
+        if (audioContainer && !observer) {
+            observer = new ResizeObserver(handleUpdate)
+            observer.observe(audioContainer)
+            window.addEventListener('resize', () => handleUpdate())
+        }
+    }
+    afterUpdate(handleUpdate)
+    onDestroy(() => {
+        observer?.disconnect()
+        observer = null
+        window.removeEventListener('resize', () => handleUpdate())
+    })
 </script>
 {#if settings.value.cardAudio}
     {#if !banner && !viewAnime && !episodeList}
         {@const subEpisodes = String(media.status !== 'NOT_YET_RELEASED' && media.status !== 'CANCELLED' && getMediaMaxEp(media, (media.status !== 'FINISHED')) || dubEpisodes || '')}
-        <div class='position-absolute bottom-0 right-0 d-flex h-2' class:mb-4={smallCard} class:mb-3={!smallCard}>
-            {#if media.isAdult}
-                <div class='pl-10 pr-15 text-dark font-weight-bold d-flex align-items-center h-full lg-slant bg-adult mrl-2'>
-                    <Adult size='2rem' strokeWidth='1.8' />
-                </div>
-            {/if}
+        <div bind:this={audioContainer} class='position-absolute bottom-0 right-0 d-flex flex-row-reverse flex-wrap align-items-end justify-content-start h-20 vertical-flip' class:mb-4={smallCard} class:mb-3={!smallCard}>
+            <div class='audio-label px-10 z-10 text-dark rounded-right font-weight-bold d-flex align-items-center vertical-flip h-full bg-subbed slant mrl-1 z-4'>
+                <Captions size='2rem' strokeWidth='1.5' />
+                <span class='d-flex align-items-center line-height-1' class:ml-3={(subEpisodes && subEpisodes.length > 0) || (dubEpisodes && Number(dubEpisodes) > 0)}><div class='line-height-1 mt-2'>{#if subEpisodes && (!dubEpisodes || (Number(subEpisodes) >= Number(dubEpisodes)))}{Number(subEpisodes)}{:else if dubEpisodes && (Number(dubEpisodes) > 0)}{Number(dubEpisodes)}{/if}</div></span>
+            </div>
             {#if $isDubbed || $isPartial}
-                <div class='pl-10 pr-20 text-dark font-weight-bold d-flex align-items-center h-full slant' class:w-icon={!dubEpisodes || dubEpisodes.length === 0 || Number(dubEpisodes) === 0} class:w-text={dubEpisodes && dubEpisodes.length > 0 && Number(dubEpisodes) > 0} class:bg-dubbed={$isDubbed} class:bg-incomplete={$isPartial}>
+                <div class='audio-label pl-10 pr-20 text-dark rounded-right font-weight-bold d-flex align-items-center vertical-flip h-full slant z-3' class:w-icon={!dubEpisodes || dubEpisodes.length === 0 || Number(dubEpisodes) === 0} class:w-text={dubEpisodes && dubEpisodes.length > 0 && Number(dubEpisodes) > 0} class:bg-dubbed={$isDubbed} class:bg-incomplete={$isPartial}>
                     <svelte:component this={$isDubbed ? Mic : MicOff} size='1.8rem' strokeWidth='2' />
                     <span class='d-flex align-items-center line-height-1 ml-2'><div class='line-height-1 mt-2'>{#if Number(dubEpisodes) > 0}{Number(dubEpisodes)}{/if}</div></span>
                 </div>
             {/if}
-            <div class='px-10 z-10 text-dark rounded-right font-weight-bold d-flex align-items-center h-full bg-subbed slant mrl-1'>
-                <Captions size='2rem' strokeWidth='1.5' />
-                <span class='d-flex align-items-center line-height-1' class:ml-3={(subEpisodes && subEpisodes.length > 0) || (dubEpisodes && Number(dubEpisodes) > 0)}><div class='line-height-1 mt-2'>{#if subEpisodes && (!dubEpisodes || (Number(subEpisodes) >= Number(dubEpisodes)))}{Number(subEpisodes)}{:else if dubEpisodes && (Number(dubEpisodes) > 0)}{Number(dubEpisodes)}{/if}</div></span>
-            </div>
+            {#if media.mediaListEntry?.progress}
+                <div class='audio-label pl-10 pr-20 text-dark rounded-right font-weight-bold d-flex align-items-center vertical-flip h-full slant w-icon w-text bg-watching z-2'>
+                    <ClockFading size='1.8rem' strokeWidth='2' />
+                    <span class='d-flex align-items-center line-height-1 ml-2'><div class='line-height-1 mt-2'>{Number(media.mediaListEntry?.progress)}</div></span>
+                </div>
+            {/if}
+            {#if media.isAdult}
+                <div class='audio-label pl-10 pr-15 text-dark rounded-right font-weight-bold d-flex align-items-center vertical-flip h-full lg-slant bg-adult mrl-2 z-1'>
+                    <Adult size='2rem' strokeWidth='1.8' />
+                </div>
+            {/if}
         </div>
     {:else if episodeList}
         <div class='position-absolute bottom-0 right-0 d-flex h-2'>
@@ -89,10 +126,10 @@
 
  <style>
      .w-icon {
-         margin-right: -2rem !important;
+         margin-right: -2rem;
      }
      .w-text {
-         margin-right: -1.3rem !important;
+         margin-right: -1.3rem;
      }
      .ml-2 {
          margin-left: 0.2rem;
@@ -101,19 +138,16 @@
          margin-left: 0.3rem;
      }
      .mrl-1 {
-         margin-right: -.3rem !important;
+         margin-right: -.3rem;
      }
      .mrl-2 {
-         margin-right: -1.3rem !important;
+         margin-right: -1.3rem;
      }
      .mb-4 {
          margin-bottom: .38rem;
      }
      .mb-3 {
          margin-bottom: -.3rem !important;
-     }
-     .h-2 {
-         height: 2rem;
      }
      .slant {
          clip-path: polygon(15% -1px, 100% 0, 100% 100%, 0% calc(100% + 1px));

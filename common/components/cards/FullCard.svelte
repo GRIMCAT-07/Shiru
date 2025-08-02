@@ -103,7 +103,7 @@
           {/if}
         </div>
         {#if media.description}
-          <div class='overflow-y-auto px-15 pb-5 bg-very-dark card-desc pre-wrap'>
+          <div class='overflow-y-auto ml-15 pr-15 pb-5 bg-very-dark card-desc pre-wrap'>
             {media.description.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()}
           </div>
         {/if}

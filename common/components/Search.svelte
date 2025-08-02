@@ -362,9 +362,6 @@
   .bg-danger-dark {
     background-color: #631420;
   }
-  .z-5 {
-    z-index: 5;
-  }
   .pl-35 {
     padding-left: 3.5rem;
   }
