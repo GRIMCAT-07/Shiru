@@ -25,7 +25,7 @@
   import { SUPPORTS } from '@/modules/support.js'
   import 'rvfc-polyfill'
   import IPC from '@/modules/ipc.js'
-  import { X, Minus, ArrowDown, ArrowUp, Captions, Cast, CircleHelp, Contrast, FastForward, Keyboard, EllipsisVertical, List, Eye, FilePlus2, ListMusic, ListVideo, Maximize, Minimize, Pause, PictureInPicture, PictureInPicture2, Play, Proportions, RefreshCcw, Rewind, RotateCcw, RotateCw, ScreenShare, SkipBack, SkipForward, Users, Volume1, Volume2, VolumeX, SlidersVertical, SquarePen, Milestone } from 'lucide-svelte'
+  import { X, Minus, ArrowDown, ArrowUp, Captions, CircleHelp, Contrast, FastForward, Keyboard, EllipsisVertical, List, Eye, FilePlus2, ListMusic, ListVideo, Maximize, Minimize, Pause, PictureInPicture, PictureInPicture2, Play, Proportions, RefreshCcw, Rewind, RotateCcw, RotateCw, ScreenShare, SkipBack, SkipForward, Users, Volume1, Volume2, VolumeX, SlidersVertical, SquarePen, Milestone } from 'lucide-svelte'
   import Debug from 'debug'
 
   const debug = Debug('ui:player')
@@ -506,15 +506,15 @@
       setTimeout(() => subs?.renderer?.resize(), 200) // stupid fix because video metadata doesn't update for multiple frames
     }
   }
-  function toggleCast () {
-    if (video.readyState) {
-      if (presentationConnection) {
-        presentationConnection?.terminate()
-      } else {
-        presentationRequest.start()
-      }
-    }
-  }
+  // function toggleCast () {
+  //   if (video.readyState) {
+  //     if (presentationConnection) {
+  //       presentationConnection?.terminate()
+  //     } else {
+  //       presentationRequest.start()
+  //     }
+  //   }
+  // }
   async function screenshot () {
     if ('clipboard' in navigator) {
       const canvas = document.createElement('canvas')
@@ -702,13 +702,13 @@
       type: 'icon',
       desc: 'Toggle Video Cover'
     },
-    KeyD: {
-      fn: () => !viewAnime && toggleCast(),
-      id: 'cast',
-      icon: Cast,
-      type: 'icon',
-      desc: 'Toggle Cast [broken]'
-    },
+    // KeyD: {
+    //   fn: () => !viewAnime && toggleCast(),
+    //   id: 'cast',
+    //   icon: Cast,
+    //   type: 'icon',
+    //   desc: 'Toggle Cast [broken]'
+    // },
     KeyC: {
       fn: () => !viewAnime && cycleSubtitles(),
       id: 'subtitles',
@@ -876,8 +876,10 @@
   // }
 
   function immersePlayer () {
-    immersed = true
-    immerseTimeout = undefined
+    if ((safeduration - currentTime) !== 0) {
+      immersed = true
+      immerseTimeout = undefined
+    }
   }
 
   let immerseToken = 0
@@ -1582,8 +1584,8 @@
     </span>
     <div class='position-absolute bufferingDisplay'/>
     {#if currentSkippable}
-      <button class='skip btn text-dark position-absolute bottom-0 right-0 mr-20 mb-5 font-weight-bold z-30' use:click={skip}>
-        Skip {currentSkippable}
+      <button class='skip btn text-dark position-absolute bottom-0 right-0 mr-20 mb-5 font-weight-bold z-30 d-flex align-items-center justify-content-center' use:click={skip}>
+        <FastForward size='1.8rem' fill='currentColor' /><span class='ml-5'>Skip {currentSkippable}</span>
       </button>
     {/if}
   </div>
@@ -1741,15 +1743,15 @@
           </div>
         </div>
       {/if}
-      {#if 'PresentationRequest' in window && canCast && current}
-        <span class='icon ctrl mr-5 d-flex align-items-center' title='Cast Video [D]' data-name='toggleCast' use:click={toggleCast}>
-          {#if presentationConnection}
-            <Cast size='2.5rem' fill='white' strokeWidth={0} />
-          {:else}
-            <Cast size='2.5rem' strokeWidth={2.5} />
-          {/if}
-        </span>
-      {/if}
+      <!--{#if 'PresentationRequest' in window && canCast && current}-->
+      <!--  <span class='icon ctrl mr-5 d-flex align-items-center' title='Cast Video [D]' data-name='toggleCast' use:click={toggleCast}>-->
+      <!--    {#if presentationConnection}-->
+      <!--      <Cast size='2.5rem' fill='white' strokeWidth={0} />-->
+      <!--    {:else}-->
+      <!--      <Cast size='2.5rem' strokeWidth={2.5} />-->
+      <!--    {/if}-->
+      <!--  </span>-->
+      <!--{/if}-->
       {#if 'pictureInPictureEnabled' in document}
         <span class='icon ctrl mr-5 d-flex align-items-center' title='Popout Window [P]' data-name='togglePopout' use:click={togglePopout}>
           {#if pip}
