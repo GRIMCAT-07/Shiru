@@ -1570,7 +1570,7 @@
     <span class='icon ctrl align-items-center w-150 mw-full ml-auto' class:mb-50={!miniplayer} on:click={forward}>
       <FastForward size='3rem' />
     </span>
-    <div class='position-absolute bufferingDisplay' />
+    <div class='position-absolute bufferingDisplay'/>
     {#if currentSkippable}
       <button class='skip btn text-dark position-absolute bottom-0 right-0 mr-20 mb-5 font-weight-bold z-30' use:click={skip}>
         Skip {currentSkippable}
@@ -1942,6 +1942,7 @@
     will-change: transform;
     opacity: 0;
     visibility: hidden;
+    margin-bottom: 5rem;
     transition: 0.2s opacity ease 0s;
     filter: drop-shadow(0 0 8px #000);
   }

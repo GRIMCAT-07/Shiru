@@ -61,7 +61,7 @@
   </div>
 </SettingCard>
 <SettingCard title='Torrent Quality' description="What quality to use when trying to find torrents. None might rarely find less results than specific qualities. This doesn't exclude other qualities from being found like 4K or weird DVD resolutions.">
-  <select class='form-control bg-dark w-300 mw-full text-truncate' bind:value={settings.rssQuality}>
+  <select class='form-control bg-dark mw-150 w-150 text-truncate' bind:value={settings.rssQuality}>
     <option value='1080' selected>1080p</option>
     <option value='720'>720p</option>
     <option value='540'>540p</option>
@@ -70,7 +70,7 @@
   </select>
 </SettingCard>
 <SettingCard title='Torrent Order' description='Sorts the results by the preferred order. The auto-selected torrent will still consider your Preferred Audio setting.'>
-  <select class='form-control bg-dark w-300 mw-full text-truncate' bind:value={settings.torrentSort}>
+  <select class='form-control bg-dark mw-150 w-150 text-truncate' bind:value={settings.torrentSort}>
     <option value='seeders' selected>Seeders</option>
     <option value='smallest' selected>Smallest</option>
     <option value='new' selected>Newest</option>
@@ -80,7 +80,7 @@
   </select>
 </SettingCard>
 <SettingCard title='Preferred Audio' description='Prioritizes results matching the preferred language, otherwise will default to Japanese. This language will be loaded automatically when the video is loaded.'>
-  <select class='form-control bg-dark w-300 mw-full text-truncate' bind:value={settings.audioLanguage}>
+  <select class='form-control bg-dark mw-150 w-150 text-truncate' bind:value={settings.audioLanguage}>
     <option value='eng'>English</option>
     <option value='jpn' selected>Japanese</option>
     <option value='chi'>Chinese</option>

@@ -30,7 +30,7 @@
 <SettingCard title='Torrent Download Location' description='Path to the folder used to store torrents. By default this is the TMP folder, which might lose data when your OS tries to reclaim storage.  {SUPPORTS.isAndroid ? "RESTART IS REQUIRED. /sdcard/ is internal storage, not external SD Cards. /storage/AB12-34CD/ is external storage, not internal. Thank you Android!" : ""}'>
   <div class='input-group mw-100 w-400 flex-nowrap'>
     <div class='input-group-prepend'>
-      <button type='button' use:click={handleFolder} class='btn btn-primary input-group-append d-flex align-items-center justify-content-center'><span>Select Folder</span></button>
+      <button type='button' use:click={handleFolder} class='btn btn-primary input-group-append d-flex align-items-center justify-content-center' title='Select a folder to store the torrents'><span>Select Folder</span></button>
     </div>
     {#if !SUPPORTS.isAndroid}
       <input type='url' class='form-control bg-dark mw-100 text-truncate' readonly bind:value={settings.torrentPathNew} placeholder='/tmp' />
@@ -38,7 +38,7 @@
       <input type='text' class='form-control bg-dark mw-100 text-truncate' bind:value={settings.torrentPathNew} placeholder='/tmp' />
     {/if}
     <div class='input-group-prepend'>
-      <button type='button' use:click={() => settings.torrentPathNew = undefined} disabled={!settings.torrentPathNew} class='btn btn-danger btn-square input-group-append px-5 d-flex align-items-center'><Eraser size='1.8rem' /></button>
+      <button type='button' use:click={() => settings.torrentPathNew = undefined} disabled={!settings.torrentPathNew} class='btn btn-danger btn-square input-group-append px-5 d-flex align-items-center' title='Reset Location'><Eraser size='1.8rem' /></button>
     </div>
   </div>
 </SettingCard>
@@ -63,16 +63,16 @@
   </div>
 </SettingCard>
 <SettingCard title='Max Number of Connections' description='Number of peers per torrent. Higher values will increase download speeds but might quickly fill up available ports if your ISP limits the maximum allowed number of open connections.'>
-  <input type='number' inputmode='numeric' pattern='[0-9]*' bind:value={settings.maxConns} min='1' max='512' class='form-control text-right bg-dark w-100 mw-full' />
+  <input type='number' inputmode='numeric' pattern='[0-9]*' bind:value={settings.maxConns} min='1' max='512' class='form-control text-right bg-dark mw-100 w-100 mw-full' />
 </SettingCard>
 <SettingCard title='Seeding Limit' description={'The maximum number of torrents that can be seeded at the same time. The minimum is 1 as you will always be seeding at least one torrent (the currently loaded torrent). When the seeding limit is reached, the highest ratio torrent will be completed. \n\nNOTICE: At this time you cannot seed more than the currently loaded torrent due to memory leaks from WebTorrent, hopefully this will be fixed in the future'}>
   <input type='number' inputmode='numeric' pattern='[0-9]*' bind:value={seedingLimit} min='1' max='15' disabled={true} class='form-control text-right bg-dark w-150 mw-full' />
 </SettingCard>
 <SettingCard title='Torrent Port' description='Port used for Torrent connections. 0 is automatic.'>
-  <input type='number' inputmode='numeric' pattern='[0-9]*' bind:value={settings.torrentPort} min='0' max='65536' class='form-control text-right bg-dark w-150 mw-full' />
+  <input type='number' inputmode='numeric' pattern='[0-9]*' bind:value={settings.torrentPort} min='0' max='65536' class='form-control text-right bg-dark mw-100 w-100 mw-full' />
 </SettingCard>
 <SettingCard title='DHT Port' description='Port used for DHT connections. 0 is automatic.'>
-  <input type='number' inputmode='numeric' pattern='[0-9]*' bind:value={settings.dhtPort} min='0' max='65536' class='form-control text-right bg-dark w-150 mw-full' />
+  <input type='number' inputmode='numeric' pattern='[0-9]*' bind:value={settings.dhtPort} min='0' max='65536' class='form-control text-right bg-dark mw-100 w-100 mw-full' />
 </SettingCard>
 <SettingCard title='Disable DHT' description='Disables Distributed Hash Tables for use in private trackers to improve privacy. Might greatly reduce the amount of discovered peers.'>
   <div class='custom-switch'>

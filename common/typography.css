@@ -89,6 +89,9 @@
 }
 
 @media (min-width: 769px) {
+  .mr-md-80 {
+    margin-right: 8rem !important
+  }
   .px-md-50 {
     padding-left: 5rem !important;
     padding-right: 5rem !important;

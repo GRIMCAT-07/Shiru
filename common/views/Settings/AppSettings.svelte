@@ -93,7 +93,7 @@
 {#if !SUPPORTS.isAndroid}
   <SettingCard title='Close Action' description='Choose the functionality of the close button for the app. You can choose to receive a Prompt to Minimize or Close, default to Minimize, or default to Closing the app.'>
     <div>
-      <select class='form-control bg-dark w-300 mw-full text-truncate' bind:value={settings.closeAction}>
+      <select class='form-control bg-dark mw-150 w-150 text-truncate' bind:value={settings.closeAction}>
         <option value='Prompt'>Prompt</option>
         <option value='Minimize'>Minimize</option>
         <option value='Close'>Close</option>
@@ -103,7 +103,7 @@
 {/if}
 <SettingCard title='Query Complexity' description="Complex queries result in slower loading times but help in reducing the chances of hitting AniList's rate limit. Simple queries split up the requests into multiple queries which are requested as needed.">
   <div>
-    <select class='form-control bg-dark w-300 mw-full text-truncate' bind:value={settings.queryComplexity}>
+    <select class='form-control bg-dark mw-150 w-150 text-truncate' bind:value={settings.queryComplexity}>
       <option value='Complex'>Complex (slow)</option>
       <option value='Simple'>Simple (fast)</option>
     </select>
@@ -128,7 +128,7 @@
 
 <h4 class='mb-10 font-weight-bold'>Debug Settings</h4>
 <SettingCard title='Logging Levels' description='Enable logging of specific parts of the app.{!SUPPORTS.isAndroid ? ` These logs are saved to ${window.version?.platform === `win32` ? `%appdata%` : `~/config`}/Shiru/logs/main.log.` : ``}'>
-  <select class='form-control bg-dark w-300 mw-full text-truncate' bind:value={$debug}>
+  <select class='form-control bg-dark mw-150 w-150 text-truncate' bind:value={$debug}>
     <option value='' selected>None</option>
     <option value='*'>All</option>
     <option value='torrent:*,webtorrent:*,simple-peer,bittorrent-protocol,bittorrent-dht,bittorrent-lsd,torrent-discovery,bittorrent-tracker:*,ut_metadata,nat-pmp,nat-api'>Torrent</option>
@@ -136,7 +136,7 @@
   </select>
 </SettingCard>
 <SettingCard title='Toast Levels' description='Changes what toasts are shown in the app, limiting what toasts are shown could be useful if an api is down to prevent spam.'>
-  <select class='form-control bg-dark w-300 mw-full text-truncate' bind:value={settings.toasts}>
+  <select class='form-control bg-dark mw-200 w-200 text-truncate' bind:value={settings.toasts}>
     <option value='All' selected>All</option>
     <option value='Warnings / Successes'>Warnings / Successes</option>
     <option value='Errors'>Errors</option>

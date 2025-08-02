@@ -114,6 +114,10 @@
   width: 11.5rem;
 }
 
+.w-120 {
+  width: 12rem;
+}
+
 .w-800 {
   width: 80rem !important
 }
@@ -144,8 +148,16 @@
   min-width: 10rem !important;
 }
 
+.mw-120 {
+  min-width: 12rem;
+}
+
 .mw-150 {
   min-width: 15rem;
+}
+
+.mw-200 {
+  min-width: 20rem;
 }
 
 .mw-350 {

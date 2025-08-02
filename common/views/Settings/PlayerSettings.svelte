@@ -5,7 +5,7 @@
   import { SUPPORTS } from '@/modules/support.js'
   import { click } from '@/modules/click.js'
   import IPC from '@/modules/ipc.js'
-  import { Trash2 } from 'lucide-svelte'
+  import { Trash2, Eraser } from 'lucide-svelte'
   export let settings
   export let playPage = false
 
@@ -66,7 +66,7 @@
   </div>
 </SettingCard>
 <SettingCard title='Subtitle Render Resolution Limit' description="Max resolution to render subtitles at. If your resolution is higher than this setting the subtitles will be upscaled lineary. This will GREATLY improve rendering speeds for complex typesetting for slower devices. It's best to lower this on mobile devices which often have high pixel density where their effective resolution might be ~1440p while having small screens and slow processors.">
-  <select class='form-control bg-dark w-300 mw-full text-truncate' bind:value={settings.subtitleRenderHeight}>
+  <select class='form-control bg-dark mw-150 w-150 text-truncate' bind:value={settings.subtitleRenderHeight}>
     <option value='0' selected>None</option>
     <option value='1440'>1440p</option>
     <option value='1080'>1080p</option>
@@ -77,7 +77,7 @@
 
 <h4 class='mb-10 font-weight-bold'>Language Settings</h4>
 <SettingCard title='Preferred Subtitle Language' description="What subtitle language to automatically select when a video is loaded if it exists. This won't find torrents with this language automatically. If not found defaults to English.">
-  <select class='form-control bg-dark w-300 mw-full text-truncate' bind:value={settings.subtitleLanguage}>
+  <select class='form-control bg-dark mw-150 w-150 text-truncate' bind:value={settings.subtitleLanguage}>
     <option value=''>None</option>
     <option value='eng' selected>English</option>
     <option value='jpn'>Japanese</option>
@@ -168,7 +168,10 @@
       <div class='input-group-prepend'>
         <button type='button' use:click={handleExecutable} class='btn btn-primary input-group-append d-flex align-items-center justify-content-center'><span>Select Executable</span></button>
       </div>
-      <input type='url' class='form-control bg-dark text-truncate mw-100' readonly value={settings.playerPath} />
+      <input type='url' class='form-control bg-dark text-truncate mw-100' readonly value={settings.playerPath} placeholder='Choose an executable…' />
+      <div class='input-group-prepend'>
+        <button type='button' use:click={() => settings.playerPath = undefined} disabled={!settings.playerPath} class='btn btn-danger btn-square input-group-append px-5 d-flex align-items-center' title='Reset Location'><Eraser size='1.8rem' /></button>
+      </div>
     </div>
   </SettingCard>
 {/if}

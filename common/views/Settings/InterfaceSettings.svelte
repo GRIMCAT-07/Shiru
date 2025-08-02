@@ -121,7 +121,7 @@
 </SettingCard>
 {#if Helper.isAniAuth()}
   <SettingCard title='AniList Notifications' description='Get notifications from your AniList account, showing when episodes have aired and any new anime titles you are following have been added to the database. Limited will only get important notifications like when a new season is announced.'>
-    <select class='form-control bg-dark w-150 mw-full text-truncate' bind:value={settings.aniNotify}>
+    <select class='form-control bg-dark w-120 mw-120 mw-full text-truncate' bind:value={settings.aniNotify}>
       <option value='all' selected>All</option>
       <option value='limited'>Limited</option>
       <option value='none'>None</option>
@@ -131,7 +131,7 @@
 {#each ['Sub', 'Dub', 'Hentai'] as type}
   {#if type !== 'Hentai' || settings.adult === 'hentai'}
     <SettingCard title='{type} Announcements' description={`Get ${type} announcement notifications when an airing date is confirmed.\nChoose to get all announcements, updates on sequels for related anime you're following, or turn off notifications entirely.`}>
-      <select class='form-control bg-dark w-150 mw-full text-truncate' bind:value={settings[`${type.toLowerCase()}Announce`]}>
+      <select class='form-control bg-dark w-120 mw-120 text-truncate' bind:value={settings[`${type.toLowerCase()}Announce`]}>
         <option value='all' selected>All</option>
         <option value='following' selected>Following</option>
         <option value='none'>None</option>
