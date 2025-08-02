@@ -412,21 +412,10 @@
   .unavailable {
     opacity: 0.6;
   }
-  .hidden {
-    opacity: 0;
-    visibility: hidden;
-  }
   .visibility {
     margin-top: .4rem;
     margin-left: -15.5rem;
     transition: opacity 0.1s ease-in;
-  }
-
-  .option {
-    border: .1rem solid var(--dark-color-light);
-  }
-  .option:hover {
-    border: .1rem solid var(--highlight-color);
   }
 
   .control {

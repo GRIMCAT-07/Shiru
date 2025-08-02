@@ -8,6 +8,7 @@
   import AnimeResolver from '@/modules/anime/animeresolver.js'
   import { getMediaMaxEp } from '@/modules/anime/anime.js'
   import { client } from '@/modules/torrent/torrent.js'
+  import { writable } from 'simple-store-svelte'
   import { getContext, createEventDispatcher } from 'svelte'
   import Subtitles from '@/modules/subtitles.js'
   import { toTS, fastPrettyBytes, matchPhrase, videoRx } from '@/modules/util.js'
@@ -24,7 +25,7 @@
   import { SUPPORTS } from '@/modules/support.js'
   import 'rvfc-polyfill'
   import IPC from '@/modules/ipc.js'
-  import { X, Minus, ArrowDown, ArrowUp, Captions, Cast, CircleHelp, Contrast, FastForward, Keyboard, EllipsisVertical, List, Eye, FilePlus2, ListMusic, ListVideo, Maximize, Minimize, Pause, PictureInPicture, PictureInPicture2, Play, Proportions, RefreshCcw, Rewind, RotateCcw, RotateCw, ScreenShare, SkipBack, SkipForward, Users, Volume1, Volume2, VolumeX, SlidersVertical, SquarePen } from 'lucide-svelte'
+  import { X, Minus, ArrowDown, ArrowUp, Captions, Cast, CircleHelp, Contrast, FastForward, Keyboard, EllipsisVertical, List, Eye, FilePlus2, ListMusic, ListVideo, Maximize, Minimize, Pause, PictureInPicture, PictureInPicture2, Play, Proportions, RefreshCcw, Rewind, RotateCcw, RotateCw, ScreenShare, SkipBack, SkipForward, Users, Volume1, Volume2, VolumeX, SlidersVertical, SquarePen, Milestone } from 'lucide-svelte'
   import Debug from 'debug'
 
   const debug = Debug('ui:player')
@@ -251,6 +252,7 @@
       currentTime = 0
       targetTime = 0
       chapters = []
+      embeddedChapters = []
       currentSkippable = null
       completed = false
       if (subs) {
@@ -994,12 +996,17 @@
   })
 
   let chapters = []
+  let embeddedChapters = []
   client.on('chapters', ({ detail }) => {
-    if (detail.length) chapters = detail
+    if (detail.length) {
+      chapters = detail
+      embeddedChapters = detail
+    }
   })
   async function findChapters () {
     if ((!chapters.length || settings.value.playerChapterSkip.match(/aniskip/i)) && current?.media?.media) {
-      chapters = await getChaptersAniSkip(current, safeduration)
+      const _chapters = await getChaptersAniSkip(current, safeduration)
+      if (_chapters?.length) chapters = _chapters
     }
   }
 
@@ -1197,6 +1204,7 @@
   //   }
   // }
 
+  const showOptions = writable(false)
   function toggleDropdown ({ target }) {
     target.classList.toggle('active')
     target.closest('.dropdown').classList.toggle('show')
@@ -1454,7 +1462,7 @@
       <div>Name: {current.name || ''}</div>
       {#if playableFiles?.length > 1}
         <div class='mt-10'>All files in this batch:</div>
-        <div class='overflow-auto ml-10 mt-5' style="max-height: 200px;">
+        <div class='overflow-auto ml-10 mt-5' style='max-height: 200px;'>
           {#each playableFiles as file}
             <div class='ctrl rounded-10 pl-5 pr-5 pbf' title={file.name} use:click={() => playFile(file)}>
               {file.name || 'UNK'}
@@ -1638,15 +1646,24 @@
         <div class='ts mr-auto font-scale-20'>x{playbackRate.toFixed(1)}</div>
       {/if}
       <input type='file' class='d-none' id='search-subtitle' accept='.srt,.vtt,.ass,.ssa,.sub,.txt' on:input|preventDefault|stopPropagation={handleFile} bind:this={fileInput}/>
-      <div class='dropdown dropup with-arrow' use:click={toggleDropdown}>
-          <span class='icon ctrl d-flex align-items-center h-full' title='More'>
-            <EllipsisVertical size='2.5rem' strokeWidth={2.5} />
-          </span>
-        <div class='dropdown-menu dropdown-menu-left ctrl pt-5 pb-5 ml-10 text-capitalize hm-400 text-nowrap'>
-          <div role='button' aria-label='Add External Subtitles' class='pointer d-flex align-items-center justify-content-center font-size-16 bd-highlight py-5' title='Add External Subtitles' use:click={(target) => { fileInput.click(); toggleDropdown(target) }}>
+      <div class='dropdown dropleft with-arrow' use:click={() => {showOptions.set(!$showOptions)}}>
+        <span class='icon ctrl d-flex align-items-center h-full' title='More'><EllipsisVertical size='2.5rem' strokeWidth={2.5} /></span>
+        <div class='position-absolute hm-40 text-capitalize text-nowrap bg-dark rounded' style='margin-top: -17.5rem !important; margin-left: -13rem !important; transition: opacity 0.1s ease-in;' class:hidden={!$showOptions}>
+          <div role='button' aria-label='Add External Subtitles' class='pointer d-flex align-items-center justify-content-center font-size-16 bd-highlight py-5 px-10 rounded' title='Add External Subtitles' use:click={() => { fileInput.click(); showOptions.set(false); }}>
             <FilePlus2 size='2rem' strokeWidth={2.5} /> <div class='ml-10'>Add Subtitles</div>
           </div>
-          <div role='button' aria-label='Modify Existing Files or Change to a New File' class='pointer d-flex align-items-center justify-content-center font-size-16 bd-highlight py-5' title='Modify Existing Files or Change to a New File' use:click={(target) => { resolvePrompt = false; $managerView = !$managerView; toggleDropdown(target) }}>
+          <div class='dropdown dropleft with-arrow pointer bg-dark option font-size-16 bd-highlight rounded'>
+            <div role='button' class='d-flex align-items-center justify-content-center py-5 px-10' aria-label='Change the Source of the Video Chapters' title='Change the Source of the Video Chapters' use:click={toggleDropdown}><Milestone size='2rem' strokeWidth={2.5}  /><span class='ml-10'>Chapter Source</span></div>
+            <div class='dropdown-menu dropdown-menu-right text-capitalize text-nowrap'>
+              <div class='custom-radio overflow-hidden pt-5 pl-5'>
+                <input name='chapter-embed-set' type='radio' id='chapter-embed-radio' tabindex='-1' value='embedded' checked={$settings.playerChapterSkip === 'embedded'} />
+                <label for='chapter-embed-radio' use:click={(target) => { $settings.playerChapterSkip = 'embedded'; chapters = embeddedChapters; setTimeout(() => { toggleDropdown(target); showOptions.set(false); }) }} class='pb-5'>Embedded</label>
+                <input name='chapter-aniskip-set' type='radio' id='chapter-aniskip-radio' tabindex='-1' value='aniskip' checked={$settings.playerChapterSkip === 'aniskip'} />
+                <label for='chapter-aniskip-radio' use:click={(target) => { $settings.playerChapterSkip = 'aniskip'; findChapters(); setTimeout(() => { toggleDropdown(target); showOptions.set(false); }) }} class='pb-5'>Aniskip</label>
+              </div>
+            </div>
+          </div>
+          <div role='button' aria-label='Modify Existing Files or Change to a New File' class='pointer d-flex align-items-center justify-content-center font-size-16 bd-highlight py-5 px-10 rounded' title='Modify Existing Files or Change to a New File' use:click={() => { resolvePrompt = false; $managerView = !$managerView; showOptions.set(false); }}>
             <SquarePen size='2rem' strokeWidth={2.5} /> <div class='ml-10'>File Manager</div>
           </div>
         </div>
@@ -1716,7 +1733,7 @@
               <div class='mb-5 invisible'></div>
               <div class='subtitle-offset'>
                 <div role='button' aria-label='Add External Subtitles' class='position-absolute not-reactive' title='Add External Subtitles' style='margin-left: 0.1rem !important; margin-top: 0.3rem !important' use:click={(target) => { fileInput.click(); toggleDropdown(target) }}>
-                  <FilePlus2 size="2rem" strokeWidth={2.5} />
+                  <FilePlus2 size='2rem' strokeWidth={2.5} />
                 </div>
                 <input type='text' inputmode='numeric' pattern='-?[0-9]*.?[0-9]*' step='0.1' title='Subtitle Offset' bind:value={subDelay} on:click|stopPropagation class='form-control text-right form-control-sm not-reactive' />
               </div>

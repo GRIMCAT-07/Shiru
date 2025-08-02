@@ -519,6 +519,18 @@ img[src=''], img[src=' '] {
   object-fit: cover;
 }
 
+.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.option {
+  border: .1rem solid var(--dark-color-light);
+}
+.option:hover {
+  border: .1rem solid var(--highlight-color);
+}
+
 .pre-wrap {
   white-space: pre-wrap
 }
