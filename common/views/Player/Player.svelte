@@ -998,7 +998,7 @@
     if (detail.length) chapters = detail
   })
   async function findChapters () {
-    if (!chapters.length && current?.media?.media) {
+    if ((!chapters.length || settings.value.playerChapterSkip.match(/aniskip/i)) && current?.media?.media) {
       chapters = await getChaptersAniSkip(current, safeduration)
     }
   }

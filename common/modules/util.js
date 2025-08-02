@@ -526,7 +526,8 @@ export const defaults = {
   enableExternal: false,
   playerPath: '',
   playerSeek: 2,
-  playerSkip: false
+  playerSkip: false,
+  playerChapterSkip: 'embedded'
 }
 
 /**
