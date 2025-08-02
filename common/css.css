@@ -579,6 +579,21 @@ img[src=''], img[src=' '] {
   margin-right: 5rem;
 }
 
+.dr-arrow {
+  z-index: 0;
+}
+
+.dr-arrow::after {
+  content: '';
+  position: absolute;
+  bottom: -.8rem;
+  right: 1.2rem;
+  z-index: -1;
+  border-left: 1rem solid transparent;
+  border-right: 1rem solid transparent;
+  border-top: 1rem solid var(--dark-color);
+}
+
 .radius-left-0 {
   border-top-left-radius: 0 !important;
   border-bottom-left-radius: 0 !important;

@@ -1648,7 +1648,7 @@
       <input type='file' class='d-none' id='search-subtitle' accept='.srt,.vtt,.ass,.ssa,.sub,.txt' on:input|preventDefault|stopPropagation={handleFile} bind:this={fileInput}/>
       <div class='dropdown dropleft with-arrow' use:click={() => {showOptions.set(!$showOptions)}}>
         <span class='icon ctrl d-flex align-items-center h-full' title='More'><EllipsisVertical size='2.5rem' strokeWidth={2.5} /></span>
-        <div class='position-absolute hm-40 text-capitalize text-nowrap bg-dark rounded' style='margin-top: -17.5rem !important; margin-left: -13rem !important; transition: opacity 0.1s ease-in;' class:hidden={!$showOptions}>
+        <div class='position-absolute hm-40 text-capitalize text-nowrap bg-dark rounded dr-arrow' style='margin-top: -17.5rem !important; margin-left: -11.4rem !important; transition: opacity 0.1s ease-in;' class:hidden={!$showOptions}>
           <div role='button' aria-label='Add External Subtitles' class='pointer d-flex align-items-center justify-content-center font-size-16 bd-highlight py-5 px-10 rounded' title='Add External Subtitles' use:click={() => { fileInput.click(); showOptions.set(false); }}>
             <FilePlus2 size='2rem' strokeWidth={2.5} /> <div class='ml-10'>Add Subtitles</div>
           </div>
