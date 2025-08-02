@@ -1,6 +1,6 @@
 <p align="center">
 	<a href="https://github.com/RockinChaos/Shiru">
-		<img src="./web/static/logo_filled.svg" width="200" alt="Shiru">
+		<img src="./docs/assets/logo_filled.svg" width="200" alt="Shiru">
 	</a>
 </p>
 <h1 align="center"><b>Shiru</b></h1>
