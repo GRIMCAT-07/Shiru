@@ -1011,6 +1011,7 @@
       currentSkippable = isChapterSkippable(current)
     }
   }
+  const MAX_TOTAL_SKIP_TIME = 180
   const skippableChaptersRx = [
     ['Intro', /^intro$/mi],
     ['Opening', /^op$|opening$|title$|^ncop/mi],
@@ -1020,7 +1021,8 @@
     ['Preview', /^preview$|previews$|pv$|next$/mi],
     ['Recap', /recap/mi]
   ]
-  function isChapterSkippable (chapter) {
+  function isChapterSkippable(chapter) {
+    if (((chapter.end - chapter.start) / 1000) > MAX_TOTAL_SKIP_TIME) return null // Anything longer than 180s (3m) is likely invalid, skipping this chapter would be a mistake!
     for (const [name, regex] of skippableChaptersRx) {
       if (/** @type {RegExp} */ (regex).test(chapter.text)) {
         return name
