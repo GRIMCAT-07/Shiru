@@ -3,6 +3,7 @@
   import { defaults } from '@/modules/util.js'
   import IPC from '@/modules/ipc.js'
   import { Eraser } from 'lucide-svelte'
+  import ClampedNumber from '@/components/inputs/ClampedNumber.svelte'
   import SettingCard from '@/views/Settings/SettingCard.svelte'
   import { SUPPORTS } from '@/modules/support.js'
   export let settings
@@ -54,23 +55,23 @@
 </SettingCard>
 <SettingCard title='Transfer Speed Limit' description='Download/Upload speed limit for torrents, higher values increase CPU usage, and values higher than your storage write speeds will quickly fill up RAM.'>
   <div class='input-group w-100 mw-full'>
-    <input type='number' inputmode='numeric' pattern={'[0-9]*.?[0-9]*'} bind:value={settings.torrentSpeed} min='0' max='50' step='0.1' class='form-control text-right bg-dark' />
+    <ClampedNumber bind:bindTo={settings.torrentSpeed} min={0.05} max={50} step={0.01} class='form-control text-right bg-dark'/>
     <div class='input-group-append'>
       <span class='input-group-text bg-dark'>MB/s</span>
     </div>
   </div>
 </SettingCard>
 <SettingCard title='Max Number of Connections' description='Number of peers per torrent. Higher values will increase download speeds but might quickly fill up available ports if your ISP limits the maximum allowed number of open connections.'>
-  <input type='number' inputmode='numeric' pattern='[0-9]*' bind:value={settings.maxConns} min='1' max='512' class='form-control text-right bg-dark mw-100 w-100 mw-full' />
+  <ClampedNumber bind:bindTo={settings.maxConns} min={1} max={512} class='form-control text-right bg-dark mw-100 w-100 mw-full'/>
 </SettingCard>
 <SettingCard title='Seeding Limit' description={'The maximum number of torrents that can be seeded at the same time. The minimum is 1 as you will always be seeding at least one torrent (the currently loaded torrent). When the seeding limit is reached, the highest ratio torrent will be completed.'}>
-  <input type='number' inputmode='numeric' pattern='[0-9]*' bind:value={settings.seedingLimit} min='1' max='50' class='form-control text-right bg-dark mw-100 w-100 mw-full' />
+  <ClampedNumber bind:bindTo={settings.seedingLimit} min={1} max={50} class='form-control text-right bg-dark mw-100 w-100 mw-full'/>
 </SettingCard>
 <SettingCard title='Torrent Port' description='Port used for Torrent connections. 0 is automatic.'>
-  <input type='number' inputmode='numeric' pattern='[0-9]*' bind:value={settings.torrentPort} min='0' max='65536' class='form-control text-right bg-dark mw-100 w-100 mw-full' />
+  <ClampedNumber bind:bindTo={settings.torrentPort} min={0} max={65536} class='form-control text-right bg-dark mw-100 w-100 mw-full'/>
 </SettingCard>
 <SettingCard title='DHT Port' description='Port used for DHT connections. 0 is automatic.'>
-  <input type='number' inputmode='numeric' pattern='[0-9]*' bind:value={settings.dhtPort} min='0' max='65536' class='form-control text-right bg-dark mw-100 w-100 mw-full' />
+  <ClampedNumber bind:bindTo={settings.dhtPort} min={0} max={65536} class='form-control text-right bg-dark mw-100 w-100 mw-full'/>
 </SettingCard>
 <SettingCard title='Disable DHT' description='Disables Distributed Hash Tables for use in private trackers to improve privacy. Might greatly reduce the amount of discovered peers.'>
   <div class='custom-switch'>
