@@ -31,7 +31,7 @@ export default class TorrentClient extends WebTorrent {
   constructor(ipc, storageQuota, serverMode, settings, controller) {
     debug(`Initializing TorrentClient with settings: ${JSON.stringify(settings)}`)
     super({
-      dht: settings.dht,
+      dht: settings.dht ? { concurrency: 4, maxAge: 1800000 } : false,
       utPex: settings.torrentPeX,
       maxConns: settings.maxConns,
       downloadLimit: settings.downloadLimit,
@@ -322,7 +322,7 @@ export default class TorrentClient extends WebTorrent {
       debug(`Seeding torrent: ${torrent.infoHash}`, torrent.torrentFile)
     }
 
-    const seedingLimit = 1 // this.settings.seedingLimit
+    if ((seedingTorrents.length + 1) >= seedingLimit) {
       const completed = seedingTorrents.slice().sort((a, b) => (b.ratio || 0) - (a.ratio || 0))?.[0] || torrent
       completed.current = false
       completed.staging = false

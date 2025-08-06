@@ -9,8 +9,6 @@
   function handleFolder () {
     IPC.emit('dialog')
   }
-
-  let seedingLimit = 1 // settings.seedingLimit
 </script>
 
 {#if SUPPORTS.doh}
@@ -42,13 +40,13 @@
     </div>
   </div>
 </SettingCard>
-<SettingCard title='Persist Files' description="Keeps torrents files instead of deleting them after a new torrent is played, this will quickly fill up your storage. Seeding Limit will be prioritized, once the limit is reached the files will be deleted if persist files is disabled.">
+<SettingCard title='Persist Files' description="Keeps torrents files instead of deleting them after a new torrent is played, this will quickly fill up your storage. Seeding Limit will be prioritized, once the limit is reached the files will be deleted if persist files is disabled. Queued torrents for pre-download will be automatically deleted if they are unable to seed and persist files is disabled.">
   <div class='custom-switch'>
     <input type='checkbox' id='torrent-persist' bind:checked={settings.torrentPersist} />
     <label for='torrent-persist'>{settings.torrentPersist ? 'On' : 'Off'}</label>
   </div>
 </SettingCard>
-<SettingCard title='Streamed Download' description="Only downloads the single file that's currently being watched, instead of downloading an entire batch of episodes. Saves bandwidth and reduces strain on the peer swarm. Queued torrents for pre-download completely ignores this setting.">
+<SettingCard title='Streamed Download' description="Only downloads the single file that's currently being watched, instead of downloading an entire batch of episodes. Saves bandwidth and reduces strain on the peer swarm. Queued torrents for pre-download completely ignore this setting but will be paused until the current file being watched is fully downloaded.">
   <div class='custom-switch'>
     <input type='checkbox' id='torrent-streamed-download' bind:checked={settings.torrentStreamedDownload} />
     <label for='torrent-streamed-download'>{settings.torrentStreamedDownload ? 'On' : 'Off'}</label>
@@ -65,8 +63,8 @@
 <SettingCard title='Max Number of Connections' description='Number of peers per torrent. Higher values will increase download speeds but might quickly fill up available ports if your ISP limits the maximum allowed number of open connections.'>
   <input type='number' inputmode='numeric' pattern='[0-9]*' bind:value={settings.maxConns} min='1' max='512' class='form-control text-right bg-dark mw-100 w-100 mw-full' />
 </SettingCard>
-<SettingCard title='Seeding Limit' description={'The maximum number of torrents that can be seeded at the same time. The minimum is 1 as you will always be seeding at least one torrent (the currently loaded torrent). When the seeding limit is reached, the highest ratio torrent will be completed. \n\nNOTICE: At this time you cannot seed more than the currently loaded torrent due to memory leaks from WebTorrent, hopefully this will be fixed in the future'}>
-  <input type='number' inputmode='numeric' pattern='[0-9]*' bind:value={seedingLimit} min='1' max='15' disabled={true} class='form-control text-right bg-dark w-150 mw-full' />
+<SettingCard title='Seeding Limit' description={'The maximum number of torrents that can be seeded at the same time. The minimum is 1 as you will always be seeding at least one torrent (the currently loaded torrent). When the seeding limit is reached, the highest ratio torrent will be completed.'}>
+  <input type='number' inputmode='numeric' pattern='[0-9]*' bind:value={settings.seedingLimit} min='1' max='50' class='form-control text-right bg-dark mw-100 w-100 mw-full' />
 </SettingCard>
 <SettingCard title='Torrent Port' description='Port used for Torrent connections. 0 is automatic.'>
   <input type='number' inputmode='numeric' pattern='[0-9]*' bind:value={settings.torrentPort} min='0' max='65536' class='form-control text-right bg-dark mw-100 w-100 mw-full' />
