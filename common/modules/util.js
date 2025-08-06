@@ -1,6 +1,6 @@
 import { SUPPORTS } from '@/modules/support.js'
 import levenshtein from 'js-levenshtein'
-import { writable } from 'svelte/store'
+import { writable } from 'simple-store-svelte'
 import Fuse from 'fuse.js'
 
 export const codes = {

@@ -4,6 +4,7 @@ import Bottleneck from 'bottleneck'
 
 import { alToken, settings } from '@/modules/settings.js'
 import { malDubs } from '@/modules/anime/animedubs.js'
+import { isSubbedProgress } from '@/modules/anime/anime.js'
 import { getRandomInt, sleep } from '@/modules/util.js'
 import { printError, status } from '@/modules/networking.js'
 import { cache, caches, mediaCache } from '@/modules/cache.js'
@@ -301,7 +302,7 @@ class AnilistClient {
       const newNotifications = (lastNotified > 0) && notifications ? notifications.filter(({createdAt}) => createdAt > lastNotified) : []
       debug(`Found ${newNotifications?.length} new notifications`)
       for (const { media, episode, type, createdAt } of newNotifications) {
-        if ((settings.value.aniNotify !== 'limited' || type !== 'AIRING') && media.type === 'ANIME' && media.format !== 'MUSIC' && (!settings.value.preferDubs || !malDubs.isDubMedia(media))) {
+        if ((settings.value.aniNotify !== 'limited' || type !== 'AIRING') && media.type === 'ANIME' && media.format !== 'MUSIC' && (!settings.value.preferDubs || !(await malDubs.isDubMedia(media)) || await isSubbedProgress(mediaCache.value[media?.id]))) {
           const details = {
             id: media?.id,
             title: media.title.userPreferred,

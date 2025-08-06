@@ -4,7 +4,7 @@
     import { animeSchedule } from '@/modules/anime/animeschedule.js'
     import { getMediaMaxEp } from '@/modules/anime/anime.js'
     import { matchPhrase } from '@/modules/util.js'
-    import { writable } from 'svelte/store'
+    import { writable } from 'simple-store-svelte'
     import { onDestroy, afterUpdate } from 'svelte'
     import { Mic, MicOff, Captions, Adult, ClockFading } from 'lucide-svelte'
 
@@ -36,10 +36,10 @@
 
     $: if (media) setLabel()
     malDubs.dubLists.subscribe(() => setLabel())
-    function setLabel() {
-        const dubLists = malDubs.dubLists.value
+    async function setLabel() {
+        const dubLists = await malDubs.dubLists.value
         if (media?.idMal && dubLists?.dubbed) {
-            const episodeOrMedia = !episode || malDubs.isDubMedia(data?.parseObject)
+            const episodeOrMedia = !episode || await malDubs.isDubMedia(data?.parseObject)
             isDubbed.set(episodeOrMedia && dubLists.dubbed.includes(media.idMal))
             isPartial.set(episodeOrMedia && dubLists.incomplete.includes(media.idMal))
             getDubEpisodes(animeSchedule.dubAiredLists.value)

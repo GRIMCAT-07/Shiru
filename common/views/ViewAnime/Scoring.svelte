@@ -5,7 +5,7 @@
   import { codes, createListener } from '@/modules/util.js'
   import { SUPPORTS } from '@/modules/support.js'
   import { click } from '@/modules/click.js'
-  import { writable } from 'svelte/store'
+  import { writable } from 'simple-store-svelte'
   import { toast } from 'svelte-sonner'
   import { X, Bookmark, PencilLine } from 'lucide-svelte'
   import Helper from '@/modules/helper.js'

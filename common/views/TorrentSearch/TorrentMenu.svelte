@@ -146,7 +146,7 @@
 
   function dubFinished() {
     const airingMedia = animeSchedule.dubAiring.value?.find(entry => entry.media?.media?.id === search.media.id)
-    return !airingMedia || (airingMedia.episodeNumber === search.media.episodes && (new Date().getTime() >= new Date(airingMedia.episodeDate).getTime()))
+    return !airingMedia || (airingMedia.episodeNumber === search.media.episodes && (new Date().getTime() >= new Date(airingMedia.episodeDate).getTime())) || ((search.media.mediaListEntry?.progress ?? 0) > airingMedia.episodeNumber)
   }
 
   const movie = isMovie(search.media)

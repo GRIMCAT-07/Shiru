@@ -3,7 +3,7 @@ import { settings } from '@/modules/settings.js'
 import { cache, caches, mediaCache } from '@/modules/cache.js'
 import { toast } from 'svelte-sonner'
 import { add } from '@/modules/torrent/torrent.js'
-import { getEpisodeMetadataForMedia } from '@/modules/anime/anime.js'
+import { getEpisodeMetadataForMedia, isSubbedProgress } from '@/modules/anime/anime.js'
 import AnimeResolver from '@/modules/anime/animeresolver.js'
 import { anilistClient } from '@/modules/anilist.js'
 import { hasNextPage } from '@/modules/sections.js'
@@ -147,8 +147,8 @@ class RSSMediaManager {
 
     for (const { media, parseObject, episode, link, hash, date } of newReleases) {
       const notify = (!media?.mediaListEntry && settings.value.rssNotify?.includes('NOTONLIST')) || (media?.mediaListEntry && settings.value.rssNotify?.includes(media?.mediaListEntry?.status))
-      const dubbed = malDubs.isDubMedia(parseObject)
-      if (notify && (!settings.value.preferDubs || dubbed || !malDubs.isDubMedia(media))) {
+      const dubbed = await malDubs.isDubMedia(parseObject)
+      if (notify && (!settings.value.preferDubs || dubbed || !(await malDubs.isDubMedia(media)) || await isSubbedProgress(media))) {
         const highestEp = Number(episode) || episodesList.handleArray(episode, episode)
         const progress = media?.mediaListEntry?.progress
         const behind = progress < ((Number(episode) || Number(highestEp)) - 1)

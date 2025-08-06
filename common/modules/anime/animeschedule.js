@@ -4,7 +4,7 @@ import { anilistClient } from '@/modules/anilist.js'
 import { malDubs } from '@/modules/anime/animedubs.js'
 import { settings } from '@/modules/settings.js'
 import { cache, caches, mediaCache } from '@/modules/cache.js'
-import { getEpisodeMetadataForMedia } from '@/modules/anime/anime.js'
+import { getEpisodeMetadataForMedia, isSubbedProgress } from '@/modules/anime/anime.js'
 import { hasNextPage } from '@/modules/sections.js'
 import { getRandomInt } from '@/modules/util.js'
 import { printError } from '@/modules/networking.js'
@@ -262,6 +262,8 @@ class AnimeSchedule {
         let res = (await this[`${type.toLowerCase()}AiredLists`].value) || []
         const section = settings.value.homeSections.find(s => s[0] === `${type}${type === `Hentai` ? `` : `bed`} Releases`)
         if (section && section[2].length > 0) res = res.filter(episode => section[2].includes(episode.format) && (section[2].includes('TV_SHORT') || !episode.duration || (episode.duration >= 12)))
+        const filteredRes = await Promise.all(res.map(async episode => !settings.value.preferDubs || !(await malDubs.isDubMedia(episode)) || (type === 'Dubs' ? (await isSubbedProgress(mediaCache.value[episode.id])) : !await isSubbedProgress(mediaCache.value[episode.id]))))
+        res = res.filter((_, index) => filteredRes[index])
         const cachedAiredLists = this[`${type.toLowerCase()}AiredListsCache`].value[`${page}-${perPage}`]
         const paginatedLists = res.slice((page - 1) * perPage, page * perPage) || []
         const ids = paginatedLists.map(({ id }) => id)
@@ -324,7 +326,7 @@ class AnimeSchedule {
                     const addedAt = Math.floor(new Date(media.episode.addedAt).getTime() / 1000)
                     const notify = (!media?.mediaListEntry && settings.value.releasesNotify?.includes('NOTONLIST')) || (media?.mediaListEntry && settings.value.releasesNotify?.includes(media?.mediaListEntry?.status))
                     debug(`Attempting to notify for ${media?.id}:${media?.title?.userPreferred}...`)
-                    if (notify && (type === 'Dub' || !settings.value.preferDubs || !malDubs.isDubMedia(media)) && media.format !== 'MUSIC') {
+                    if (notify && (type === 'Dub' || !settings.value.preferDubs || !(await malDubs.isDubMedia(media)) || await isSubbedProgress(media)) && media.format !== 'MUSIC') {
                         const details = {
                             id: media?.id,
                             title: anilistClient.title(media),
@@ -355,7 +357,7 @@ class AnimeSchedule {
                         }))
                         debug(`Successfully notified for ${media?.id}:${media?.title?.userPreferred}!`)
                     } else {
-                        debug(`Failed to notify for ${media?.id}:${media?.title?.userPreferred}:${notify}:${(type === 'Dub' || !settings.value.preferDubs || !malDubs.isDubMedia(media))}:${(media.format !== 'MUSIC')}`)
+                        debug(`Failed to notify for ${media?.id}:${media?.title?.userPreferred}:${notify}:${(type === 'Dub' || !settings.value.preferDubs || !(await malDubs.isDubMedia(media)) || await isSubbedProgress(media))}:${(media.format !== 'MUSIC')}`)
                     }
                 }
             }

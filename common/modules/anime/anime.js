@@ -791,6 +791,18 @@ export function nextAiring(nodes, variables) {
   return nodes?.filter(node => new Date(variables?.hideSubs ? node.airingAt : (node.airingAt * 1000)) > currentTime)?.sort((a, b) => a.airingAt - b.airingAt)?.shift()
 }
 
+export async function isSubbedProgress(media) {
+  if (!media) return true
+  if (media.status === 'NOT_YET_RELEASED') return false
+  const progress = (media.mediaListEntry?.progress ?? media.my_list_status?.num_episodes_watched ?? 0)
+  if (progress === 0) return false
+  const dubbedEpisodes = (await animeSchedule.dubAiringLists.value)?.find(entry => entry?.media?.media?.id === media.id || entry?.media?.media?.idMal === media.idMal)?.media?.media?.airingSchedule?.nodes
+  if (!dubbedEpisodes?.length) return true
+  const last = dubbedEpisodes[dubbedEpisodes.length > 1 ? dubbedEpisodes.length - 1 : 0]
+  const aired = new Date(last?.airingAt) <= new Date()
+  return progress > (last?.episode - (aired ? 0 : 1))
+}
+
 const concurrentRequests = new Map()
 export async function getKitsuMappings(anilistID) {
   if (!anilistID) return

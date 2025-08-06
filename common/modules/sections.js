@@ -122,6 +122,7 @@ function createSections () {
         format: !title.includes('Hentai') ? ['TV', 'MOVIE', 'OVA', 'ONA'] : ['OVA'],
         variables: { disableSearch: true },
         isRSS: true,
+        isSchedule: true,
         load: (page = 1, perPage = 50) => animeSchedule.getMediaForRSS(page, perPage, type),
         preview: writable(animeSchedule.getMediaForRSS(1, 50, type)),
       }
@@ -189,7 +190,7 @@ function createSections () {
                 if (matchingAiring && (media?.mediaListEntry || media?.my_list_status)) {
                   const episodes = matchingAiring?.media?.media?.airingSchedule?.nodes
                   const episodeNumber = episodes?.[episodes.length > 1 ? episodes.length - 1 : 0]?.episode - (new Date(episodes?.[episodes.length > 1 ? episodes.length - 1 : 0]?.airingAt) > new Date() ? 1 : 0)
-                  if (((media?.mediaListEntry?.progress || media?.my_list_status?.num_episodes_watched) >= (episodeNumber + (media.episodes && (episodeNumber === media.episodes) ? 1 : 0))) && ((media?.status === 'RELEASING' || media?.status === 'currently_airing') || !((media?.mediaListEntry?.progress || media?.my_list_status?.num_episodes_watched) >= media?.num_episodes))) ids.push(media?.id)
+                  if (((media?.mediaListEntry?.progress || media?.my_list_status?.num_episodes_watched) === (episodeNumber + (media.episodes && (episodeNumber === media.episodes) ? 1 : 0))) && ((media?.status === 'RELEASING' || media?.status === 'currently_airing') || !((media?.mediaListEntry?.progress || media?.my_list_status?.num_episodes_watched) >= media?.num_episodes))) ids.push(media?.id)
                 }
               })
               mediaList = mediaList.filter(media => !ids.includes(media?.media?.id || media?.node?.id))

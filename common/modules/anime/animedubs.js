@@ -12,24 +12,25 @@ const debug = Debug('ui:animedubs')
  */
 class MALDubs {
     /** @type {import('simple-store-svelte').Writable<ReturnType<MALDubs['getDubs']>>} */
-     dubLists = writable()
+     dubLists = writable(Promise.resolve([]))
 
     constructor() {
-        this.getMALDubs()
-        //  update dubLists every 6 hours
+        this.dubLists.value = this.getMALDubs()
+        //  update dubLists every hour
         setInterval(async () => {
             try {
-                await this.getMALDubs()
+                const updatedLists = await this.getMALDubs()
+                this.dubLists.value = Promise.resolve(updatedLists)
             } catch (error) {
                 debug(`Failed to update dubbed anime list at the scheduled interval, this is likely a temporary connection issue: ${JSON.stringify(error)}`)
             }
-        }, 1000 * 60 * 60* 6)
+        }, 1000 * 60 * 60)
     }
 
-    isDubMedia(media) {
-        if (this.dubLists.value?.dubbed) {
+    async isDubMedia(media) {
+        if ((await this.dubLists.value)?.dubbed) {
             if (media?.idMal) {
-                return this.dubLists.value.dubbed.includes(media.idMal) || this.dubLists.value.incomplete.includes(media.idMal)
+                return (await this.dubLists.value).dubbed.includes(media.idMal) || (await this.dubLists.value).incomplete.includes(media.idMal)
             } else if (media?.language || media?.file_name) {
                 return matchPhrase(media?.language, 'English', 3) || matchPhrase(media?.file_name, ['Multi Audio', 'Dual Audio', 'English Audio', 'English Dub'], 3) || matchPhrase(media?.file_name, ['Dual', 'Dub'], 1)
             }
@@ -40,10 +41,7 @@ class MALDubs {
         debug('Getting MyAnimeList Dubs IDs')
         try {
             const cachedEntry = await cache.cachedEntry(caches.RSS, 'MALDubs', true)
-            if (status.value === 'offline' && cachedEntry) {
-                this.dubLists.value = cachedEntry
-                return cachedEntry
-            }
+            if (status.value === 'offline' && cachedEntry) return cachedEntry
             let res = {}
             try {
                 res = await fetch(`https://raw.githubusercontent.com/MAL-Dubs/MAL-Dubs/main/data/dubInfo.json?timestamp=${new Date().getTime()}`)
@@ -68,15 +66,12 @@ class MALDubs {
                     printError('Dub Caching Failed', 'Failed to load dub information!', res)
                 }
             } else if (json) {
-                const result = await cache.cacheEntry(caches.RSS, 'MALDubs', {mappings: true}, json, Date.now() + getRandomInt(100, 200) * 60 * 1000)
-                this.dubLists.value = result
-                return result
+                return await cache.cacheEntry(caches.RSS, 'MALDubs', { mappings: true }, json, Date.now() + getRandomInt(100, 200) * 60 * 1000)
             }
         } catch (e) {
             const cachedEntry = await cache.cachedEntry(caches.RSS, 'MALDubs', true)
             if (cachedEntry) {
                 debug(`Failed to request MALDubs RSS, this is likely due to an outage... falling back to cached data.`)
-                this.dubLists.value = cachedEntry
                 return cachedEntry
             }
             else throw e
