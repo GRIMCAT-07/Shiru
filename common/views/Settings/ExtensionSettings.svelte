@@ -256,7 +256,4 @@
     border-left: .8rem solid;
     border-radius: .3rem;
   }
-  .cursor-wait {
-    cursor: wait !important;
-  }
 </style>

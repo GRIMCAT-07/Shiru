@@ -1,6 +1,7 @@
 <script context='module'>
   import { Database, Clapperboard, Projector, EllipsisVertical } from 'lucide-svelte'
   import { onDestroy, onMount, getContext } from 'svelte'
+  import { settings } from '@/modules/settings.js'
 </script>
 <script>
   import { fastPrettyBytes } from '@/modules/util.js'
@@ -19,7 +20,7 @@
   const infoHash = data.infoHash
 
   function ratioType(ratio, progress) {
-    if (Math.round(ratio * 100) / 100 <= 0 || progress < 1) return 'Leeching'
+    if ((Math.round(ratio * 100) / 100 <= 0 || progress < 1) && !data.incomplete) return 'Leeching'
     else if (ratio < 0.5) return 'Leecher'
     else if (ratio < 1.0) return 'Fair'
     else if (ratio < 2.5) return 'Good'
@@ -91,37 +92,37 @@
       <div class='text-muted line-2 overflow-hidden' title={data.name && AnimeResolver.cleanFileName(data.name)}>{(data.name && AnimeResolver.cleanFileName(data.name)) || '—'}</div>
     </div>
     <div class='p-5 w-150 d-none d-md-block'>{fastPrettyBytes(data.size)}</div>
-    <div class='p-5 w-150'>{data.size && !data.incomplete ? `${(completed && '100.0') || ((data.progress * 100) || 0).toFixed(1)}%` : data.name && !data.incomplete ? '0.0%' : '—'}</div>
-    <div class='p-5 w-150'>{completed ? (data.incomplete ? 'Incomplete' : 'Completed') : data.progress === 1 ? 'Seeding' : data.size && data.downloadSpeed ? 'Downloading' : data.name ? 'Stalled' : '—'}</div>
-    <div class='p-5 w-150 d-none d-md-block'>{!completed && data.name && (data.progress ? ((Math.ceil((data.ratio || 0) * 100) / 100)?.toFixed(2)) : '0.00') || '—'}<span class='text-muted text-nowrap' class:d-none={completed || !data.name}>{` (${ratioType(data.ratio || 0, data.progress)})`}</span></div>
+    <div class='p-5 w-150'>{data.size && !data.missing_pieces ? `${((data.progress * 100) || 0).toFixed(1)}%` : (data.missing_pieces ? '—' : '0.0%')}</div>
+    <div class='p-5 w-150'>{completed ? (data.incomplete ? (data.missing_pieces ? 'Missing Pieces' : 'Incomplete') : 'Completed') : data.progress === 1 ? 'Seeding' : data.size && (data.downloadSpeed || data.uploadSpeed) ? 'Downloading' : !(data.downloadSpeed || data.uploadSpeed) && data.eta > 0 && data.progress < 1 ? 'Scanning' : data.name ? 'Stalled' : '—'}</div>
+    <div class='p-5 w-150 d-none d-md-block'>{!completed && data.name && (data.progress ? ((Math.ceil((data.ratio || 0) * 100) / 100)?.toFixed(2)) : '0.00') || (data.incomplete && !data.missing_pieces ? '0.01' : '—')}<span class='text-muted text-nowrap' class:d-none={(completed && (!data.incomplete || data.missing_pieces)) || !data.name}>{` (${ratioType(data.ratio || 0, data.progress)})`}</span></div>
     <div class='p-5 w-150'>{completed ? '—' : `${fastPrettyBytes(data.downloadSpeed || 0)}/s`}</div>
     <div class='p-5 w-150 d-none d-md-block'>{completed ? '—' : `${fastPrettyBytes(data.uploadSpeed || 0)}/s`}</div>
     <div class='p-5 w-150'>{completed ? '—' : data.numSeeders || 0}<span class='text-muted text-nowrap' class:d-none={completed}>{` (${data.numPeers || 0})`}</span></div>
     <div class='p-5 w-150 d-none d-md-block'>{completed ? '—' : data.numLeechers || 0}<span class='text-muted text-nowrap' class:d-none={completed}>{` (${data.numPeers || 0})`}</span></div>
-    <div class='p-5 w-115 d-none d-md-block'>{data.eta > 0 && data.progress < 1 && data.downloadSpeed ? eta(new Date(Date.now() + data.eta)) : '∞'}</div>
+    <div class='p-5 w-115 d-none d-md-block'>{data.eta > 0 && data.progress < 1 ? eta(new Date(Date.now() + data.eta)) : '∞'}</div>
   </div>
   <div class='dropdown react-{infoHash} with-arrow right-0 mr-5 mr-md-20 w-40 h-auto' class:invisible={current} use:click={toggleDropdown}>
     <span bind:this={options} class='btn btn-square h-full bg-transparent border-0 options d-flex align-items-center muted justify-content-center flex-shrink-0 h-full w-40' title='Options'><EllipsisVertical size='2rem' /></span>
     <div class='dropdown-menu dropdown-menu-right pt-5 pb-5 ml-10 text-capitalize w-auto hm-400 text-nowrap'>
-      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details p-5' class:d-flex={!current} aria-label='Play Torrent' title='Play Torrent' use:click={() => { add(infoHash, null, infoHash); toggleDropdown() }}>
+      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details py-5 px-10' class:d-flex={!current} aria-label='Play Torrent' title='Play Torrent' use:click={() => { add(infoHash, null, infoHash); toggleDropdown() }}>
         Play
       </div>
-      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details p-5' class:d-flex={!current} aria-label='Untrack Torrent' title='Untrack Torrent' use:click={() => { untrack(infoHash); toggleDropdown() }}>
+      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details py-5 px-10' class:d-flex={!current} aria-label='Untrack Torrent' title='Untrack Torrent' use:click={() => { untrack(infoHash); toggleDropdown() }}>
         Untrack
       </div>
-      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details p-5' class:d-flex={resolvedId && $mediaCache[resolvedId]} aria-label='View Media' title='View Media' use:click={() => { viewMedia(); toggleDropdown() }}>
+      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details py-5 px-10' class:d-flex={resolvedId && $mediaCache[resolvedId]} aria-label='View Media' title='View Media' use:click={() => { viewMedia(); toggleDropdown() }}>
         View Media
       </div>
-      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details p-5' class:d-flex={!completed && !current && data.progress === 1} aria-label='Stop Seeding' title='Stop Seeding' use:click={() => { complete(infoHash); toggleDropdown() }}>
+      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details py-5 px-10' class:d-flex={!completed && !current && data.progress === 1} aria-label='Stop Seeding' title='Stop Seeding' use:click={() => { complete(infoHash); toggleDropdown() }}>
         Stop Seeding
       </div>
-      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details p-5' class:d-flex={!completed && !current && data.progress < 1} aria-label='Stop Download' title='Stop Download' use:click={() => { unload(infoHash, true); toggleDropdown() }}>
+      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details py-5 px-10' class:d-flex={!completed && !current && data.progress < 1} aria-label='Stop Download' title='Stop Download' use:click={() => { unload(infoHash, true); toggleDropdown() }}>
         Stop Download
       </div>
-      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details p-5' class:d-flex={completed && !data.incomplete} aria-label='Start Seeding' title='Start Seeding' use:click={() => { stage(infoHash, null, infoHash); toggleDropdown() }}>
+      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details py-5 px-10' class:d-flex={completed && !data.incomplete && settings.value.seedingLimit > 1} aria-label='Start Seeding' title='Start Seeding' use:click={() => { stage(infoHash, null, infoHash); toggleDropdown() }}>
         Start Seeding
       </div>
-      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details p-5' class:d-flex={completed && data.incomplete} aria-label='Continue Downloading' title='Continue Downloading' use:click={() => { stage(infoHash, null, infoHash); toggleDropdown() }}>
+      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details py-5 px-10' class:d-flex={completed && data.incomplete} aria-label='Continue Downloading' title='Continue Downloading' use:click={() => { stage(infoHash, null, infoHash); toggleDropdown() }}>
         Continue Downloading
       </div>
     </div>

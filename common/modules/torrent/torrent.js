@@ -7,7 +7,6 @@ import { status } from '@/modules/networking.js'
 import { writable } from 'simple-store-svelte'
 import { toast } from 'svelte-sonner'
 import clipboard from '@/modules/clipboard.js'
-import { deepEqual } from '@/modules/util.js'
 import { setHash } from '@/modules/anime/animehash.js'
 import IPC from '@/modules/ipc.js'
 import 'browser-event-target-emitter'
@@ -27,7 +26,7 @@ class TorrentWorker extends EventTarget {
         this.port.onmessage(this.handleMessage.bind(this))
         resolve()
       })
-      _settings = { userID: cache.cacheID, dht: !settings.value.torrentDHT, maxConns: settings.value.maxConns, downloadLimit: (settings.value.torrentSpeed * 1048576) || 0, uploadLimit: (settings.value.torrentSpeed * 1048576) || 0, torrentPort: settings.value.torrentPort || 0, dhtPort: settings.value.dhtPort || 0, torrentPersist: settings.value.torrentPersist, torrentPeX: settings.value.torrentPeX, torrentStreamedDownload: settings.value.torrentStreamedDownload, torrentPathNew: settings.value.torrentPathNew, playerPath: settings.value.playerPath, seedingLimit: settings.value.seedingLimit }
+      _settings = { userID: cache.cacheID, dht: !settings.value.torrentDHT, maxConns: settings.value.maxConns, downloadLimit: (settings.value.torrentSpeed * 1048576) || 0, uploadLimit: (settings.value.torrentSpeed * 1048576) || 0, torrentPort: settings.value.torrentPort || 0, dhtPort: settings.value.dhtPort || 0, torrentPersist: settings.value.torrentPersist, torrentPeX: !settings.value.torrentPeX, torrentStreamedDownload: settings.value.torrentStreamedDownload, torrentPathNew: settings.value.torrentPathNew, playerPath: settings.value.playerPath, seedingLimit: settings.value.seedingLimit }
       IPC.emit('portRequest', _settings)
     })
     clipboard.on('text', ({ detail }) => {
@@ -66,8 +65,8 @@ export const seedingTorrents = writable([])
 export const completedTorrents = writable([])
 
 settings.subscribe(value => {
-  let settingsVal = { userID: cache.cacheID, dht: !value.torrentDHT, maxConns: value.maxConns, downloadLimit: (value.torrentSpeed * 1048576) || 0, uploadLimit: (value.torrentSpeed * 1048576) || 0, torrentPort: value.torrentPort || 0, dhtPort: value.dhtPort || 0, torrentPersist: value.torrentPersist, torrentPeX: value.torrentPeX, torrentStreamedDownload: value.torrentStreamedDownload, torrentPathNew: value.torrentPathNew, playerPath: value.playerPath, seedingLimit: value.seedingLimit }
-  if (deepEqual(_settings) !== deepEqual(settingsVal)) {
+  let settingsVal = { userID: cache.cacheID, dht: !value.torrentDHT, maxConns: value.maxConns, downloadLimit: (value.torrentSpeed * 1048576) || 0, uploadLimit: (value.torrentSpeed * 1048576) || 0, torrentPort: value.torrentPort || 0, dhtPort: value.dhtPort || 0, torrentPersist: value.torrentPersist, torrentPeX: !value.torrentPeX, torrentStreamedDownload: value.torrentStreamedDownload, torrentPathNew: value.torrentPathNew, playerPath: value.playerPath, seedingLimit: value.seedingLimit }
+  if (JSON.stringify(_settings) !== JSON.stringify(settingsVal)) {
     _settings = settingsVal
     client.send('settings', _settings)
   }
@@ -104,7 +103,7 @@ client.on('loaded', ({ detail }) => {
 })
 
 client.on('untrack',  ({ detail }) => {
-  debug(`Untracking torrent: ${detail}`)
+  debug(`Untracking torrent:`, JSON.stringify(detail))
   for (const category of ['stagingTorrents', 'seedingTorrents', 'completedTorrents']) {
     const list = cache.getEntry(caches.GENERAL, category) || []
     if (list.includes(detail)) cache.setEntry(caches.GENERAL, category, list.filter(h => h !== detail))
@@ -115,7 +114,7 @@ client.on('untrack',  ({ detail }) => {
 })
 
 client.on('staging',  ({ detail }) => {
-  debug(`Staging torrent: ${detail}`)
+  debug(`Staging torrent:`, JSON.stringify(detail))
   const torrents = cache.getEntry(caches.GENERAL, 'stagingTorrents') || []
   if (!torrents.includes(detail)) {
     cache.setEntry(caches.GENERAL, 'stagingTorrents', Array.from(new Set([...torrents, detail])))
@@ -129,14 +128,14 @@ client.on('staging',  ({ detail }) => {
 })
 
 client.on('seeding',  ({ detail }) => {
-  debug(`Seeding torrent: ${detail}`)
+  debug(`Seeding torrent:`, JSON.stringify(detail))
   const torrents = cache.getEntry(caches.GENERAL, 'seedingTorrents') || []
   if (!torrents.includes(detail)) cache.setEntry(caches.GENERAL, 'seedingTorrents', Array.from(new Set([...torrents, detail])))
   deduplicateTorrents(detail, 'stagingTorrents', 'completedTorrents')
 })
 
 client.on('completed',  ({ detail }) => {
-  debug(`Completed torrent: ${detail}`)
+  debug(`Completed torrent:`, JSON.stringify(detail))
   const torrents = cache.getEntry(caches.GENERAL, 'completedTorrents') || []
   if (!torrents.includes(detail?.infoHash)) cache.setEntry(caches.GENERAL, 'completedTorrents', Array.from(new Set([...torrents, detail.infoHash])))
   deduplicateTorrents(detail?.infoHash, 'stagingTorrents', 'seedingTorrents')
@@ -147,11 +146,12 @@ client.on('completed',  ({ detail }) => {
 })
 
 client.on('completedStats', ({ detail }) => {
+  window.dispatchEvent(new Event('rescan_done'))
   completedTorrents.update(torrents => [...Array.from(new Map(detail.map(torrent => [torrent.infoHash, torrent])).values()), ...torrents])
 })
 
 client.on('error', ({ detail }) => {
-  debug(`Error: ${detail.message || detail}`)
+  debug(`Error:`, detail.message || JSON.stringify(detail))
   if (settings.value.toasts.includes('All') || settings.value.toasts.includes('Errors')) {
     for (const exclude of TorrentWorker.excludedToastMessages) {
       if ((detail.message || detail)?.toLowerCase()?.includes(exclude)) return
@@ -161,7 +161,7 @@ client.on('error', ({ detail }) => {
 })
 
 client.on('warn', ({ detail }) => {
-  debug(`Warn: ${detail.message || detail}`)
+  debug(`Warn:`, detail.message || JSON.stringify(detail))
   if (settings.value.toasts.includes('All') || settings.value.toasts.includes('Warnings')) {
     for (const exclude of TorrentWorker.excludedToastMessages) {
       if ((detail.message || detail)?.toLowerCase()?.includes(exclude)) return
@@ -171,7 +171,7 @@ client.on('warn', ({ detail }) => {
 })
 
 client.on('info', ({ detail }) => {
-  debug(`Info: ${detail.message || detail}`)
+  debug(`Info:`, detail.message || JSON.stringify(detail))
   for (const exclude of TorrentWorker.excludedToastMessages) {
     if ((detail.message || detail)?.toLowerCase()?.includes(exclude)) return
   }
@@ -180,7 +180,7 @@ client.on('info', ({ detail }) => {
 
 export async function add(torrentID, search, hash, magnet) {
   if (torrentID) {
-    debug('Adding torrent', { torrentID, search, hash, magnet })
+    debug('Adding torrent', JSON.stringify({ torrentID, search, hash, magnet }))
     files.set([])
     page.set('player')
     media.value = !hash && !search ? { media: (search?.media || media.value?.media), episode: (search?.episode || media.value?.episode), ...(media.value?.torrent ? { torrent: true } : { feed: true }) } : { torrent: true }
@@ -192,7 +192,7 @@ export async function add(torrentID, search, hash, magnet) {
 }
 export async function stage(torrentID, search, hash) {
   if (torrentID) {
-    debug('Pre-Adding torrent', { torrentID, search, hash })
+    debug('Pre-Adding torrent', JSON.stringify({ torrentID, search, hash }))
     if (hash && search) setHash(hash, { mediaId: search.media?.id, episode: search.episode, client: true })
     client.send('stage', { id: torrentID, hash: (hash === torrentID && torrentID) || false })
     if (hash) {
@@ -208,14 +208,14 @@ export async function stage(torrentID, search, hash) {
 
 export async function unload(torrent, hash) {
   if (torrent) {
-    debug('Unloading torrent', { torrent, hash })
+    debug('Unloading torrent', JSON.stringify({ torrent, hash }))
     client.send('unload', { torrent, hash })
   }
 }
 
 export async function untrack(hash) {
   if (hash) {
-    debug('Untracking torrent', { hash })
+    debug('Untracking torrent', hash)
     client.send('untrack', hash)
   }
 }
@@ -228,7 +228,7 @@ export async function complete(hash) {
 }
 // external player for android
 client.on('open', ({ detail }) => {
-  debug(`Open: ${detail}`)
+  debug(`Open:`, JSON.stringify(detail))
   IPC.emit('intent', detail)
 })
 
@@ -243,6 +243,7 @@ window.addEventListener('torrent-unload', () => {
 window.addEventListener('add', (event) => add(event.detail.resolvedHash, event.detail.search, event.detail.resolvedHash))
 
 window.addEventListener('rescan', () => client.send('rescan'))
+client.on('rescan_done', () => window.dispatchEvent(new Event('rescan_done')))
 
 function deduplicateTorrents(hash, ..._caches) {
   if (!hash) return

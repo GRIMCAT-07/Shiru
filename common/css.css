@@ -347,6 +347,10 @@ a[href]:active, button:not([disabled]):active:not([data-sonner-toast] > button),
   cursor: not-allowed;
 }
 
+.cursor-wait {
+  cursor: wait !important;
+}
+
 .mb-30 {
   margin-bottom: 3rem;
 }

@@ -1,4 +1,5 @@
 <script context='module'>
+  import { writable } from 'simple-store-svelte'
   import { click } from '@/modules/click.js'
   import { matchPhrase } from '@/modules/util.js'
   import { settings } from '@/modules/settings.js'
@@ -6,15 +7,19 @@
   import ErrorCard from '@/components/cards/ErrorCard.svelte'
   import TorrentDetails from '@/views/TorrentManager/TorrentDetails.svelte'
   import { Search, RefreshCw, Package, Percent, Activity, Scale, Gauge, CloudDownload, CloudUpload, Sprout, Magnet, Timer } from 'lucide-svelte'
+  const rescanning = writable(true)
+  window.addEventListener('rescan_done', () => rescanning.value = false)
 </script>
 <script>
   export let miniplayerPadding = ''
 
   let searchText = ''
   function filterResults(results, searchText) {
-    if (!searchText?.length) return results
-    return results.filter(({ name }) => matchPhrase(searchText, name, 0.4, false, true)) || []
+    const dedupe = results.filter((torrent, index, arr) => arr.findIndex(_torrent => _torrent.infoHash === torrent.infoHash) === index)
+    if (!searchText?.length) return dedupe
+    return dedupe.filter(({ name }) => matchPhrase(searchText, name, 0.4, false, true)) || []
   }
+  $: disableRescan = settings.value.seedingLimit <= 1 && !settings.value.torrentPersist
   $: filteredLoaded = matchPhrase(searchText, $loadedTorrent?.name, 0.4, false, true)
   $: filteredStaging = filterResults($stagingTorrents, searchText) || []
   $: filteredSeeding = filterResults($seedingTorrents, searchText) || []
@@ -22,6 +27,7 @@
   $: foundResults = !(searchText?.length && !filteredLoaded && !filteredStaging.length && !filteredSeeding.length && !filteredCompleted.length)
 </script>
 
+<div class='bg-dark h-full w-full root status-transition {$$restProps.class}' style={($$restProps.class ? 'padding-top: max(var(--safe-area-top), var(--safe-bar-top));' : '') + miniplayerPadding}>
   <div class='w-full {$$restProps.class ? `ml-20 mt-20` : ``}'>
     <h4 class='font-weight-bold m-0 mb-10'>Manage Torrents</h4>
     <div class='d-flex align-items-center'>
@@ -35,7 +41,7 @@
           data-option='search'
           placeholder='Filter torrents by text, or manually specify one by pasting a magnet link or torrent file' bind:value={searchText} />
       </div>
-      <button type='button' use:click={() => window.dispatchEvent(new Event('rescan'))} disabled={!settings.value.torrentPersist} title={!settings.value.torrentPersist ? 'Persist Files is disabled' : 'Rescan Cache'} class='btn btn-primary d-flex align-items-center justify-content-center ml-20 mr-20 font-scale-16 h-full'><RefreshCw class='mr-10' size='1.8rem' strokeWidth='2.5'/><span>Rescan</span></button>
+      <button type='button' use:click={() => { if (!disableRescan) { $rescanning = true; window.dispatchEvent(new Event('rescan')) } }} disabled={disableRescan || $rescanning} title={disableRescan ? 'Enable in Settings' : $rescanning ? 'Rescanning Cache...' : 'Rescan Cache'} class='btn btn-primary d-flex align-items-center justify-content-center ml-20 mr-20 font-scale-16 h-full' class:cursor-wait={$rescanning}><RefreshCw class='mr-10' size='1.8rem' strokeWidth='2.5'/><span>Rescan</span></button>
     </div>
   </div>
   <div class='d-flex flex-column w-full text-wrap text-break-word font-scale-16 mt-20'>

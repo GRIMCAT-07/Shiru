@@ -1,11 +1,15 @@
 import { createHash } from 'crypto'
-import { base32toHex } from '../util.js'
+import { videoRx } from '../util.js'
 import querystring from 'querystring'
-import bencode from 'bencode'
-import fs from 'fs/promises'
+import parseTorrent from 'parse-torrent'
+import { stat } from 'fs/promises'
+import { statSync } from 'fs'
 import path from 'path'
 import os from 'os'
 
+/**
+ * Default list of tracker announce URLs (Base64-decoded).
+ */
 export const ANNOUNCE = [
   atob('d3NzOi8vdHJhY2tlci5vcGVud2VidG9ycmVudC5jb20='),
   atob('d3NzOi8vdHJhY2tlci53ZWJ0b3JyZW50LmRldg=='),
@@ -23,28 +27,112 @@ export const ANNOUNCE = [
   atob('aHR0cDovL3RyYWNrZXIuYW5pcmVuYS5jb206ODAvYW5ub3VuY2U=')
 ]
 
+/**
+ * Temporary directory path for WebTorrent usage (used for fallback).
+ */
 export let TMP
 try {
-  TMP = path.join(fs.statSync('/tmp') && '/tmp', 'webtorrent')
+  TMP = path.join(statSync('/tmp') && '/tmp', 'webtorrent')
 } catch (err) {
   TMP = path.join(typeof os.tmpdir === 'function' ? os.tmpdir() : '/', 'webtorrent')
 }
 
+/**
+ * Converts an object into a URL query string with safe encoding for special characters.
+ * @param {Object} obj - Object to convert.
+ * @returns {string} Encoded query string.
+ */
+export const stringifyQuery = obj => {
+  let ret = querystring.stringify(obj, null, null, { encodeURIComponent: escape })
+  ret = ret.replace(/[@*/+]/g, char => // `escape` doesn't encode the characters @*/+ so we do it manually
+      `%${char.charCodeAt(0).toString(16).toUpperCase()}`)
+  return ret
+}
+
+/**
+ * Compares two binary buffers for equality.
+ * @param {Uint8Array|Buffer} a - First buffer.
+ * @param {Uint8Array|Buffer} b - Second buffer.
+ * @returns {boolean} True if buffers match exactly.
+ */
+export const buffersEqual = (a, b) => {
+  if (!a || !b) return false
+  const va = a instanceof Uint8Array ? a : new Uint8Array(a)
+  const vb = b instanceof Uint8Array ? b : new Uint8Array(b)
+  if (va.byteLength !== vb.byteLength) return false
+  for (let i = 0; i < va.length; i++) {
+    if (va[i] !== vb[i]) return false
+  }
+  return true
+}
+
+/**
+ * Encodes binary data to a Base64 string.
+ * @param {ArrayBuffer|Uint8Array|string} data - The data to encode.
+ * @returns {string} Base64-encoded string.
+ */
 export function toBase64(data) {
   return Buffer.from(data).toString('base64')
 }
 
+/**
+ * Decodes a Base64 string into a Uint8Array.
+ * @param {string} buffer - Base64 string to decode.
+ * @returns {Uint8Array} Decoded binary data.
+ */
 export function fromBase64(buffer) {
   return Uint8Array.from(Buffer.from(buffer, 'base64'))
 }
 
-export const stringifyQuery = obj => {
-  let ret = querystring.stringify(obj, null, null, { encodeURIComponent: escape })
-  ret = ret.replace(/[@*/+]/g, char => // `escape` doesn't encode the characters @*/+ so we do it manually
-    `%${char.charCodeAt(0).toString(16).toUpperCase()}`)
-  return ret
+/**
+ * Calculates progress and total size from a cached torrent.
+ * @param {Object} cache - Cached torrent object.
+ * @param {string} cache.torrentFile - Base64-encoded torrent file.
+ * @param {Uint8Array} cache.bitfield - Bitfield indicating completed pieces.
+ * @returns {Promise<{progress: number, size: number} | null>}
+ */
+export async function getProgressAndSize(cache) {
+  if (!cache) return null
+  try {
+    const parsed = await parseTorrent(fromBase64(cache.torrentFile))
+    const bits = new Uint8Array(cache.bitfield)
+    let pieces = 0
+    for (let i = 0; i < parsed.pieces.length; i++) {
+      if (bits[i >> 3] & (1 << (7 - (i & 7)))) pieces++
+    }
+    return { progress: (pieces / parsed.pieces.length) || 0, size: parsed.length || 0 }
+  } catch {
+    return { progress: 0, size: 0}
+  }
 }
 
+/**
+ * Checks whether all video files in a torrent are fully downloaded and match expected sizes.
+ * @param {Uint8Array|Buffer} torrentFile - Torrent file buffer.
+ * @param {string} torrentPath - Path to downloaded torrent content.
+ * @returns {Promise<boolean|null>} True if complete, false if incomplete, null if invalid input.
+ */
+export async function hasIntegrity(torrentFile, torrentPath) {
+  if (!torrentFile || torrentPath == null) return null
+  try {
+    const parsed = await parseTorrent(torrentFile)
+    if (parsed.files && parsed.files.length) {
+      for (const file of parsed.files?.filter(file => videoRx.test(file.name))) {
+        const stats = await stat(path.join(torrentPath, file.path))
+        if (stats.size !== file.length) return false
+      }
+    }
+    return true
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Converts an Error/Event/unknown value into a human-readable string.
+ * @param {any} e - Error, Event, or any value.
+ * @returns {string} String representation of the error.
+ */
 export function errorToString (e) {
   if (typeof Event !== 'undefined' && e instanceof Event) {
     if (e.error) return errorToString(e.error)
@@ -63,136 +151,29 @@ export function errorToString (e) {
   return e
 }
 
-export async function saveTorrent(torrentCache, infoHash, data) {
-  if (!torrentCache || !infoHash || !data) return
-  await fs.writeFile(path.join(torrentCache, infoHash), JSON.stringify(data, null, 2))
-}
-
-export async function getTorrent(torrentCache, torrent, torrentHash) {
-  if (!torrentCache || (!torrent?.length && !torrentHash?.length)) return null
-  try {
-    const content = await fs.readFile(path.join(torrentCache, torrentHash || (await getInfoHash(torrent))), 'utf8')
-    return JSON.parse(content)
-  } catch (error) {
-    if (error.code === 'ENOENT') return null
-    throw error
-  }
-}
-
-export async function getTorrents(torrentCache) {
-  try {
-    const results = []
-    for (const fileName of (await fs.readdir(torrentCache, { withFileTypes: true })).filter(entry => entry.isFile() && /^[a-f0-9]{40}$/.test(entry.name)).map(entry => entry.name)) {
-      try {
-        const filePath = path.join(torrentCache, fileName)
-        const content = await fs.readFile(filePath, 'utf8')
-        results.push(JSON.parse(content))
-      } catch (err) {
-        if (err.code !== 'ENOENT') debug(`Skipping invalid JSON file ${fileName}:`, err.message)
-      }
-    }
-    return results
-  } catch (err) {
-    debug('Failed to read torrent cache directory:', err.message)
-    return []
-  }
-}
-
-export async function existsTorrent(folder, fileName) {
-  try {
-    await fs.access(path.join(folder, fileName))
-    return true
-  } catch (error) {
-    if (error.code === 'ENOENT') return false
-    throw error
-  }
-}
-
-export async function removeTorrent(folder, fileName) {
-  try {
-    const torrentPath = path.join(folder, fileName)
-    if ((await fs.lstat(torrentPath)).isDirectory()) await fs.rm(torrentPath, { recursive: true, force: true })
-    else await fs.unlink(torrentPath)
-  } catch (error) {
-    if (error.code === 'ENOENT') return
-    throw error
-  }
-}
-
-export async function isVerified(targetPath, _structureHash) {
-  if (!_structureHash) return false
-  try {
-    return (await structureHash(targetPath)) === _structureHash
-  } catch (error) {
-    return false
-  }
-}
-
-export function getHash(data) {
+/**
+ * Creates a SHA-1 hash from the given data.
+ * @param {ArrayBuffer|Uint8Array|string} data - Data to hash.
+ * @returns {string} Hex-encoded SHA-1 hash.
+ */
+export function makeHash(data) {
   return createHash('sha1').update(data).digest('hex')
 }
 
-export async function structureHash(targetPath) {
-  try {
-    const stat = await fs.stat(targetPath)
-    if (stat.isFile()) return createHash('sha1').update(`${path.basename(targetPath)}:${stat.size}:${stat.mtimeMs}`).digest('hex')
-    const hash = createHash('sha1')
-    const files = []
-    async function walk(dir) {
-      const entries = await fs.readdir(dir, { withFileTypes: true })
-      for (const entry of entries) {
-        const fullPath = path.join(dir, entry.name)
-          if (entry.isDirectory()) {
-            await walk(fullPath)
-          } else if (entry.isFile()) {
-            const fileStat = await fs.stat(fullPath)
-            files.push(`${path.relative(targetPath, fullPath)}:${fileStat.size}:${fileStat.mtimeMs}`)
-          }
-        }
-    }
-    await walk(targetPath)
-    files.sort()
-    for (const entry of files) hash.update(entry)
-    return hash.digest('hex')
-  } catch (error) {
-    if (error.code === 'ENOENT') return null
-    throw error
-  }
-}
-
-const torrentHashes = JSON.parse(localStorage.getItem('torrentHashes')) || {}
 /**
- * @param {any} input
- * @param {any} og_input
- * @returns {Promise<string>}
+ * Extracts or computes the info hash from a magnet URI, torrent URL, or torrent file buffer.
+ * @param {string|Uint8Array|Buffer} input - Magnet link, torrent URL, or torrent file data.
+ * @returns {Promise<string>} Hex-encoded info hash.
+ * @throws {Error} If format is unsupported or data is invalid.
  */
-export async function getInfoHash(input, og_input) {
-  if (typeof input === 'string' && torrentHashes?.[input]) return torrentHashes?.[input]
-  if (typeof input === 'string') {
-    if (input.startsWith('magnet:')) {
-      const match = input.match(/btih:([a-fA-F0-9]{40}|[a-zA-Z0-9]{32})/)
-      if (!match) throw new Error('Invalid magnet URI')
-      let hash = match[1].toLowerCase()
-      if (hash.length === 32) hash = base32toHex(hash)
-      torrentHashes[input] = hash
-      localStorage.setItem('torrentHashes', JSON.stringify(torrentHashes))
-      return hash
-    } else if (input.startsWith('http') || input.endsWith('.torrent')) {
-      const res = await fetch(input)
-      if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`)
-        const buf = new Uint8Array(await res.arrayBuffer())
-        return getInfoHash(buf, input)
-    }
-    throw new Error('Unsupported string format')
-  } else {
-    const meta = bencode.decode(input)
-    if (!meta?.info) throw new Error('Missing info section in torrent file')
-      const infoBuf = bencode.encode(meta.info)
-      const infoBufHash = createHash('sha1').update(infoBuf).digest('hex')
-      if (og_input) {
-        torrentHashes[og_input] = infoBufHash
-        localStorage.setItem('torrentHashes', JSON.stringify(torrentHashes))
-      }
-    return infoBufHash
+export async function getInfoHash(input) {
+  if (typeof input === 'string' && input.startsWith('http')) {
+    const res = await fetch(input)
+    if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`)
+    input = new Uint8Array(await res.arrayBuffer())
   }
+
+  const parsed = await parseTorrent(input)
+  if (!parsed.infoHash) throw new Error('Invalid torrent data or magnet link')
+  return parsed.infoHash.toLowerCase()
 }
