@@ -8,6 +8,8 @@
   import { Search, RefreshCw, Package, Percent, Activity, Scale, Gauge, CloudDownload, CloudUpload, Sprout, Magnet, Timer } from 'lucide-svelte'
 </script>
 <script>
+  export let miniplayerPadding = ''
+
   let searchText = ''
   function filterResults(results, searchText) {
     if (!searchText?.length) return results
@@ -20,7 +22,6 @@
   $: foundResults = !(searchText?.length && !filteredLoaded && !filteredStaging.length && !filteredSeeding.length && !filteredCompleted.length)
 </script>
 
-<div class='bg-dark h-full w-full root status-transition {$$restProps.class}' style={$$restProps.class ? 'padding-top: max(var(--safe-area-top), var(--safe-bar-top))' : ''}>
   <div class='w-full {$$restProps.class ? `ml-20 mt-20` : ``}'>
     <h4 class='font-weight-bold m-0 mb-10'>Manage Torrents</h4>
     <div class='d-flex align-items-center'>

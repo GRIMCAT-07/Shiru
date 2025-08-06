@@ -5,8 +5,9 @@
   import WatchTogether from '@/views/WatchTogether/WatchTogether.svelte'
   import AiringSchedule from '@/views/AiringSchedule.svelte'
   import ViewTorrent from '@/views/TorrentManager/TorrentManager.svelte'
-  import Miniplayer from '@/views/Player/Miniplayer.svelte'
+  import Miniplayer, { isMobile } from '@/views/Player/Miniplayer.svelte'
   import Search from '@/views/Search.svelte'
+  import { cache, caches } from '@/modules/cache.js'
   import { search, key } from '@/modules/sections.js'
   import { SUPPORTS } from '@/modules/support.js'
   import { status } from '@/modules/networking.js'
@@ -15,7 +16,17 @@
   export let overlay = []
   export let playPage = false
 
+  let miniplayerTop
+  export let miniplayerPadding = getPadding()
+  export let miniplayerActive = false
+  setInterval(() => (miniplayerPadding = getPadding()), 500)
+  function getPadding() {
+    miniplayerTop = cache.getEntry(caches.GENERAL, 'posMiniplayer')?.includes('top')
+    return (miniplayerTop ? `padding-top: ` : `padding-bottom: `) + (!$isMobile ? `${(parseFloat(cache.getEntry(caches.GENERAL, 'widthMiniplayer')) || 0) * 11 / 16}px !important` : `18rem !important`)
+  }
+
   $: document.documentElement.style.setProperty('--safe-bar-top', !SUPPORTS.isAndroid && $status !== 'offline' ? '18px' : '0px')
+  $: miniplayerActive = !(playPage || !$media || !Object.keys($media).length || $media?.display)
   $: visible = !overlay.includes('torrent') && !overlay.includes('notifications') && !overlay.includes('profiles') && !overlay.includes('minimizetray') && !overlay.includes('trailer') && !playPage && !$media?.display
 </script>
 <div class='w-full h-full position-absolute overflow-hidden' class:invisible={!($media && (Object.keys($media).length > 0)) || (playPage && overlay.includes('viewanime')) || (!visible && (page !== 'player'))}>
@@ -23,8 +34,9 @@
     <MediaHandler miniplayer={page !== 'player' || overlay.includes('viewanime')} bind:page bind:overlay bind:playPage />
   </Miniplayer>
 </div>
+
 {#if page === 'settings'}
-  <Settings bind:playPage bind:overlay />
+  <Settings bind:playPage bind:overlay miniplayerPadding={miniplayerActive ? miniplayerPadding : ''} />
 {:else if page === 'home'}
   <Home />
 {:else if page === 'search'}
@@ -34,5 +46,5 @@
 {:else if page === 'watchtogether'}
   <WatchTogether />
 {:else if page === 'torrents'}
-  <ViewTorrent class='overflow-y-scroll overflow-x-hidden'/>
+  <ViewTorrent class='overflow-y-scroll overflow-x-hidden' miniplayerPadding={miniplayerActive && miniplayerPadding?.match(/bottom/i) ? miniplayerPadding : ''}/>
 {/if}

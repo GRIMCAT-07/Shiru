@@ -29,9 +29,6 @@
 </script>
 
 <script>
-  import { isMobile } from '@/views/Player/Miniplayer.svelte'
-  import { nowPlaying as media } from '@/views/Player/MediaHandler.svelte'
-  import { cache, caches } from '@/modules/cache.js'
   import { Tabs, TabLabel, Tab } from '@/components/Tabination.js'
   import { onDestroy } from 'svelte'
   import PlayerSettings from '@/views/Settings/PlayerSettings.svelte'
@@ -46,6 +43,7 @@
 
   export let overlay = []
   export let playPage = false
+  export let miniplayerPadding = ''
 
   const groups = {
     player: {
@@ -98,20 +96,10 @@
     $settings.playerPath = data
   }
 
-  let miniplayerTop
-  let miniplayerPadding = getPadding()
-  $: miniplayerActive = !(playPage || !$media || !Object.keys($media).length || $media?.display)
-  const intervalId = setInterval(() => (miniplayerPadding = getPadding()), 500)
-  function getPadding() {
-    miniplayerTop = cache.getEntry(caches.GENERAL, 'posMiniplayer')?.includes('top')
-    return (miniplayerTop ? `padding-top: ` : `padding-bottom: `) + (!$isMobile ? `${(parseFloat(cache.getEntry(caches.GENERAL, 'widthMiniplayer')) || 0) * 11 / 16}px !important` : `18rem !important`)
-  }
-
   $: IPC.emit('discord-rpc', $settings.enableRPC)
   IPC.on('path', pathListener)
   IPC.on('player', playerListener)
   onDestroy(() => {
-    clearInterval(intervalId)
     IPC.off('path', pathListener)
     IPC.off('player', playerListener)
   })
@@ -141,7 +129,7 @@
       <Tab>
         <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
           <div class='scroll-container'>
-            <div class='page pb-100' style={miniplayerActive ? miniplayerPadding : ''}>
+            <div class='page pb-100' style={miniplayerPadding}>
               <PlayerSettings bind:settings={$settings} bind:playPage />
             </div>
           </div>
@@ -150,7 +138,7 @@
       <Tab>
         <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
           <div class='scroll-container'>
-            <div class='page pb-100' style={miniplayerActive ? miniplayerPadding : ''}>
+            <div class='page pb-100' style={miniplayerPadding}>
               <ClientSettings bind:settings={$settings} />
             </div>
           </div>
@@ -159,7 +147,7 @@
       <Tab>
         <div class='root h-full w-full overflow-y-md-auto p-20 pt-15'>
           <div class='scroll-container'>
-            <div class='page pb-100' style={miniplayerActive ? miniplayerPadding : ''}>
+            <div class='page pb-100' style={miniplayerPadding}>
               <ViewTorrent />
             </div>
           </div>
@@ -168,7 +156,7 @@
       <Tab>
         <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
           <div class='scroll-container'>
-            <div class='page pb-100' style={miniplayerActive ? miniplayerPadding : ''}>
+            <div class='page pb-100' style={miniplayerPadding}>
               <InterfaceSettings bind:settings={$settings} />
             </div>
           </div>
@@ -177,7 +165,7 @@
       <Tab>
         <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
           <div class='scroll-container'>
-            <div class='page pb-100' style={miniplayerActive ? miniplayerPadding : ''}>
+            <div class='page pb-100' style={miniplayerPadding}>
               <ExtensionSettings bind:settings={$settings} />
             </div>
           </div>
@@ -187,7 +175,7 @@
       <Tab>
         <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
           <div class='scroll-container'>
-            <div class='page pb-100' style={miniplayerActive ? miniplayerPadding : ''}>
+            <div class='page pb-100' style={miniplayerPadding}>
               <AppSettings {version} bind:settings={$settings} />
             </div>
           </div>
@@ -196,7 +184,7 @@
       <Tab>
         <div class='root h-full w-full overflow-y-md-auto p-20 pt-5'>
           <div class='scroll-container'>
-            <div class='page pb-100' style={miniplayerActive ? miniplayerPadding : ''}>
+            <div class='page pb-100' style={miniplayerPadding}>
               <Changelog {version} />
             </div>
           </div>
