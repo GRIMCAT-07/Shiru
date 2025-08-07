@@ -14,7 +14,6 @@
     IPC.emit('set:angle', settings.angle)
   }
   export let settings
-
   const listStatus = [['Watching', 'CURRENT'], ['Planning', 'PLANNING'], ['Paused', 'PAUSED'], ['Completed', 'COMPLETED'], ['Dropped', 'DROPPED'], ['Rewatching', 'REPEATING'], ['Not on List', 'NOTONLIST']]
 </script>
 
@@ -30,8 +29,11 @@
 {/if}
 
 <h4 class='mb-10 font-weight-bold'>Interface Settings</h4>
-<SettingCard title='CSS Variables' description='Used for custom themes. Can change colors, sizes, spacing and more. Supports only variables. Best way to discover variables is to use the built-in devtools via Ctrl+Shift+I or F12.'>
-  <textarea class='form-control w-500 mw-full bg-dark' placeholder='--accent-color: #e5204c;' bind:value={$variables} />
+<SettingCard title='CSS Variables' description='Used for custom themes. Can change colors, sizes, spacing and more. Supports only variables.{!SUPPORTS.isAndroid ? ` Best way to discover variables is to use the built-in devtools.` : ``}'>
+  <div class='d-flex flex-column'>
+    <textarea class='form-control w-md-500 w-full bg-dark' placeholder='--accent-color: #e5204c;' bind:value={$variables} />
+    {#if !SUPPORTS.isAndroid}<button type='button' use:click={() => IPC.emit('torrent-devtools')} class='btn btn-primary d-flex align-items-center justify-content-center mt-10'><span class='text-truncate'>Open Devtools</span></button>{/if}
+  </div>
 </SettingCard>
 {#if !SUPPORTS.isAndroid}
   <SettingCard title='Donate Button' description='Enables the "Support This App" button on the side bar.'>
