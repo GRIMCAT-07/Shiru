@@ -75,7 +75,7 @@
     <label for='card-audio'>{settings.cardAudio ? 'On' : 'Off'}</label>
   </div>
 </SettingCard>
-<SettingCard title='Prefer Dubs' description='If your progress on a series matches the latest airing dub episode the series will be hidden from your continue watching until the next episode is available. This will also send notifications for an anime only if a dubbed episode is available or if the series is sub-only (no dub exists). This is an ideal setting for viewers who prioritize watching dubbed content whenever possible.'>
+<SettingCard title='Prefer Dubs' description={'If your progress on a series matches the latest aired dubbed episode, the series will be hidden from Continue Watching until the next dub is available. Notifications will only be sent when a dubbed episode is released or if the series is sub-only (i.e., no dub exists).\n\nIf your progress goes beyond the latest dubbed episode, this setting will be ignored and the series will be treated as subbed. The Subbed Releases section will automatically hide dubbed series, and Dubbed Releases will hide subbed ones.\n\nThis setting is ideal for viewers who prefer dubbed content whenever available.'}>
   <div class='custom-switch'>
     <input type='checkbox' id='prefer-dubs' bind:checked={settings.preferDubs} />
     <label for='prefer-dubs'>{settings.preferDubs ? 'On' : 'Off'}</label>
