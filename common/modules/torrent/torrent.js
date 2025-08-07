@@ -63,6 +63,7 @@ setTimeout(() => {
 }, 10000)
 
 IPC.on('webtorrent-crashed', () => {
+  console.error('Ooops! WebTorrent Crashed! A crash has been detected... The process has automatically been restarted.')
   toast.error('Ooops! WebTorrent Crashed!', {
     description: 'A crash has been detected... The process has automatically been restarted.',
     duration: 15000
@@ -182,6 +183,7 @@ function setupTorrentClient() {
       client.send('alive')
       aliveTimer = setTimeout(() => {
         if (!aliveToastId) {
+          console.error('Ooops! WebTorrent Not Responding! The WebTorrent process stopped responding. User has been prompted to restart it.')
           aliveToastId = toast.error('Ooops! WebTorrent Not Responding!', {
             description: 'The WebTorrent process stopped responding. Dismiss this toast to restart it.',
             duration: Infinity,
