@@ -190,7 +190,7 @@ function setupTorrentClient() {
             onDismiss: () => IPC.emit('webtorrent-restart')
           })
         }
-      }, 30_000)
+      }, 60_000)
     }, 10_000)
     client.on('alive', () => clearTimeout(aliveTimer))
   }
