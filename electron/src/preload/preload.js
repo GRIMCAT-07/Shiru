@@ -1,4 +1,3 @@
-/* eslint n/no-callback-literal: 0 */
 import { contextBridge, ipcRenderer } from 'electron'
 
 contextBridge.exposeInMainWorld('IPC', {
@@ -22,13 +21,16 @@ contextBridge.exposeInMainWorld('version', {
   session: process.env.XDG_SESSION_TYPE || ''
 })
 
+let _ports
 ipcRenderer.once('port', ({ ports }) => {
+  _ports = ports
   contextBridge.exposeInMainWorld('port', {
     onmessage: (cb) => {
-      ports[0].onmessage = ({ type, data }) => cb({ type, data })
+      _ports[0].onmessage = ({ type, data }) => cb({ type, data })
     },
     postMessage: (a, b) => {
-      ports[0].postMessage(a, b)
+      _ports[0].postMessage(a, b)
     }
   })
+  ipcRenderer.on('port', ({ ports }) => _ports = ports)
 })

@@ -11,7 +11,7 @@ export default class Updater {
 
   /**
    * @param {import('electron').BrowserWindow} window
-   * @param {import('electron').BrowserWindow} torrentWindow
+   * @param {() => import('electron').BrowserWindow} torrentWindow
    */
   constructor (window, torrentWindow) {
     this.window = window
@@ -40,7 +40,7 @@ export default class Updater {
       setImmediate(() => {
         try {
           this.window.close()
-          this.torrentWindow.close()
+          this.torrentWindow().close()
         } catch (e) {}
         autoUpdater.quitAndInstall(true, forceRunAfter)
       })

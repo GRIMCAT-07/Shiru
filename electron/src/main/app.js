@@ -25,16 +25,8 @@ export default class App {
       ? join(__dirname, '/tray_logo_filled.png') // macOS
       : join(__dirname, '/logo_filled.png')  // Linux
 
-  webtorrentWindow = new BrowserWindow({
-    show: development,
-    webPreferences: {
-      webSecurity: false,
-      allowRunningInsecureContent: false,
-      nodeIntegration: true,
-      contextIsolation: false,
-      backgroundThrottling: false
-    }
-  })
+  torrentLoad = null
+  webtorrentWindow = this.makeWebTorrentWindow()
 
   mainWindow = new BrowserWindow({
     width: 1600,
@@ -61,7 +53,7 @@ export default class App {
 
   discord = new Discord(this.mainWindow)
   protocol = new Protocol(this.mainWindow)
-  updater = new Updater(this.mainWindow, this.webtorrentWindow)
+  updater = new Updater(this.mainWindow, () => this.webtorrentWindow)
   dialog = new Dialog()
   tray = new Tray(this.trayLogo)
   imageDir = join(app.getPath('userData'), 'Cache', 'Image_Data')
@@ -85,6 +77,7 @@ export default class App {
     ipcMain.on('window-show', () => this.showAndFocus())
     ipcMain.on('minimize', () => this.mainWindow?.minimize())
     ipcMain.on('maximize', () => this.mainWindow?.isMaximized() ? this.mainWindow.unmaximize() : this.mainWindow.maximize())
+    ipcMain.on('webtorrent-restart', () => this.setWebTorrentWindow(true))
     this.mainWindow.on('maximize', () => this.mainWindow.webContents.send('isMaximized', true))
     this.mainWindow.on('unmaximize', () => this.mainWindow.webContents.send('isMaximized', false))
     if (process.platform === 'darwin') {
@@ -92,8 +85,8 @@ export default class App {
       this.mainWindow.on('leave-full-screen', () => this.mainWindow.webContents.send('isFullscreen', false))
     }
 
+    this.setWebTorrentWindow()
     this.mainWindow.on('closed', () => this.destroy())
-    this.webtorrentWindow.on('closed', () => this.destroy())
     ipcMain.on('close', () => { this.close = true; this.destroy() })
 
     ipcMain.on('close-prompt', () => {
@@ -154,13 +147,9 @@ export default class App {
       process.on('SIGTERM', () => this.destroy())
     }
 
-    const torrentLoad = this.webtorrentWindow.loadURL(development ? 'http://localhost:5000/background.html' : `file://${join(__dirname, '/background.html')}`)
     this.mainWindow.loadURL(development ? 'http://localhost:5000/app.html' : `file://${join(__dirname, '/app.html')}`)
 
-    if (development) {
-      this.webtorrentWindow.webContents.openDevTools({ mode: 'bottom' })
-      this.mainWindow.webContents.openDevTools({ mode: 'detach' })
-    }
+    if (development) this.mainWindow.webContents.openDevTools({ mode: 'detach' })
 
     let crashcount = 0
     this.mainWindow.webContents.on('render-process-gone', async (e, { reason }) => {
@@ -178,7 +167,7 @@ export default class App {
     ipcMain.on('portRequest', async (event, settings) => {
       if (process.platform === 'darwin') this.mainWindow.webContents.send('isFullscreen', this.mainWindow.isFullScreen())
       const { port1, port2 } = new MessageChannelMain()
-      await torrentLoad
+      await this.torrentLoad
       ipcMain.once('webtorrent-heartbeat', () => {
         this.webtorrentWindow.webContents.postMessage('main-heartbeat', settings)
         ipcMain.once('torrentRequest', () => {
@@ -252,16 +241,55 @@ export default class App {
     })
   }
 
-  destroyed = false
+  makeWebTorrentWindow() {
+    return new BrowserWindow({
+      webPreferences: {
+        webSecurity: false,
+        allowRunningInsecureContent: false,
+        nodeIntegration: true,
+        contextIsolation: false,
+        backgroundThrottling: false
+      },
+      show: false
+    })
+  }
 
+  webTorrentCrashes = 0
+  setWebTorrentWindow(crashed = false) {
+    if (!crashed || ++this.webTorrentCrashes < 5) {
+      if (crashed) {
+        setTimeout(() => { if (this.webTorrentCrashes < 5) this.webTorrentCrashes = 0 }, 60_000).unref?.()
+        try {
+          if (this.webtorrentWindow && !this.webtorrentWindow.isDestroyed()) {
+            this.webtorrentWindow.removeAllListeners('closed')
+            this.webtorrentWindow.destroy()
+          }
+        } catch {}
+        this.webtorrentWindow = this.makeWebTorrentWindow()
+      }
+      this.torrentLoad = this.webtorrentWindow.loadURL(development ? 'http://localhost:5000/background.html' : `file://${join(__dirname, '/background.html')}`)
+      if (development) this.webtorrentWindow.webContents.openDevTools({ mode: 'detach' })
+      if (crashed) this.mainWindow.webContents.send('webtorrent-crashed')
+      this.webtorrentWindow.on('closed', () => this.destroy())
+      this.webtorrentWindow.webContents.on('render-process-gone', async (e, { reason }) => {
+       if (reason === 'crashed') this.setWebTorrentWindow(true)
+      })
+    }
+  }
+
+  destroyed = false
   async destroy(forceRunAfter = false) {
     if (this.destroyed) return
     this.updater.destroyed = true
-    this.webtorrentWindow.webContents.postMessage('destroy', null)
-    await new Promise(resolve => {
-      ipcMain.once('destroyed', resolve)
-      setTimeout(resolve, 5000).unref?.()
-    })
+    try {
+      if (this.webtorrentWindow && !this.webtorrentWindow.isDestroyed()) { // WebTorrent shouldn't ever be destroyed before main, but it's better to be safe.
+        this.webtorrentWindow.webContents.postMessage('destroy', null)
+        await new Promise(resolve => {
+          ipcMain.once('destroyed', resolve)
+          setTimeout(resolve, 5000).unref?.()
+        })
+      }
+    } catch {} // WebTorrent crashed... prevents hanging infinitely.
     this.close = true
     this.destroyed = true
     if (!this.updater.install(forceRunAfter)) app.quit()
