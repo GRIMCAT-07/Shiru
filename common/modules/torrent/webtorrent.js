@@ -312,29 +312,33 @@ export default class TorrentClient extends WebTorrent {
   async seedTorrent(torrent) {
     if (!torrent || torrent.destroyed) return
     const seedingLimit = this.settings.seedingLimit || 1
-    const seedingTorrents = this.torrents.filter(t => t.seeding && !t.destroyed)
-    if (!torrent.seeding && !torrent.destroyed && seedingLimit > 1) {
-      torrent.current = false
-      torrent.staging = false
-      torrent.seeding = true
-      this.bumpTorrent(torrent)
-      this.dispatch('seeding', torrent.infoHash)
-      debug(`Seeding torrent: ${torrent.infoHash}`, torrent.torrentFile)
+    const seedingTorrents = this.torrents.filter(_torrent => _torrent.seeding && !_torrent.destroyed)
+    if (!torrent.seeding && !torrent.destroyed) {
+      if (seedingLimit > 1) {
+        torrent.current = false
+        torrent.staging = false
+        torrent.seeding = true
+        this.bumpTorrent(torrent)
+        this.dispatch('seeding', torrent.infoHash)
+        debug(`Seeding torrent: ${torrent.infoHash}`, torrent.torrentFile)
+      } else seedingTorrents.push(torrent)
     }
 
-    if ((seedingTorrents.length + 1) >= seedingLimit) {
-      const completed = seedingTorrents.slice().sort((a, b) => (b.ratio || 0) - (a.ratio || 0))?.[0] || torrent
-      completed.current = false
-      completed.staging = false
-      completed.seeding = false
-      if (!this.settings.torrentPersist) await this.torrentCache.delete(completed.infoHash)
-      else {
-        const stats = { infoHash: completed.infoHash, name: completed.name, size: completed.length, progress: completed.progress, incomplete: completed.progress < 1 }
-        this.completed = Array.from(new Map([...(this.completed || []), stats].map(item => [item.infoHash, item])).values())
-        this.dispatch('completed', stats)
+    const offloadSeeds = (seedingTorrents.length + 1) - seedingLimit
+    if (offloadSeeds > 0) {
+      for (const completed of seedingTorrents.sort((a, b) => (b.ratio || 0) - (a.ratio || 0)).slice(0, offloadSeeds)) {
+        completed.current = false
+        completed.staging = false
+        completed.seeding = false
+        if (!this.settings.torrentPersist) await this.torrentCache.delete(completed.infoHash)
+        else {
+          const stats = { infoHash: completed.infoHash, name: completed.name, size: completed.length, progress: completed.progress, incomplete: completed.progress < 1 }
+          this.completed = Array.from(new Map([...(this.completed || []), stats].map(item => [item.infoHash, item])).values())
+          this.dispatch('completed', stats)
+        }
+        debug(`Completed torrent: ${completed.infoHash}`, completed.torrentFile)
+        await this.remove(completed, { destroyStore: !this.settings.torrentPersist })
       }
-      debug(`Completed torrent: ${completed.infoHash}`, completed.torrentFile)
-      await this.remove(completed, { destroyStore: !this.settings.torrentPersist && !torrent.staging })
     }
   }
 
