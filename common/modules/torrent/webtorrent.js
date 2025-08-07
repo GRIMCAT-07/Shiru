@@ -607,9 +607,10 @@ export default class TorrentClient extends WebTorrent {
         torrent.seeders = data.complete
         torrent.leechers = data.incomplete
         torrent.trackerUrl = data.announce
-        debug(`Updated seeders and leechers:`, { name: torrent.name, infoHash: torrent.infoHash, seeders: torrent.seeders, leechers: torrent.leechers, trackerUrl: torrent.trackerUrl })
+        debug(`Updated seeders and leechers:`, JSON.stringify({ name: torrent.name, infoHash: torrent.infoHash, seeders: torrent.seeders, leechers: torrent.leechers, trackerUrl: torrent.trackerUrl, complete: data.complete, incomplete: data.incomplete }))
       }
     })
+    client.start()
 
     torrent.tracker = client
     const _destroy = torrent.destroy.bind(torrent)
