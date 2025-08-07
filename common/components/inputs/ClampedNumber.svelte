@@ -1,5 +1,4 @@
 <script>
-    export let value
     export let min = 0
     export let max = 100
     export let step = 1
