@@ -16,7 +16,7 @@
   }
 </script>
 
-<div class='navbar-link navbar-link-with-icon pointer overflow-hidden mx-auto {css}' title={text} use:click={() => { handleOverlays(); _click() } } on:contextmenu|preventDefault={() => { if (rbClick) { handleOverlays(); rbClick() } } }>
+<div role='button' tabindex='0' class='navbar-link navbar-link-with-icon pointer overflow-hidden mx-auto {css}' title={text} use:click={() => { handleOverlays(); _click() } } on:contextmenu|preventDefault={() => { if (rbClick) { handleOverlays(); rbClick() } } }>
   <span class='rounded d-flex'>
     <slot active={(page === _page && overlay !== 'active') || (overlay === 'active' && nowPlaying)}>{icon}</slot>
   </span>

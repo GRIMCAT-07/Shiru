@@ -147,7 +147,7 @@
                 {#if options.length > 0}
                     {#if header}<span class='not-reactive font-weight-bold p-5'>{header}</span>{/if}
                     {#each options as option}
-                        <div class='custom-dropdown-item {!headers ? `text-center` : `pl-20`} not-reactive pointer custom-menu-{id}' class:custom-dropdown-item-selected={includes(value, option)} class:custom-dropdown-item-alt-selected={includes(altValue, option)}
+                        <div role='button' tabindex='0' class='custom-dropdown-item {!headers ? `text-center` : `pl-20`} not-reactive pointer custom-menu-{id}' class:custom-dropdown-item-selected={includes(value, option)} class:custom-dropdown-item-alt-selected={includes(altValue, option)}
                              use:click={() => {
                                  if (includes(value, option)) value = arrayValue ? value.filter(item => item !== option) : null
                                  else {

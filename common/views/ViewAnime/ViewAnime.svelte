@@ -1,6 +1,6 @@
 <script>
   import { getContext, onDestroy } from 'svelte'
-  import { formatMap, genreIcons, getKitsuMappings, getMediaMaxEp, playMedia } from '@/modules/anime/anime.js'
+  import { formatMap, genreIcons, getEpisodeMetadataForMedia, getKitsuMappings, getMediaMaxEp, playMedia } from '@/modules/anime/anime.js'
   import { playAnime } from '@/views/TorrentSearch/TorrentModal.svelte'
   import { settings } from '@/modules/settings.js'
   import { mediaCache } from '@/modules/cache.js'
@@ -15,6 +15,7 @@
   import EpisodeList from '@/views/ViewAnime/EpisodeList.svelte'
   import ToggleList from '@/views/ViewAnime/ToggleList.svelte'
   import Scoring from '@/views/ViewAnime/Scoring.svelte'
+  import SmartImage from '@/components/visual/SmartImage.svelte'
   import AudioLabel from '@/views/ViewAnime/AudioLabel.svelte'
   import Following from '@/views/ViewAnime/Following.svelte'
   import IPC from '@/modules/ipc.js'
@@ -189,13 +190,17 @@
         <ArrowLeft size='1.8rem' />
       </button>
       <button class='close pointer z-30 bg-dark top-20 right-0 position-fixed' type='button' use:click={() => close()}> &times; </button>
-      {#await ((staticMedia.bannerImage || staticMedia.trailer?.id) && staticMedia) || getKitsuMappings(staticMedia.id) then banner}
-        <object class='w-full cover-img banner position-absolute' draggable='false' data={banner?.bannerImage || (banner.trailer?.id && `https://i.ytimg.com/vi/${banner.trailer?.id}/maxresdefault.jpg`) || banner?.included?.[0]?.attributes?.coverImage?.original || banner?.included?.[0]?.attributes?.coverImage?.large || banner?.included?.[0]?.attributes?.coverImage?.small || banner?.included?.[0]?.attributes?.coverImage?.tiny || ' '} title='banner'>
-          <object class='w-full cover-img banner position-absolute' draggable='false' data={(banner.trailer?.id && `https://i.ytimg.com/vi/${banner.trailer?.id}/hqdefault.jpg`) || ' '} title='banner'>
-            <img class='w-full cover-img banner position-absolute' draggable='false' src={' '} alt='banner'> <!-- trailer no longer exists... hide all images. -->
-          </object>
-        </object>
-      {/await}
+        <SmartImage class='w-full cover-img anime-details position-absolute' images={[
+          staticMedia.bannerImage,
+          ...(staticMedia.trailer?.id ? [
+            `https://i.ytimg.com/vi/${staticMedia.trailer.id}/maxresdefault.jpg`,
+            `https://i.ytimg.com/vi/${staticMedia.trailer.id}/hqdefault.jpg`] : []),
+          () => getKitsuMappings(staticMedia).then(metadata =>
+            [metadata?.included?.[0]?.attributes?.coverImage?.original,
+            metadata?.included?.[0]?.attributes?.coverImage?.large,
+            metadata?.included?.[0]?.attributes?.coverImage?.small,
+            metadata?.included?.[0]?.attributes?.coverImage?.tiny]),
+          () => getEpisodeMetadataForMedia(staticMedia).then(metadata => metadata?.[1]?.image)]}/>
       <div class='row px-20'>
         <div class='col-lg-7 col-12 pb-10'>
           <div bind:this={leftColumn}>
@@ -295,7 +300,7 @@
             </div>
             <div bind:this={scrollGenres} class='m-0 px-20 pb-0 pt-10 d-flex flex-row text-nowrap overflow-x-scroll text-capitalize align-items-start'>
               {#each staticMedia.genres as genre}
-                <div class='bg-dark px-20 py-10 mr-10 rounded text-nowrap d-flex align-items-center select-all'><svelte:component this={genreIcons[genre]} class='mr-5' size='1.8rem' /> {genre}</div> <!-- || Drama-->
+                <div class='bg-dark px-20 py-10 mr-10 rounded text-nowrap d-flex align-items-center select-all'><svelte:component this={genreIcons[genre]} class='mr-5' size='1.8rem' /> {genre}</div>
               {/each}
             </div>
             {#if staticMedia.description}
@@ -380,12 +385,6 @@
   .order {
     top: 7rem !important;
     left: -5rem !important;
-  }
-  .banner {
-    opacity: 0.5;
-    z-index: 0;
-    aspect-ratio: 5/1;
-    min-height: 20rem;
   }
   .play {
     justify-content: center;

@@ -3,6 +3,7 @@
   import { anilistClient, seasons } from '@/modules/anilist.js'
   import { episodesList } from '@/modules/episodes.js'
   import { click } from '@/modules/click.js'
+  import SmartImage from '@/components/visual/SmartImage.svelte'
   import Scoring from '@/views/ViewAnime/Scoring.svelte'
   import Helper from '@/modules/helper.js'
   import { Heart, Play, VolumeX, Volume2, ThumbsUp, ThumbsDown } from 'lucide-svelte'
@@ -47,11 +48,7 @@
 
 <div class='position-absolute w-350 h-full absolute-container top-0 bottom-0 m-auto bg-dark-light z-30 rounded overflow-hidden pointer' bind:this={element} on:scroll={(e) => e.target.scrollTop = 0}>
   <div class='banner position-relative bg-black overflow-hidden' >
-    <object class='img-cover w-full h-full' data={media.bannerImage || (media.trailer?.id && `https://i.ytimg.com/vi/${media.trailer?.id}/maxresdefault.jpg`) || media.coverImage?.extraLarge || ' '} title='preview'>
-      <object class='img-cover w-full h-full' data={(media.trailer?.id && `https://i.ytimg.com/vi/${media.trailer?.id}/hqdefault.jpg`) || media.coverImage?.extraLarge || ' '} title='preview'>
-        <img class='img-cover w-full h-full' src={media.coverImage?.extraLarge || ' '} alt='preview'> <!-- trailer no longer exists... fallback to cover image. -->
-      </object>
-    </object>
+    <SmartImage class='img-cover w-full h-full' images={[media.bannerImage, ...(media.trailer?.id ? [`https://i.ytimg.com/vi/${media.trailer.id}/maxresdefault.jpg`, `https://i.ytimg.com/vi/${media.trailer.id}/hqdefault.jpg`] : []), media.coverImage?.extraLarge ]}/>
     {#await (media.trailer?.id && media) || episodesList.getMedia(media.idMal) then trailer}
       {#if trailer?.trailer?.id || trailer?.data?.trailer?.youtube_id }
         <div class='position-absolute z-10 top-0 right-0 m-15 rounded sound' use:click={toggleMute}>

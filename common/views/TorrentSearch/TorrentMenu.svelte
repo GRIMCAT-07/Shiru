@@ -2,12 +2,12 @@
   import { settings } from '@/modules/settings.js'
   import { matchPhrase, createListener } from '@/modules/util.js'
   import { sanitiseTerms } from '@/views/TorrentSearch/TorrentCard.svelte'
-  import { add, stage } from '@/modules/torrent/torrent.js'
+  import { add } from '@/modules/torrent/torrent.js'
   import { nowPlaying as currentMedia } from '@/views/Player/MediaHandler.svelte'
   import { animeSchedule } from '@/modules/anime/animeschedule.js'
   import { cache, caches } from '@/modules/cache.js'
   import { status } from '@/modules/networking.js'
-  import { getMediaMaxEp, getKitsuMappings } from '@/modules/anime/anime.js'
+  import { getMediaMaxEp, getKitsuMappings, getEpisodeMetadataForMedia } from '@/modules/anime/anime.js'
   import { dedupe, getResultsFromExtensions } from '@/modules/extensions/handler.js'
   import { anilistClient } from '@/modules/anilist.js'
   import { click } from '@/modules/click.js'
@@ -111,6 +111,7 @@
 <script>
   import TorrentCard from '@/views/TorrentSearch/TorrentCard.svelte'
   import TorrentCardSk from '@/components/skeletons/TorrentCardSk.svelte'
+  import SmartImage from '@/components/visual/SmartImage.svelte'
   import ErrorCard from '@/components/cards/ErrorCard.svelte'
   import { onDestroy } from 'svelte'
   import { writable } from 'simple-store-svelte'
@@ -270,13 +271,19 @@
     <button type='button' class='btn btn-square bg-dark ml-auto d-flex align-items-center justify-content-center rounded-2 flex-shrink-0' use:click={close}><X size='1.7rem' strokeWidth='3'/></button>
     <div class='position-absolute top-0 left-0 w-full h-full z--1'>
       <div class='position-absolute w-full h-full overflow-hidden' >
-        {#await ((search.media.bannerImage || search.media.trailer?.id) && search.media) || getKitsuMappings(search.media.id) then banner}
-          <object class='w-full h-full img-cover' draggable='false' data={banner?.bannerImage || (banner.trailer?.id && `https://i.ytimg.com/vi/${banner.trailer?.id}/maxresdefault.jpg`) || banner?.included?.[0]?.attributes?.coverImage?.original || banner?.included?.[0]?.attributes?.coverImage?.large || banner?.included?.[0]?.attributes?.coverImage?.small || banner?.included?.[0]?.attributes?.coverImage?.tiny || ' '} title='banner'>
-            <object class='w-full h-full img-cover' draggable='false' data={(banner.trailer?.id && `https://i.ytimg.com/vi/${banner.trailer?.id}/hqdefault.jpg`) || ' '} title='banner'>
-              <img class='w-full h-full img-cover' draggable='false' src={' '} alt='banner'> <!-- trailer no longer exists... hide all images. -->
-            </object>
-          </object>
-        {/await}
+        <SmartImage class='img-cover w-full h-full' images={[
+          search.media.bannerImage,
+          ...(search.media.trailer?.id ? [
+            `https://i.ytimg.com/vi/${search.media.trailer.id}/maxresdefault.jpg`,
+            `https://i.ytimg.com/vi/${search.media.trailer.id}/hqdefault.jpg`] : []),
+          () => getKitsuMappings(search.media.id).then(metadata =>
+            [metadata?.included?.[0]?.attributes?.coverImage?.original,
+            metadata?.included?.[0]?.attributes?.coverImage?.large,
+            metadata?.included?.[0]?.attributes?.coverImage?.small,
+            metadata?.included?.[0]?.attributes?.coverImage?.tiny]),
+          () => getEpisodeMetadataForMedia(search.media).then(metadata => metadata?.[1]?.image),
+          search.media.coverImage?.extraLarge]}
+        />
       </div>
       <div class='position-absolute top-0 left-0 w-full h-full' style='background: var(--torrent-banner-gradient)' />
     </div>
@@ -362,18 +369,18 @@
   {#if $results?.torrents?.length && !$results?.resolved && (!best || !Object.values(best)?.length)}
     <TorrentCardSk />
   {:else if $results?.torrents?.length}
-    {#if best}<TorrentCard type='best' countdown={$settings.rssAutoplay && $results?.resolved ? countdown : -1} result={best} {play} stage={(result) => stage(result.link, search, result.hash)} media={search.media} episode={search.episode} />{/if}
+    {#if best}<TorrentCard type='best' countdown={$settings.rssAutoplay && $results?.resolved ? countdown : -1} result={best} {play} media={search.media} episode={search.episode} />{/if}
     {#if lastMagnet}
       {#each filterResults(lookup, searchText) as result}
         {#if ((result.link === lastMagnet.link) || (result.hash === lastMagnet.hash)) && result.seeders > 1 && ((best?.link !== lastMagnet.link) && (best?.hash !== lastMagnet.hash)) }
-          <TorrentCard type='magnet' result={result} {play} stage={(result) => stage(result.link, search, result.hash)} media={search.media} episode={search.episode} />
+          <TorrentCard type='magnet' result={result} {play} media={search.media} episode={search.episode} />
         {/if}
       {/each}
     {/if}
   {/if}
   {#each filterResults(lookup, searchText) as result}
     {#if ((best?.link !== result.link) && (best?.hash !== result.hash)) && (!lastMagnet || (((result.link !== lastMagnet.link) || (result.hash !== lastMagnet.hash)) || result.seeders <= 1))}
-      <TorrentCard {result} {play} stage={(result) => stage(result.link, search, result.hash)} media={search.media} episode={search.episode} />
+      <TorrentCard {result} {play} media={search.media} episode={search.episode} />
     {/if}
   {/each}
   {#if lookupHidden?.length && $results?.resolved && filterResults(lookupHidden, searchText)?.length}
@@ -384,7 +391,7 @@
     {#if viewHidden}
       {#each filterResults(lookupHidden, searchText) as result}
         {#if ((best?.link !== result.link) && (best?.hash !== result.hash)) && (!lastMagnet || (((result.link !== lastMagnet.link) || (result.hash !== lastMagnet.hash)) || result.seeders <= 1))}
-          <div class='unavailable'><TorrentCard {result} {play} stage={(result) => stage(result.link, search, result.hash)} media={search.media} episode={search.episode} /></div>
+          <div class='unavailable'><TorrentCard {result} {play} media={search.media} episode={search.episode} /></div>
         {/if}
       {/each}
     {/if}

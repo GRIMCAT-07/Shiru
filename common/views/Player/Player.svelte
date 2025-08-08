@@ -1406,7 +1406,6 @@
   }
 </script>
 
-<!-- <svelte:window bind:innerWidth bind:innerHeight /> -->
 <div
   class='player w-full h-full d-flex flex-column overflow-hidden position-relative'
   class:pointer={miniplayer}
@@ -1438,7 +1437,6 @@
       </Keybinds>
     </div>
   {/if}
-  <!-- eslint-disable-next-line svelte/valid-compile -->
   <video
     crossorigin='anonymous'
     class='position-absolute h-full w-full'
@@ -1476,7 +1474,8 @@
     on:loadedmetadata={checkSubtitle}
     on:loadedmetadata={clearLoadInterval}
     on:loadedmetadata={loadAnimeProgress}
-    on:leavepictureinpicture={() => { pip = false }} />
+    on:leavepictureinpicture={() => { pip = false }}
+  ><track kind='captions' src='' srclang='en' label='English'/></video>
   {#if stats && !miniplayer}
     <div class='position-absolute top-0 bg-tp p-10 ml-20 mt-100 text-monospace rounded z-50'>
       <button class='close btn btn-square mt-5' type='button' use:click={toggleStats}>
@@ -1566,15 +1565,10 @@
     </div>
   </div>
   <div class='middle d-flex align-items-center justify-content-center flex-grow-1 position-relative'>
-    <!-- eslint-disable-next-line svelte/valid-compile -->
-    <div class='w-full h-full position-absolute toggle-fullscreen' on:dblclick={toggleFullscreen} on:click|self={() => { if (page === 'player' && ((overlay.length === 0) || overlay.includes('player'))) playPause(); page = 'player'; window.dispatchEvent(new Event('overlay-check')) }} />
-    <!-- eslint-disable-next-line svelte/valid-compile -->
-    <div class='w-full h-full position-absolute toggle-immerse d-none' on:dblclick={toggleFullscreen} on:click|self={toggleImmerse} />
+    <div aria-hidden='true' class='w-full h-full position-absolute toggle-fullscreen' on:dblclick={toggleFullscreen} on:click|self={() => { if (page === 'player' && ((overlay.length === 0) || overlay.includes('player'))) playPause(); page = 'player'; window.dispatchEvent(new Event('overlay-check')) }} />
+    <div aria-hidden='true' class='w-full h-full position-absolute toggle-immerse d-none' on:dblclick={toggleFullscreen} on:click|self={toggleImmerse} />
     <div class='w-full h-full position-absolute mobile-focus-target d-none' use:click={() => { page = 'player'; window.dispatchEvent(new Event('overlay-check')) }} />
-    <!-- eslint-disable-next-line svelte/valid-compile -->
-    <span class='icon ctrl align-items-center justify-content-end w-150 mw-full mr-auto' class:mb-50={!miniplayer} on:click={rewind}>
-      <Rewind size='3rem' />
-    </span>
+    <span aria-hidden='true' class='icon ctrl align-items-center justify-content-end w-150 mw-full mr-auto' class:mb-50={!miniplayer} on:click={rewind}><Rewind size='3rem' /></span>
     <!-- miniplayer buttons -->
     {#if miniplayer}
       <span class='position-absolute rounded-10 top-0 right-0 m-10 btn-shadow' class:ctrl={!SUPPORTS.isAndroid} class:mr-40={!SUPPORTS.isAndroid} class:mr-50={SUPPORTS.isAndroid} title='Minimize' data-name='playPause' use:click={() => (playPage = !playPage)}>
@@ -1607,10 +1601,7 @@
         </span>
       {/if}
     </div>
-    <!-- eslint-disable-next-line svelte/valid-compile -->
-    <span class='icon ctrl align-items-center w-150 mw-full ml-auto' class:mb-50={!miniplayer} on:click={forward}>
-      <FastForward size='3rem' />
-    </span>
+    <span aria-hidden='true' class='icon ctrl align-items-center w-150 mw-full ml-auto' class:mb-50={!miniplayer} on:click={forward}><FastForward size='3rem' /></span>
     <div class='position-absolute bufferingDisplay'/>
     {#if currentSkippable}
       <button class='skip btn text-dark position-absolute bottom-0 right-0 mr-20 mb-5 font-weight-bold z-30 d-flex align-items-center justify-content-center' use:click={skip}>
@@ -1974,9 +1965,9 @@
     pointer-events: none;
     opacity: 0;
   }
-  :fullscreen .ctrl[data-name='toggleCast'] {
-    display: none !important;
-  }
+  /*:fullscreen .ctrl[data-name='toggleCast'] {*/
+  /*  display: none !important;*/
+  /*}*/
 
   .pip video {
     opacity: 0.1%;

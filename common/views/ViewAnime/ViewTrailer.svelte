@@ -1,4 +1,5 @@
 <script context='module'>
+  import SmartImage from '@/components/visual/SmartImage.svelte'
   import SoftModal from '@/components/SoftModal.svelte'
   import { writable } from 'simple-store-svelte'
   import { anilistClient } from '@/modules/anilist.js'
@@ -27,11 +28,7 @@
     <button type='button' class='btn btn-square bg-transparent shadow-none border-0 d-flex align-items-center justify-content-center ml-auto mr-5' use:click={close}><X size='1.7rem' strokeWidth='3'/></button>
   </div>
   <div class='pointer-events-auto ratio-16-9 position-relative w-full wm-calc'>
-    <object class='ratio-16-9 img-cover w-full h-full rounded-bottom-6' data={`https://i.ytimg.com/vi/${$trailer.id}/hqdefault.jpg` || $trailer.media.bannerImage || $trailer.media.coverImage?.extraLarge || ' '} class:d-none={!hide} title='preview'>
-      <object class='ratio-16-9 img-cover w-full h-full rounded-bottom-6' data={$trailer.media.bannerImage || $trailer.media.coverImage?.extraLarge || ' '} title='preview'>
-        <img class='ratio-16-9 img-cover w-full h-full rounded-bottom-6' src={$trailer.media.coverImage?.extraLarge || ' '} alt='preview'> <!-- trailer no longer exists... fallback to cover image. -->
-      </object>
-    </object>
+    <SmartImage class='ratio-16-9 img-cover w-full h-full rounded-bottom-6' images={[...($trailer.media.trailer?.id ? [`https://i.ytimg.com/vi/${$trailer.media.trailer.id}/maxresdefault.jpg`, `https://i.ytimg.com/vi/${$trailer.media.trailer.id}/hqdefault.jpg`] : []), $trailer.media.bannerImage, $trailer.media.coverImage?.extraLarge ]} hidden={!hide}/>
     <iframe
       class='position-absolute w-full h-full top-0 left-0 border-0 rounded-bottom-5'
       class:d-none={hide}
@@ -50,12 +47,6 @@
   }
   .rounded-bottom-5 {
     border-radius: 0 0 .5rem .5rem;
-  }
-  .rounded-bottom-6 {
-    border-radius: 0 0 .6rem .6rem;
-  }
-  .ratio-16-9 {
-    aspect-ratio: 16/9;
   }
   .wm-calc {
     max-width: min(max(70vw, 100rem), calc(75vh * (16 / 9)));

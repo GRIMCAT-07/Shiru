@@ -37,7 +37,6 @@ const { formatters = {} } = module.exports
  * TODO: add a `localStorage` variable to explicitly enable/disable colors
  */
 
-// eslint-disable-next-line complexity
 function useColors () {
   return true
 }

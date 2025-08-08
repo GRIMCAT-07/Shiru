@@ -8,7 +8,7 @@ let lastInteractionMethod = 'mouse'
 const noop = _ => {}
 
 document.addEventListener('mousedown', () => lastInteractionMethod = 'mouse')
-document.addEventListener('touchstart', () => lastInteractionMethod = 'touch')
+document.addEventListener('touchstart', () => lastInteractionMethod = 'touch', { passive: true })
 document.addEventListener('pointerup', selectionChange)
 document.addEventListener('focusin', (e) => {
   if (lastInteractionMethod !== 'dpad') return
@@ -42,7 +42,7 @@ document.addEventListener('selectionchange', () => {
 })
 
 if (SUPPORTS.isAndroid) {
-  document.addEventListener('touchstart', (e) => window.Capacitor.Plugins.StatusBar.hide())
+  document.addEventListener('touchstart', () => window.Capacitor.Plugins.StatusBar.hide(), { passive: true })
 }
 /** @typedef {{element: Element, x: number, y: number, inViewport: boolean}} ElementPosition  */
 
@@ -166,11 +166,11 @@ export function drag(node, dp = noop) {
   node.addEventListener('touchstart', e => {
     startX = e.touches[0].clientX
     hasMoved = false
-  })
+  }, { passive: true })
   node.addEventListener('touchmove', e => {
     endX = e.touches[0].clientX
     if (Math.abs(endX - startX) > 50) hasMoved = true
-  })
+  }, { passive: true })
   node.addEventListener('touchend', () => {
     if (hasMoved) dp(endX - startX)
   })

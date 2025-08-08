@@ -20,7 +20,7 @@
   }
 </script>
 
-<div class='sidebar-link sidebar-link-with-icon pointer overflow-hidden {css} {SUPPORTS.isAndroid ? `my-auto pl-12` : `pl-14`}' title={text} use:click={() => { handleOverlays(); _click() } } on:contextmenu|preventDefault={() => { if (rbClick) { handleOverlays(); rbClick() } } }>
+<div role='button' tabindex='0' class='sidebar-link sidebar-link-with-icon pointer overflow-hidden {css} {SUPPORTS.isAndroid ? `my-auto pl-12` : `pl-14`}' title={text} use:click={() => { handleOverlays(); _click() } } on:contextmenu|preventDefault={() => { if (rbClick) { handleOverlays(); rbClick() } } }>
   <span class='text-nowrap d-flex align-items-center w-full h-full'>
     {#if image}
       <span class='rounded d-flex'>
