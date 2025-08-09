@@ -13,12 +13,12 @@ const flags = [
   // should be safe
   ['enable-hardware-overlays', 'single-fullscreen,single-on-top,underlay'],
   // safe performance stuff
-  ['enable-features', 'PlatformEncryptedDolbyVision,CanvasOopRasterization,ThrottleDisplayNoneAndVisibilityHiddenCrossOriginIframes,UseSkiaRenderer,WebAssemblyLazyCompilation'],
+  ['enable-features', 'PlatformEncryptedDolbyVision,CanvasOopRasterization,ThrottleDisplayNoneAndVisibilityHiddenCrossOriginIframes,UseSkiaRenderer,WebAssemblyLazyCompilation,FluentOverlayScrollbar,WindowsScrollingPersonality,AutoPictureInPictureForVideoPlayback'],
   ['disable-renderer-backgrounding'],
   // disabling shit, vulkan rendering, widget layering aka right click context menus [I think] for macOS [I think], rest is for chromium detecting how much video it should buffer, hopefully it makes it buffer more
   ['disable-features', 'Vulkan,WidgetLayering,MediaEngagementBypassAutoplayPolicies,PreloadMediaEngagementData,RecordMediaEngagementScores'],
   // utility stuff, aka website security that's useless for a native app:
-  ['autoplay-policy', 'no-user-gesture-required'], ['disable-notifications'], ['disable-logging'], ['disable-permissions-api'], ['no-sandbox'], ['no-zygote'], ['bypasscsp-schemes'],
+  ['autoplay-policy', 'no-user-gesture-required'], ['disable-notifications'], ['disable-logging'], ['disable-permissions-api'], ['no-zygote'], ['disable-renderer-backgrounding'],
   // chromium throttles stuff if it detects slow network, nono, this is native, don't do that
   ['force-effective-connection-type', '4G'],
   // image, and video cache hopefully lets video buffer more and remembers more images, might be bad to touch this?
@@ -46,12 +46,6 @@ app.setJumpList?.([
   {
     name: 'Frequent',
     items: [
-      {
-        type: 'task',
-        program: 'shiru://schedule/',
-        title: 'Airing Schedule',
-        description: 'Open The Airing Schedule'
-      },
       {
         type: 'task',
         program: 'shiru://w2g/',
