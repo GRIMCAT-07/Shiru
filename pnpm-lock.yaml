@@ -65,8 +65,8 @@ importers:
         specifier: ^5.2.2
         version: 5.2.2(bufferutil@4.0.8)(utf-8-validate@6.0.4)(webpack-cli@6.0.1)(webpack@5.101.0)
       webtorrent:
-        specifier: ^2.8.2
-        version: 2.8.2
+        specifier: ^2.8.3
+        version: 2.8.3
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20240222.0
@@ -158,7 +158,7 @@ importers:
         version: 4.1.5
       webpack-cli:
         specifier: ^6.0.1
-        version: 6.0.1(webpack-dev-server@5.2.2)(webpack@5.101.0)
+        version: 6.0.1(webpack-dev-server@5.2.2(bufferutil@4.0.8)(utf-8-validate@6.0.4)(webpack-cli@6.0.1)(webpack@5.101.0))(webpack@5.101.0)
       webpack-merge:
         specifier: ^6.0.1
         version: 6.0.1
@@ -5861,8 +5861,8 @@ packages:
     resolution: {integrity: sha512-OqedPIGOfsDlo31UNwYbCFMSaO9m9G/0faIHj5/dZFDMFqPTcx6UwqyOy3COEaEOg/9VsGIpdqn62W5KhoKSpg==}
     engines: {node: '>=0.8.0'}
 
-  webtorrent@2.8.2:
-    resolution: {integrity: sha512-1UC6PGu4NgcYQTSlNl5uPTk/8iUHhe/d1qyBLCRXLujCzQ9mJwwgBWS7o+xZz6fldmv3mI3ICcv5mddZmKJYaA==}
+  webtorrent@2.8.3:
+    resolution: {integrity: sha512-ST8iVQzhL0iKFMHDs49fGw/saNS56o/0cLKLS80RSVC0czEo/uIUzB1LpJrbZm/NagZ6ozQgv8t0xqDdw5KuaQ==}
     engines: {node: '>=16'}
 
   whatwg-fetch@3.6.20:
@@ -7360,6 +7360,13 @@ snapshots:
     dependencies:
       webpack: 5.101.0(webpack-cli@6.0.1)
       webpack-cli: 6.0.1(webpack-dev-server@5.2.2)(webpack@5.101.0)
+
+  '@webpack-cli/serve@3.0.1(webpack-cli@6.0.1)(webpack-dev-server@5.2.2(bufferutil@4.0.8)(utf-8-validate@6.0.4)(webpack-cli@6.0.1)(webpack@5.101.0))(webpack@5.101.0)':
+    dependencies:
+      webpack: 5.101.0(webpack-cli@6.0.1)
+      webpack-cli: 6.0.1(webpack-dev-server@5.2.2(bufferutil@4.0.8)(utf-8-validate@6.0.4)(webpack-cli@6.0.1)(webpack@5.101.0))(webpack@5.101.0)
+    optionalDependencies:
+      webpack-dev-server: 5.2.2(bufferutil@4.0.8)(utf-8-validate@6.0.4)(webpack-cli@6.0.1)(webpack@5.101.0)
 
   '@webpack-cli/serve@3.0.1(webpack-cli@6.0.1)(webpack-dev-server@5.2.2)(webpack@5.101.0)':
     dependencies:
@@ -12211,6 +12218,25 @@ snapshots:
   webidl-conversions@4.0.2:
     optional: true
 
+  webpack-cli@6.0.1(webpack-dev-server@5.2.2(bufferutil@4.0.8)(utf-8-validate@6.0.4)(webpack-cli@6.0.1)(webpack@5.101.0))(webpack@5.101.0):
+    dependencies:
+      '@discoveryjs/json-ext': 0.6.3
+      '@webpack-cli/configtest': 3.0.1(webpack-cli@6.0.1)(webpack@5.101.0)
+      '@webpack-cli/info': 3.0.1(webpack-cli@6.0.1)(webpack@5.101.0)
+      '@webpack-cli/serve': 3.0.1(webpack-cli@6.0.1)(webpack-dev-server@5.2.2(bufferutil@4.0.8)(utf-8-validate@6.0.4)(webpack-cli@6.0.1)(webpack@5.101.0))(webpack@5.101.0)
+      colorette: 2.0.20
+      commander: 12.1.0
+      cross-spawn: 7.0.3
+      envinfo: 7.14.0
+      fastest-levenshtein: 1.0.16
+      import-local: 3.2.0
+      interpret: 3.1.1
+      rechoir: 0.8.0
+      webpack: 5.101.0(webpack-cli@6.0.1)
+      webpack-merge: 6.0.1
+    optionalDependencies:
+      webpack-dev-server: 5.2.2(bufferutil@4.0.8)(utf-8-validate@6.0.4)(webpack-cli@6.0.1)(webpack@5.101.0)
+
   webpack-cli@6.0.1(webpack-dev-server@5.2.2)(webpack@5.101.0):
     dependencies:
       '@discoveryjs/json-ext': 0.6.3
@@ -12335,7 +12361,7 @@ snapshots:
 
   websocket-extensions@0.1.4: {}
 
-  webtorrent@2.8.2:
+  webtorrent@2.8.3:
     dependencies:
       '@silentbot1/nat-api': 0.4.8
       '@thaunknown/simple-peer': 10.0.11
