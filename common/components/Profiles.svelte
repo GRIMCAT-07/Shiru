@@ -43,7 +43,7 @@
   }
 
   function confirmAnilist () {
-    IPC.emit(SUPPORTS.isAndroid ? 'open' : 'open-auth', 'https://anilist.co/api/v2/oauth/authorize?client_id=21788&response_type=token') // Change redirect_url to shiru://alauth
+    IPC.emit(SUPPORTS.isAndroid ? 'open' : 'open-auth', `https://anilist.co/api/v2/oauth/authorize?client_id=${atob('MjE3ODg=')}&response_type=token`) // Change redirect_url to shiru://alauth
   }
 
   function confirmMAL () {

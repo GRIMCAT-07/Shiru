@@ -14,7 +14,6 @@
   import { X, Search, EllipsisVertical, Timer, Clapperboard, MonitorCog, ArrowDownWideNarrow, ChevronLeft, ChevronUp, ChevronDown } from 'lucide-svelte'
   import { toast } from 'svelte-sonner'
   import Debug from 'debug'
-
   const debug = Debug('ui:torrents')
 
   /** @typedef {import('@/modules/al.d.ts').Media} Media */
@@ -188,7 +187,7 @@
     })()
     if (search === null || search.media?.id !== request?.media?.id || search.episode !== request?.episode) return null
     results.update(r => ({ ...r, resolved: true }))
-    debug(`All query promises have successfully been resolved for ${search?.media?.id}:E${search?.episode}`, Array.from(uniqueErrors))
+    debug(`All query promises have successfully been resolved for ${search?.media?.id}:E${search?.episode}`, JSON.stringify(Array.from(uniqueErrors)))
     if ($status !== 'offline' && JSON.stringify(Array.from(uniqueErrors)).match(/found no results/i) && (getMediaMaxEp(search?.media, true) < search?.episode)) return { errors: [ { message: `${anilistClient.title(search.media)} ${search.media?.format !== 'MOVIE' || (getMediaMaxEp(search?.media, false) > 1) ? `Episode ${search.media.nextAiringEpisode?.episode || search.episode}` : ``} hasn't released yet! ${search?.media?.nextAiringEpisode?.timeUntilAiring ? `\n${search.media?.format !== 'MOVIE' || (getMediaMaxEp(search?.media, false) > 1) ? `This episode` : `This movie`} will be released on ${new Date(Date.now() + search.media.nextAiringEpisode?.timeUntilAiring * 1000).toDateString()}` : ''}` }]}
     return { errors: Array.from(uniqueErrors).map((message) => ({ message })) }
   }

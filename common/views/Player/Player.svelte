@@ -27,18 +27,15 @@
   import IPC from '@/modules/ipc.js'
   import { X, Minus, ArrowDown, ArrowUp, Captions, CircleHelp, Contrast, FastForward, Keyboard, EllipsisVertical, List, Eye, FilePlus2, ListMusic, ListVideo, Maximize, Minimize, Pause, PictureInPicture, PictureInPicture2, Play, Proportions, RefreshCcw, Rewind, RotateCcw, RotateCw, ScreenShare, SkipBack, SkipForward, Users, Volume1, Volume2, VolumeX, SlidersVertical, SquarePen, Milestone } from 'lucide-svelte'
   import Debug from 'debug'
-
   const debug = Debug('ui:player')
 
   const view = getContext('view')
-
   const emit = createEventDispatcher()
 
   w2gEmitter.on('playerupdate', detail => {
     currentTime = detail.time
     paused = detail.paused
   })
-
   w2gEmitter.on('setindex', detail => {
     playFile(detail)
   })

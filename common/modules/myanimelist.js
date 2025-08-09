@@ -7,10 +7,9 @@ import { sleep } from '@/modules/util.js'
 import { printError } from '@/modules/networking.js'
 import Helper from '@/modules/helper.js'
 import Debug from 'debug'
-
 const debug = Debug('ui:myanimelist')
 
-export const clientID = 'bb7dce3881d803e656c45aa39bda9ccc' // app type MUST be set to other, do not generate a seed.
+export const clientID = atob('YmI3ZGNlMzg4MWQ4MDNlNjU2YzQ1YWEzOWJkYTljY2M=') // app type MUST be set to other, do not generate a seed.
 
 const queryFields =  [
   'synopsis',

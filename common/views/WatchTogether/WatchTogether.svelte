@@ -8,7 +8,6 @@
   import IPC from '@/modules/ipc.js'
   import 'browser-event-target-emitter'
   import Debug from 'debug'
-
   const debug = Debug('ui:w2g')
 
   export const w2gEmitter = new EventEmitter()
@@ -17,7 +16,7 @@
   export const state = writable(null)
 
   function joinLobby (code) {
-    debug('Joining lobby with code: ' + code)
+    debug('Joining lobby with code:', code)
     if (state.value) state.value.destroy()
     const w2g = new W2GClient(code)
     state.value = w2g

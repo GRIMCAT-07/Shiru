@@ -8,7 +8,6 @@ import { add } from '@/modules/torrent/torrent.js'
 import { generateRandomHexCode } from '@/modules/util.js'
 import { writable } from 'simple-store-svelte'
 import Debug from 'debug'
-
 const debug = Debug('ui:w2g')
 
 /**

@@ -4,7 +4,6 @@ import { anitomyscript, hasZeroEpisode } from '@/modules/anime/anime.js'
 import { chunks, matchKeys } from '@/modules/util.js'
 //import levenshtein from 'js-levenshtein'
 import Debug from 'debug'
-
 const debug = Debug('ui:animeresolver')
 
 const postfix = {

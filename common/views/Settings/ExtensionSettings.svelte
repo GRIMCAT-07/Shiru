@@ -11,8 +11,8 @@
         if (source.main) acc.push(source.main)
         return acc
       }, []) : []
-    } catch (err) {
-      debug('Failed to load available sources', err)
+    } catch (error) {
+      debug('Failed to load available sources', error)
       return []
     }
   }

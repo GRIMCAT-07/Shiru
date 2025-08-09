@@ -7,7 +7,6 @@ import { status } from '@/modules/networking.js'
 import { extensionManager } from '@/modules/extensions/manager.js'
 import AnimeResolver from '@/modules/anime/animeresolver.js'
 import Debug from 'debug'
-
 const debug = Debug('ui:extensions')
 
 /** @typedef {import('extensions/index.d.ts').TorrentQuery} Options */

@@ -3,10 +3,9 @@ import { writable } from 'simple-store-svelte'
 import { settings } from '@/modules/settings.js'
 import { codes, getRandomInt } from '@/modules/util.js'
 import Debug from 'debug'
-
 const debug = Debug('ui:networking')
-export const status = writable(navigator.onLine ? 'online' : 'offline')
 
+export const status = writable(navigator.onLine ? 'online' : 'offline')
 export async function printError(title, description, error) {
     if (await isOffline(error)) return
     debug(`Error: ${error.status || 429} - ${error.message || codes[error.status || 429]}`)

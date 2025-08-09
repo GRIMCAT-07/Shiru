@@ -10,7 +10,6 @@
   import { X, Bookmark, PencilLine } from 'lucide-svelte'
   import Helper from '@/modules/helper.js'
   import Debug from 'debug'
-
   const debug = Debug('ui:scoring')
 
   /** @type {import('@/modules/al.d.ts').Media} */

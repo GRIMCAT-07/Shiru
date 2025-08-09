@@ -12,7 +12,6 @@ import { episodesList } from '@/modules/episodes.js'
 import { getId } from '@/modules/anime/animehash.js'
 import IPC from '@/modules/ipc.js'
 import Debug from 'debug'
-
 const debug = Debug('ui:rss')
 
 export function parseRSSNodes (nodes) {
@@ -76,13 +75,13 @@ class RSSMediaManager {
   getMediaForRSS (page, perPage, url, ignoreErrors = false, ignoreChanged = false) {
     const res = this._getMediaForRSS(page, perPage, url, ignoreChanged)
     if (!ignoreErrors) {
-      res.catch(e => {
+      res.catch(error => {
         if (settings.value.toasts.includes('All') || settings.value.toasts.includes('Errors')) {
           toast.error('Search Failed', {
             description: 'Failed to load media for home feed!\n' + e.message
           })
         }
-        debug('Failed to load media for home feed', e.stack)
+        debug('Failed to load media for home feed', error.stack)
       })
     }
     return Array.from({ length: perPage }, (_, i) => ({ type: 'episode', data: this.fromPending(res, i) }))
@@ -253,7 +252,7 @@ class RSSMediaManager {
         try {
           res.episodeData = (await getEpisodeMetadataForMedia(res.media))?.[requestEpisode]
         } catch (e) {
-          debug(`Warn: failed fetching episode metadata for ${res.media.title?.userPreferred} episode ${requestEpisode}: ${e.stack}`)
+          debug(`Warn: failed fetching episode metadata for ${res.media.title?.userPreferred} episode ${requestEpisode}:`, e.stack)
         }
       }
       res.onclick = () => add(res.link, { media: res.media, episode: res.episode, episodeRange: res.episodeRange }, res.hash || res.link)

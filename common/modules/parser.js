@@ -3,7 +3,6 @@ import { arr2hex, hex2bin } from 'uint8-util'
 import { fontRx } from './util.js'
 import { SUPPORTS } from '@/modules/support.js'
 import Debug from 'debug'
-
 const debug = Debug('torrent:parser')
 
 export default class Parser {

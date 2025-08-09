@@ -7,10 +7,9 @@ import { settings } from '@/modules/settings.js'
 import { RSSManager } from '@/modules/rss.js'
 import Helper from '@/modules/helper.js'
 import Debug from 'debug'
-
 const debug = Debug('ui:sections')
-const lastSearched = cache.getEntry(caches.HISTORY, 'lastSearched')
 
+const lastSearched = cache.getEntry(caches.HISTORY, 'lastSearched')
 export const hasNextPage = writable(true)
 export const key = writable({})
 export const search = writable(lastSearched || { genre: [], genre_not: [], tag: [], tag_not: [], format: [], format_not: [], status: [], status_not: [] })
@@ -107,7 +106,7 @@ function createSections () {
             section.preview.value = RSSManager.getMediaForRSS(1, 12, url, true)
           }
         } catch (error) {
-          debug(`Failed to update RSS feed for ${url} at the scheduled interval, this is likely a temporary connection issue: ${JSON.stringify(error)}`)
+          debug(`Failed to update RSS feed for ${url} at the scheduled interval, this is likely a temporary connection issue:`, JSON.stringify(error))
         }
       }, 30000)
 

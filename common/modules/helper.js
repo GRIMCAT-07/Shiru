@@ -8,7 +8,6 @@ import { getMediaMaxEp, hasZeroEpisode } from '@/modules/anime/anime.js'
 import { codes, matchKeys } from '@/modules/util.js'
 import { toast } from 'svelte-sonner'
 import Debug from 'debug'
-
 const debug = Debug('ui:helper')
 
 export default class Helper {
@@ -151,7 +150,7 @@ export default class Helper {
       const cachedMedia = mediaCache.value[media?.id] || media
       debug(`Checking entry for ${cachedMedia?.title?.userPreferred}`)
 
-      debug(`Media viability: ${cachedMedia?.status}, Is from failed resolve: ${failed}`)
+      debug(`Media viability: ${cachedMedia?.status}, is from failed resolve: ${failed}`)
       if (failed) {
         toast.error('Failed to Update Progress', {
           description: 'The currently playing media failed to be identified, episode progress will not be updated... You can fix this in the File Manager.',

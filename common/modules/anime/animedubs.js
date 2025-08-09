@@ -3,7 +3,6 @@ import { printError,  status } from '@/modules/networking.js'
 import { cache, caches } from '@/modules/cache.js'
 import { writable } from 'simple-store-svelte'
 import Debug from 'debug'
-
 const debug = Debug('ui:animedubs')
 
 /**
@@ -22,7 +21,7 @@ class MALDubs {
                 const updatedLists = await this.getMALDubs()
                 this.dubLists.value = Promise.resolve(updatedLists)
             } catch (error) {
-                debug(`Failed to update dubbed anime list at the scheduled interval, this is likely a temporary connection issue: ${JSON.stringify(error)}`)
+                debug('Failed to update dubbed anime list at the scheduled interval, this is likely a temporary connection issue:', JSON.stringify(error))
             }
         }, 1000 * 60 * 60)
     }

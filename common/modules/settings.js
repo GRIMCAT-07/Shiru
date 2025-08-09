@@ -4,7 +4,6 @@ import { defaults } from '@/modules/util.js'
 import { toast } from 'svelte-sonner'
 import IPC from '@/modules/ipc.js'
 import Debug from 'debug'
-
 const debug = Debug('ui:settings')
 
 /** @type {{viewer: import('./al').Query<{Viewer: import('./al').Viewer}>, token: string} | null} */
@@ -115,7 +114,7 @@ async function handleToken (token) {
   const viewer = await anilistClient.viewer({token})
   if (!viewer.data?.Viewer) {
     toast.error('Failed to sign in with AniList. Please try again.', {description: JSON.stringify(viewer)})
-    debug(`Failed to sign in with AniList: ${JSON.stringify(viewer)}`)
+    debug('Failed to sign in with AniList:', JSON.stringify(viewer))
     return
   }
   await swapProfiles({token, viewer}, true)
@@ -143,14 +142,14 @@ async function handleMalToken (code, state) {
   })
   if (!response.ok) {
     toast.error('Failed to sign in with MyAnimeList. Please try again.', { description: JSON.stringify(response.status) })
-    debug(`Failed to get MyAnimeList User Token: ${JSON.stringify(response)}`)
+    debug('Failed to get MyAnimeList User Token:', JSON.stringify(response))
     return
   }
   const oauth = await response.json()
   const viewer = await malClient.viewer(oauth.access_token)
   if (!viewer?.data?.Viewer?.id) {
     toast.error('Failed to sign in with MyAnimeList. Please try again.', { description: JSON.stringify(viewer) })
-    debug(`Failed to sign in with MyAnimeList: ${JSON.stringify(viewer)}`)
+    debug('Failed to sign in with MyAnimeList:', JSON.stringify(viewer))
     return
   }
   await swapProfiles({ token: oauth.access_token, refresh: oauth.refresh_token, refresh_in: Math.floor((Date.now() + 14 * 24 * 60 * 60 * 1000) / 1000), reauth: false, viewer }, true)

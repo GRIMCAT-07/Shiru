@@ -11,7 +11,6 @@
   import { settings } from '@/modules/settings.js'
   import { getAniMappings, getKitsuMappings, hasZeroEpisode } from '@/modules/anime/anime.js'
   import Debug from 'debug'
-
   const debug = Debug('ui:mediahandler')
 
   const episodeRx = /Episode (\d+) - (.*)/
@@ -35,7 +34,7 @@
 
   function handleCurrent ({ detail }) {
     const nextMedia = detail?.media
-    debug(`Handling current media: ${JSON.stringify(nextMedia?.parseObject)}`)
+    debug('Handling current media:', JSON.stringify(nextMedia?.parseObject))
     if (nextMedia?.parseObject) handleMedia(nextMedia)
   }
 

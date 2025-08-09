@@ -12,9 +12,7 @@ import { settings } from '@/modules/settings.js'
 import { cache, caches } from '@/modules/cache.js'
 import { status } from '@/modules/networking.js'
 import Helper from '@/modules/helper.js'
-
 import { Drama, BookHeart, MountainSnow, Laugh, Adult, Droplets, FlaskConical, Ghost, Skull, HeartPulse, Volleyball, Car, Brain, Footprints, Guitar, Bot, Sparkles, WandSparkles, Activity } from 'lucide-svelte'
-
 import Debug from 'debug'
 const debug = Debug('ui:anime')
 
@@ -203,7 +201,7 @@ export async function anitomyscript (...args) {
     obj.anime_title = obj.anime_title.replace(/(?<=\s)-\s*|\s*-(?=\s)/g, '')
     if (Number(obj.anime_season) > 1) obj.anime_title += ' S' + Number(obj.anime_season)
   }
-  debug(`AnitoMyScript found titles: ${JSON.stringify(parseObjs)}`)
+  debug('AnitoMyScript found titles:', JSON.stringify(parseObjs))
   return parseObjs
 }
 

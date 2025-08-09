@@ -11,7 +11,6 @@ import { printError } from '@/modules/networking.js'
 import Helper from '@/modules/helper.js'
 import IPC from '@/modules/ipc.js'
 import Debug from 'debug'
-
 const debug = Debug('ui:animeschedule')
 
 /**
@@ -45,13 +44,13 @@ class AnimeSchedule {
                 const subFeed = await this.feedChanged('sub', true)
                 if (subFeed) this.subAiringLists.value = Promise.resolve(subFeed)
             } catch (error) {
-                debug(`Failed to update Sub schedule at the scheduled interval, this is likely a temporary connection issue: ${JSON.stringify(error)}`)
+                debug('Failed to update Sub schedule at the scheduled interval, this is likely a temporary connection issue:', JSON.stringify(error))
             }
             try {
                 const dubFeed = await this.feedChanged('dub', true)
                 if (dubFeed) this.dubAiringLists.value = Promise.resolve(dubFeed)
             } catch (error) {
-                debug(`Failed to update Dub schedule at the scheduled interval, this is likely a temporary connection issue: ${JSON.stringify(error)}`)
+                debug('Failed to update Dub schedule at the scheduled interval, this is likely a temporary connection issue:', JSON.stringify(error))
             }
             this.findNewNotifications()
             this.findNewDelayedEpisodes()
@@ -69,7 +68,7 @@ class AnimeSchedule {
     }
 
     async findNewDelayedEpisodes() { // currently only dubs are handled as they typically get delayed...
-        debug(`Checking for delayed dub episodes...`)
+        debug('Checking for delayed dub episodes...')
         const delayedEpisodes = (await this.dubAiringLists.value)?.filter(entry => new Date(entry.delayedFrom) <= new Date() && new Date(entry.delayedUntil) > new Date()).flatMap(entry => Array.from({ length: entry.episodeNumber - (entry.subtractedEpisodeNumber || entry.episodeNumber) + 1 }, (_, i) => (entry.subtractedEpisodeNumber || entry.episodeNumber) + i)?.filter(episode => !cache.getEntry(caches.NOTIFICATIONS, 'delayedDubs').includes(`${entry?.media?.media?.id}:${episode}:${entry.delayedUntil}`))?.map(episode => ({ ...entry, episodeNumber: episode, subtractedEpisodeNumber: undefined })))
         debug(`Found ${delayedEpisodes?.length} new delayed episodes${delayedEpisodes?.length ? '.. notifying!' : ''}`)
         if (!delayedEpisodes?.length) return
@@ -244,13 +243,13 @@ class AnimeSchedule {
 
     getMediaForRSS(page, perPage, type) {
         const res = this._getMediaForRSS(page, perPage, type)
-        res.catch(e => {
+        res.catch(error => {
             if (settings.value.toasts.includes('All') || settings.value.toasts.includes('Errors')) {
                 toast.error('Search Failed', {
                     description: `Failed to load media for home feed for ${type}!` + e.message
                 })
             }
-            debug(`Failed to load media for home feed for ${type}`, e.stack)
+            debug(`Failed to load media for home feed for ${type}`, error.stack)
         })
         return Array.from({ length: perPage }, (_, i) => ({ type: 'episode', data: this.fromPending(res, i) }))
     }

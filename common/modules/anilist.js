@@ -12,7 +12,6 @@ import { malClient } from '@/modules/myanimelist.js'
 import Helper from '@/modules/helper.js'
 import IPC from '@/modules/ipc.js'
 import Debug from 'debug'
-
 const debug = Debug('ui:anilist')
 const query = Debug('ui:alquery')
 
@@ -186,19 +185,19 @@ class AnilistClient {
         const updatedLists = await this.getUserLists({sort: 'UPDATED_TIME_DESC'})
         this.userLists.value = Promise.resolve(updatedLists) // no need to have userLists await the entire query process while we already have previous values, (it's awful to wait 15+ seconds for the query to succeed with large lists)
       })
-      this.findNewNotifications().catch((error) => debug(`Failed to get new anilist notifications at the scheduled interval, this is likely a temporary connection issue: ${JSON.stringify(error)}`))
+      this.findNewNotifications().catch((error) => debug('Failed to get new anilist notifications at the scheduled interval, this is likely a temporary connection issue:', JSON.stringify(error)))
       // update userLists every 15 mins
       setInterval(async () => {
         try {
           const updatedLists = await this.getUserLists({sort: 'UPDATED_TIME_DESC'})
           this.userLists.value = Promise.resolve(updatedLists) // no need to have userLists await the entire query process while we already have previous values, (it's awful to wait 15+ seconds for the query to succeed with large lists)
         } catch (error) {
-          debug(`Failed to update user lists at the scheduled interval, this is likely a temporary connection issue: ${JSON.stringify(error)}`)
+          debug('Failed to update user lists at the scheduled interval, this is likely a temporary connection issue:', JSON.stringify(error))
         }
       }, 1000 * 60 * 15)
       // check notifications every 5 mins
       setInterval(() => {
-        this.findNewNotifications().catch((error) => debug(`Failed to get new anilist notifications at the scheduled interval, this is likely a temporary connection issue: ${JSON.stringify(error)}`))
+        this.findNewNotifications().catch((error) => debug('Failed to get new anilist notifications at the scheduled interval, this is likely a temporary connection issue:', JSON.stringify(error)))
       }, 1000 * 60 * 5)
     }
   }
@@ -434,7 +433,7 @@ class AnilistClient {
   sortListEntries(sort, data) {
     if (!data?.data?.MediaListCollection?.lists) return data
     const res = data
-    debug(`Sorting user lists based on custom sort order: ${sort}`)
+    debug('Sorting user lists based on custom sort order:', sort)
     const getSortValue = (entry) => {
       switch (sort) {
         case 'STARTED_ON_DESC':
