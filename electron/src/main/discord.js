@@ -1,4 +1,4 @@
-import { Client } from 'discord-rpc'
+import { Client } from '@xhayper/discord-rpc'
 import { ipcMain } from 'electron'
 import { debounce } from '@/modules/util.js'
 
@@ -25,7 +25,7 @@ export default class Discord {
     }
   }
 
-  discord = new Client({ transport: 'ipc' })
+  discord = new Client({ transport: { type: 'ipc' }, clientId: '1301772260780019742' })
 
   /** @type {string} */
   enableRPC = 'disabled'
@@ -50,9 +50,7 @@ export default class Discord {
       }
     })
 
-    ipcMain.on('discord-hidden', () => {
-      this.debouncedDiscordRPC(undefined, true)
-    })
+    ipcMain.on('discord-hidden', () => this.debouncedDiscordRPC(undefined, true))
 
     this.discord.on('ready', async () => {
       this.setDiscordRPC(this.cachedPresence || this.defaultStatus)
@@ -61,22 +59,18 @@ export default class Discord {
       this.discord.subscribe('ACTIVITY_SPECTATE')
     })
 
-    this.discord.on('ACTIVITY_JOIN', ({ secret }) => {
-      window.webContents.send('w2glink', secret)
-    })
+    this.discord.on('ACTIVITY_JOIN', ({ secret }) => window.webContents.send('w2glink', secret))
 
     this.debouncedDiscordRPC = debounce((status, logout) => logout ? this.logoutRPC() : this.setDiscordRPC(status), 4500)
   }
 
   loginRPC () {
-    this.discord.login({ clientId: '1301772260780019742' }).catch(() => {
-      setTimeout(() => this.loginRPC(), 5000).unref()
-    })
+    this.discord.login().catch(() => setTimeout(() => this.loginRPC(), 5000).unref())
   }
 
   logoutRPC () {
     if (this.discord?.user) {
-      setTimeout(() => this.discord.clearActivity(process.pid), 500).unref()
+      setTimeout(() => this.discord.user.clearActivity(process.pid), 500).unref()
     }
   }
 

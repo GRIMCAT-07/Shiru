@@ -37,7 +37,7 @@ class TorrentWorker extends EventTarget {
 
   async send (type, data, transfer) {
     await this.ready
-    debug(`Sending message ${type}`, data ? JSON.stringify(data) : '')
+    debug(`Sending message ${type}`, data && type !== 'load' ? JSON.stringify(data) : '')
     this.port.postMessage({ type, data }, transfer)
   }
 }
