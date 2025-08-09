@@ -298,11 +298,11 @@
       data-option='search'
       placeholder='Filter torrents by text, or manually specify one by pasting a magnet link or torrent file' bind:value={searchText} />
     <div class='dropdown primary dropleft with-arrow position-absolute z-20 h-full right-0' use:click={() => {showOptions.set(!$showOptions)}}>
-      <button type='button' class='options h-full bg-transparent border-0 pointer p-0 pr-10 muted d-flex align-items-center' title='More Options'><EllipsisVertical size='2rem' /></button>
-      <div class='position-absolute visibility top-0 text-capitalize hm-40 text-nowrap' class:hidden={!$showOptions}>
-        <div class='dropdown dropleft with-arrow z-20 pointer bg-dark p-5 rounded-1 option' aria-label='Preferred Audio Language' title='Preferred Audio Language' use:click={toggleDropdown}>
+      <button type='button' class='options h-full bg-transparent shadow-none border-0 pointer p-0 pr-10 muted d-flex align-items-center' title='More Options'><EllipsisVertical size='2rem' /></button>
+      <div class='position-absolute visibility top-0 text-capitalize hm-40 text-nowrap bg-dark dmr-arrow' class:hidden={!$showOptions}>
+        <div class='dropdown dropleft with-arrow z-20 pointer p-5 rounded-1 option' aria-label='Preferred Audio Language' title='Preferred Audio Language' use:click={toggleDropdown}>
           <div class='d-flex align-items-center justify-content-center pr-5'><ChevronLeft size='2rem' strokeWidth={2.5}  /><span class='ml-10'>Preferred Audio</span></div>
-          <div class='dropdown-menu dropdown-menu-right text-capitalize hm-400 text-nowrap'>
+          <div class='dropdown-menu dropdown-menu-right text-capitalize text-nowrap'>
             <div class='custom-radio overflow-y-auto overflow-x-hidden hm-400'>
               {#each languages as language}
                 <input name='audio-radio-set' type='radio' id='audio-{language.value}-radio' value={language.value} checked={language.value === $settings.audioLanguage} />

@@ -36,7 +36,7 @@
 
     let fileEdit
     window.addEventListener('fileEdit', (event) => {
-        if (event.detail?.episode) return
+        if (!event.detail?.manager) return
         if ($managerView) close()
         setTimeout(() => $managerView = true)
     })

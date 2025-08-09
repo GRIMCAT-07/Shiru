@@ -77,12 +77,18 @@
   setTimeout(IPC.emit('update'), 15000)
   setInterval(() => IPC.emit('update'), 300000)
 
-  IPC.on('log-contents', log => {
-    navigator.clipboard.writeText(log)
-    toast.success('Copied to clipboard', {
-      description: 'Copied log contents to clipboard',
-      duration: 5000
-    })
+  IPC.on('log-exported', detail => {
+    if (detail.error) {
+      toast.error('Log Not Saved', {
+        description: 'Failed to save the log file  to the selected location',
+        duration: 10000
+      })
+    } else {
+      toast.success('Log Saved', {
+        description: 'The log file has been saved to the selected location',
+        duration: 5000
+      })
+    }
   })
 </script>
 
@@ -147,8 +153,8 @@
   <button type='button' use:click={() => IPC.emit('get-device-info')} class='btn btn-primary d-flex align-items-center justify-content-center'><span class='text-truncate'>Copy To Clipboard</span></button>
 </SettingCard>
 {#if !SUPPORTS.isAndroid}
-  <SettingCard title='Log Output' description='Copy debug logs to clipboard. Once you enable a logging level you can use this to quickly copy the created logs to clipboard instead of navigating to the log file in directories.'>
-    <button type='button' use:click={() => IPC.emit('get-log-contents')} class='btn btn-primary d-flex align-items-center justify-content-center'><span class='text-truncate'>Copy To Clipboard</span></button>
+  <SettingCard title='Log Output' description='Export logs to a selection location. Once you enable a logging level you can use this to quickly get the created logs instead of navigating to the log file in directories.'>
+    <button type='button' use:click={() => IPC.emit('get-log-contents')} class='btn btn-primary d-flex align-items-center justify-content-center'><span class='text-truncate'>Export Logs</span></button>
   </SettingCard>
   <SettingCard title='Open Torrent Devtools' description="Open devtools for the detached torrent process, this allows to inspect code execution and memory. DO NOT PASTE ANY CODE IN THERE, YOU'RE LIKELY BEING SCAMMED IF SOMEONE TELLS YOU TO!">
     <button type='button' use:click={() => IPC.emit('torrent-devtools')} class='btn btn-primary d-flex align-items-center justify-content-center'><span class='text-truncate'>Open Devtools</span></button>

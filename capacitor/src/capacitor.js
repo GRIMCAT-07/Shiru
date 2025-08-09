@@ -204,7 +204,7 @@ IPC.on('dialog', async () => {
   const [,, app, subpath, type, ...rest] = uri.split('/')
 
   if (app !== 'com.android.externalstorage.documents') return toast.error('Unverified app', { description: 'Expected com.android.externalstorage.documents, got: ' + app })
-  if (rest.length) return toast.error('Unsupported uri', { description: 'Unxpected access type, got: tree/' + rest.join('/') })
+  if (rest.length) return toast.error('Unsupported uri', { description: 'Unexpected access type, got: tree/' + rest.join('/') })
   if (subpath !== 'tree') return toast.error('Unsupported subpath type', { description: 'Expected tree subpath, got: ' + subpath })
 
   let base = STORAGE_TYPE_MAP[type]

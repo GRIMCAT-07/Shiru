@@ -41,7 +41,7 @@
                     })
                 }
             }
-            window.dispatchEvent(new Event('fileEdit'))
+            window.dispatchEvent(new Event('fileEdit', { detail: { manager: true } }))
             close()
         }
     }

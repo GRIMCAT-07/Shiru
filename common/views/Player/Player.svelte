@@ -1671,12 +1671,12 @@
       <div class='dropdown dropleft with-arrow' use:click={() => {showOptions.set(!$showOptions)}}>
         <span class='icon ctrl d-flex align-items-center h-full' title='More'><EllipsisVertical size='2.5rem' strokeWidth={2.5} /></span>
         <div class='position-absolute hm-40 text-capitalize text-nowrap bg-dark rounded dr-arrow' style='margin-top: -17.5rem !important; margin-left: -11.4rem !important; transition: opacity 0.1s ease-in;' class:hidden={!$showOptions}>
-          <div role='button' aria-label='Add External Subtitles' class='pointer d-flex align-items-center justify-content-center font-size-16 bd-highlight py-5 px-10 rounded' title='Add External Subtitles' use:click={() => { fileInput.click(); showOptions.set(false); }}>
+          <div role='button' aria-label='Add External Subtitles' class='pointer d-flex align-items-center justify-content-center font-size-16 bd-highlight py-5 px-10 rounded-top option' title='Add External Subtitles' use:click={() => { fileInput.click(); showOptions.set(false); }}>
             <FilePlus2 size='2rem' strokeWidth={2.5} /> <div class='ml-10'>Add Subtitles</div>
           </div>
-          <div class='dropdown dropleft with-arrow pointer bg-dark option font-size-16 bd-highlight rounded'>
+          <div class='dropdown dropleft with-arrow pointer bg-dark option font-size-16 bd-highlight'>
             <div role='button' class='d-flex align-items-center justify-content-center py-5 px-10' aria-label='Change the Source of the Video Chapters' title='Change the Source of the Video Chapters' use:click={toggleDropdown}><Milestone size='2rem' strokeWidth={2.5}  /><span class='ml-10'>Chapter Source</span></div>
-            <div class='dropdown-menu dropdown-menu-right text-capitalize text-nowrap'>
+            <div class='dropdown-menu dropdown-menu-right text-capitalize text-nowrap rounded'>
               <div class='custom-radio overflow-hidden pt-5 pl-5'>
                 <input name='chapter-embed-set' type='radio' id='chapter-embed-radio' tabindex='-1' value='embedded' checked={$settings.playerChapterSkip === 'embedded'} />
                 <label for='chapter-embed-radio' use:click={(target) => { $settings.playerChapterSkip = 'embedded'; chapters = embeddedChapters; setTimeout(() => { toggleDropdown(target); showOptions.set(false); }) }} class='pb-5'>Embedded</label>
@@ -1685,7 +1685,7 @@
               </div>
             </div>
           </div>
-          <div role='button' aria-label='Modify Existing Files or Change to a New File' class='pointer d-flex align-items-center justify-content-center font-size-16 bd-highlight py-5 px-10 rounded' title='Modify Existing Files or Change to a New File' use:click={() => { resolvePrompt = false; $managerView = !$managerView; showOptions.set(false); }}>
+          <div role='button' aria-label='Modify Existing Files or Change to a New File' class='pointer d-flex align-items-center justify-content-center font-size-16 bd-highlight py-5 px-10 rounded-bottom option' title='Modify Existing Files or Change to a New File' use:click={() => { resolvePrompt = false; $managerView = !$managerView; showOptions.set(false); }}>
             <SquarePen size='2rem' strokeWidth={2.5} /> <div class='ml-10'>File Manager</div>
           </div>
         </div>

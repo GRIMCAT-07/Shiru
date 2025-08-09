@@ -1,6 +1,6 @@
 import { SUPPORTS } from '@/modules/support.js'
 import levenshtein from 'js-levenshtein'
-import { writable } from 'simple-store-svelte'
+import { writable, derived } from 'simple-store-svelte'
 import Fuse from 'fuse.js'
 
 export const codes = {
@@ -368,6 +368,23 @@ export function deepEqual(a, b) {
     if (!deepEqual(a[key], b[key])) return false
   }
   return true
+}
+
+/**
+ * Returns a derived store that only updates when the value changes deeply.
+ * Suppresses updates if the new value is equal to the previous one.
+ *
+ * @param {Readable<any>} store - The original Svelte store.
+ * @returns {Readable<any>} A derived store emitting distinct deep values.
+ */
+export function uniqueStore(store) {
+  let last
+  return derived(store, ($value, set) => {
+    if (last !== $value) {
+      last = $value
+      set($value)
+    }
+  })
 }
 
 export function capitalize(str) {

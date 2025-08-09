@@ -1,4 +1,5 @@
 import { ipcMain, dialog } from 'electron'
+import { writeFile } from 'fs'
 
 export default class Dialog {
   constructor () {
@@ -29,6 +30,27 @@ export default class Dialog {
           }
         }
         sender.send('path', path)
+      }
+    })
+    ipcMain.on('log-contents', async (sender, log) => {
+      try {
+        const { filePath, canceled } = await dialog.showSaveDialog({
+          title: 'Select export location for the log file',
+          defaultPath: `shiru-log-${new Date().toISOString().replace(/[:.]/g, '-')}.log`,
+          filters: [{ name: 'Log File', extensions: ['log'] }]
+        })
+        if (canceled || !filePath) return
+        writeFile(filePath, log, { encoding: 'utf8', mode: 0o644 }, error => {
+          if (error) {
+            console.error(error)
+            sender.send('log-exported', { error: true })
+            return
+          }
+          sender.send('log-exported', { error: false })
+        })
+      } catch (error) {
+        console.error(error)
+        sender.send('log-exported', { error: true })
       }
     })
   }

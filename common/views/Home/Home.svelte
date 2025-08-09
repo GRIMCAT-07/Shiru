@@ -3,6 +3,7 @@
   import { anilistClient, currentSeason, currentYear } from '@/modules/anilist.js'
   import { animeSchedule } from '@/modules/anime/animeschedule.js'
   import { settings } from '@/modules/settings.js'
+  import { uniqueStore } from '@/modules/util.js'
   import { RSSManager } from '@/modules/rss.js'
   import Helper from '@/modules/helper.js'
   import { writable } from 'simple-store-svelte'
@@ -38,7 +39,7 @@
   if (Helper.isMalAuth()) refreshSections(animeSchedule.subAiredLists, continueWatching) // When authorized with Anilist, this is already automatically handled.
   refreshSections(animeSchedule.dubAiredLists, continueWatching)
   function refreshSections(list, sections, schedule = false) {
-    list.subscribe((value) => {
+    uniqueStore(list).subscribe((value) => {
       if (!value) return
       for (const section of manager.sections) {
         // remove preview value, to force UI to re-request data, which updates it once in viewport
@@ -68,7 +69,6 @@
     return false
   }
 </script>
-
 <script>
   import Section from '@/views/Home/Section.svelte'
   import Banner from '@/components/banner/Banner.svelte'

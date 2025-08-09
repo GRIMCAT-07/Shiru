@@ -6,15 +6,14 @@ import { autoUpdater } from 'electron-updater'
 
 log.initialize({ spyRendererConsole: true })
 log.transports.file.level = 'debug'
-log.transports.file.maxSize = 10485760 // 10MB
+log.transports.file.maxSize = 52428800 // 50MB
 autoUpdater.logger = log
 
 export default class Debug {
   constructor () {
     ipcMain.on('get-log-contents', async ({ sender }) => {
-      sender.send('log-contents', await readFile(log.transports.file.getFile().path, 'utf8'))
+      ipcMain.emit('log-contents', sender, await readFile(log.transports.file.getFile().path, 'utf8'))
     })
-
     ipcMain.on('get-device-info', async ({ sender }) => {
       const { model, speed } = os.cpus()[0]
       const deviceInfo = {

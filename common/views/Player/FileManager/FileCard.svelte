@@ -1,14 +1,15 @@
 <script context='module'>
     import { mediaCache } from '@/modules/cache.js'
     import { click, hoverExit } from '@/modules/click.js'
-    import { SquarePen, Play } from 'lucide-svelte'
+    import { SquarePen, SquareCheckBig, Play } from 'lucide-svelte'
     import { SUPPORTS } from '@/modules/support.js'
     import { createListener } from '@/modules/util.js'
     import { setHash } from '@/modules/anime/animehash.js'
     import { anilistClient } from '@/modules/anilist.js'
     import Debug from 'debug'
-
     const debug = Debug('ui:file-editor')
+    const { reactive, init } = createListener(['verify-btn', 'edit-btn', 'cnt-button', 'episode-input'])
+    init(true)
 </script>
 <script>
     export let file
@@ -23,8 +24,6 @@
     $: watched = !notWatching && !behind && file?.media?.episode && ($mediaCache[file?.media?.media?.id]?.mediaListEntry?.status === 'COMPLETED' || ($mediaCache[file?.media?.media?.id]?.mediaListEntry?.progress >= file?.media?.episode))
 
     let prompt = false
-    const { reactive, init } = createListener(['btn', 'input'])
-    init(true)
 
     let editTimer = null
     let updateTimer = null
@@ -67,9 +66,24 @@
                     failed: false
                 })
             }
-            debug(`Updated ${file.media?.media?.id} with Episode ${file.media.episode} and file:`, file)
-            editTimer = setTimeout(() => window.dispatchEvent(new CustomEvent('fileEdit', { detail: { episode: true } })), 1500)
+            debug(`Updated ${file.media?.media?.id} with Episode ${file.media.episode || file.media.parseObject.episode_number} and file:`, JSON.stringify(file))
+            editTimer = setTimeout(() => window.dispatchEvent(new CustomEvent('fileEdit')), 1500)
         }, 200)
+    }
+    function verifySeries() {
+        file.locked = true
+        setHash(file.infoHash, {
+            fileHash: file.fileHash,
+            mediaId: file.media.media?.id,
+            episodeRange: file.media.episodeRange,
+            episode: file.media.episode || file.media.parseObject.episode_number,
+            season: file.media.season || file.media.parseObject.anime_season,
+            parseObject: file.media.parseObject,
+            locked: true,
+            failed: false
+        })
+        debug(`Verified ${file.media?.media?.id} with Episode ${file.media.episode || file.media.parseObject.episode_number} and file:`, JSON.stringify(file))
+        editTimer = setTimeout(() => window.dispatchEvent(new CustomEvent('fileEdit')), 1500)
     }
 </script>
 
@@ -84,10 +98,8 @@
     <div class='file-content z-10 w-full'>
         <div class='d-flex'>
             <p class='file-title overflow-hidden font-weight-bold my-0 mt-10 mr-10 font-scale-18 {SUPPORTS.isAndroid ? `line-clamp-1` : `line-clamp-2`}'>{#if file?.media?.media}{anilistClient.title(file?.media.media)}{:else}{file?.media?.parseObject?.anime_title || file?.name || 'UNK'}{/if}</p>
-            <button type='button' class='ml-auto btn d-flex align-items-center justify-content-center' title='Opens a prompt to select the correct series' use:click={() => { prompt = false; fileEdit(file, files, file?.media?.media ? anilistClient.title(file?.media.media) : file?.media?.parseObject?.anime_title || '') } }>
-                <SquarePen class='mr-5' size='1.7rem' strokeWidth='3'/>
-                <span>Change Series</span>
-            </button>
+            <button type='button' class='ml-auto verify-btn btn btn-square d-none align-items-center justify-content-center mr-5 px-5' class:d-flex={!(file?.locked || file?.media?.locked || !episode?.length)} title='Confirm this series as being correct' use:click={() => { prompt = false; verifySeries() } }><SquareCheckBig color='var(--tertiary-color)' size='1.7rem' strokeWidth='3'/></button>
+            <button type='button' class='ml-auto edit-btn btn btn-square d-flex align-items-center justify-content-center px-5' class:ml-auto={file?.locked || file?.media?.locked || !episode?.length} title='Opens a prompt to select the correct series' use:click={() => { prompt = false; fileEdit(file, files, file?.media?.media ? anilistClient.title(file?.media.media) : file?.media?.parseObject?.anime_title || '') } }><SquarePen size='1.7rem' strokeWidth='3'/></button>
         </div>
         <p class='font-scale-12 my-5 mr-40 text-muted text-break-word overflow-hidden line-2'>{file?.name || 'UNK'}</p>
         <div class='d-flex align-items-center justify-content-center mt-5'>
@@ -114,7 +126,7 @@
                             episode = targetValue?.length ? targetValue : getEpisode()
                             updateEpisode(file, event)
                         }}
-                        class='input form-control h-20 text-left text-dark text-truncate font-weight-semi-bold font-size-12 justify-content-center'
+                        class='episode-input input form-control h-20 text-left text-dark text-truncate font-weight-semi-bold font-size-12 justify-content-center'
                         style='background-color: rgb(175,175,244) !important; width: calc(1.8rem + {(String(episode).length <= 10 ? String(episode).length : 10) * .7}rem) !important'
                         title='Episode Number(s)'/>
                 </span>
@@ -129,7 +141,7 @@
                 Your Current Progress Is At <b>Episode {$mediaCache[file?.media?.media?.id]?.mediaListEntry?.progress}</b>
             {/if}
         </p>
-        <button type='button' class='btn btn-lg btn-secondary w-230 h-33 text-dark font-size-16 font-weight-bold shadow-none border-0 d-flex align-items-center mt-10 mb-auto' use:click={() => { prompt = false; playFile(file) } }>
+        <button type='button' class='cnt-button btn btn-lg btn-secondary w-230 h-33 text-dark font-size-16 font-weight-bold shadow-none border-0 d-flex align-items-center mt-10 mb-auto' use:click={() => { prompt = false; playFile(file) } }>
             <Play class='mr-10' fill='currentColor' size='1.4rem' />
             Continue Anyway?
         </button>

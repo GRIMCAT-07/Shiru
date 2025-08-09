@@ -102,7 +102,7 @@
     <div class='p-5 w-115 d-none d-md-block'>{data.eta > 0 && data.progress < 1 ? eta(new Date(Date.now() + data.eta)) : '∞'}</div>
   </div>
   <div class='dropdown react-{infoHash} with-arrow right-0 mr-5 mr-md-20 w-40 h-auto' class:invisible={current} use:click={toggleDropdown}>
-    <span bind:this={options} class='btn btn-square h-full bg-transparent border-0 options d-flex align-items-center muted justify-content-center flex-shrink-0 h-full w-40' title='Options'><EllipsisVertical size='2rem' /></span>
+    <span bind:this={options} class='btn btn-square h-full bg-transparent shadow-none border-0 options d-flex align-items-center muted justify-content-center flex-shrink-0 h-full w-40' title='Options'><EllipsisVertical size='2rem' /></span>
     <div class='dropdown-menu dropdown-menu-right pt-5 pb-5 ml-10 text-capitalize w-auto hm-400 text-nowrap'>
       <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details py-5 px-10' class:d-flex={!current} aria-label='Play Torrent' title='Play Torrent' use:click={() => { add(infoHash, null, infoHash); toggleDropdown() }}>
         Play
