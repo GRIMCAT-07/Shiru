@@ -31,7 +31,7 @@ export default class TorrentClient extends WebTorrent {
   constructor(ipc, storageQuota, serverMode, settings, controller) {
     debug('Initializing TorrentClient with settings:', JSON.stringify(settings))
     super({
-      dht: settings.dht ? { concurrency: 4, maxAge: 1800000 } : false,
+      dht: settings.dht,
       utPex: settings.torrentPeX,
       maxConns: settings.maxConns,
       downloadLimit: settings.downloadLimit,
@@ -311,7 +311,7 @@ export default class TorrentClient extends WebTorrent {
    */
   async seedTorrent(torrent) {
     if (!torrent || torrent.destroyed) return
-    const seedingLimit = this.settings.seedingLimit || 1
+    const seedingLimit = this.settings.seedingLimit > SUPPORTS.maxSeeding ? SUPPORTS.maxSeeding : (this.settings.seedingLimit || 1)
     const seedingTorrents = this.torrents.filter(_torrent => _torrent.seeding && !_torrent.destroyed)
     if (!torrent.seeding && !torrent.destroyed) {
       if (seedingLimit > 1) {
