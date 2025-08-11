@@ -375,6 +375,7 @@
     skipPrompt = filler || recap
     if ((((page === 'player') && (!overlay || overlay.length === 0)) || pip) && !resolvePrompt && !skipPrompt) {
       video.play()
+      resetImmerse()
       setTimeout(() => subs?.renderer?.resize(), 200) // stupid fix because video metadata doesn't update for multiple frames
     } else video.pause()
   }
