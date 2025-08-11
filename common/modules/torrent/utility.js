@@ -167,13 +167,19 @@ export function makeHash(data) {
  * @throws {Error} If format is unsupported or data is invalid.
  */
 export async function getInfoHash(input) {
-  if (typeof input === 'string' && input.startsWith('http')) {
-    const res = await fetch(input)
-    if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`)
-    input = new Uint8Array(await res.arrayBuffer())
-  }
+  if (!input?.length) return null
+  try {
+    if (typeof input === 'string' && input.startsWith('http')) {
+      const res = await fetch(input)
+      if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`)
+      input = new Uint8Array(await res.arrayBuffer())
+    }
 
-  const parsed = await parseTorrent(input)
-  if (!parsed.infoHash) throw new Error('Invalid torrent data or magnet link')
-  return parsed.infoHash.toLowerCase()
+    const parsed = await parseTorrent(input)
+    if (!parsed.infoHash) throw new Error('Invalid torrent data or magnet link')
+    return parsed.infoHash.toLowerCase()
+  } catch (error) {
+    console.error(error)
+    return null
+  }
 }

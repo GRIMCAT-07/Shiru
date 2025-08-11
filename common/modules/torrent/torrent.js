@@ -170,7 +170,7 @@ function setupTorrentClient() {
   } else {
     debug(`Unloading torrent(s) from previous session`)
     client.send('unload', cache.getEntry(caches.GENERAL, 'loadedTorrent'))
-    cache.setEntry(caches.GENERAL, 'loadedTorrent', [])
+    cache.setEntry(caches.GENERAL, 'loadedTorrent', {})
     cache.setEntry(caches.GENERAL, 'completedTorrents', Array.from(new Set([...(cache.getEntry(caches.GENERAL, 'completedTorrents') || []), ...(cache.getEntry(caches.GENERAL, 'seedingTorrents') || []), ...(cache.getEntry(caches.GENERAL, 'stagingTorrents') || [])])))
     cache.setEntry(caches.GENERAL, 'stagingTorrents', [])
     cache.setEntry(caches.GENERAL, 'seedingTorrents', [])
@@ -216,7 +216,7 @@ function setupTorrentClient() {
   client.on('files', ({ detail }) => files.set(detail))
 
   client.on('loaded', ({ detail }) => {
-    cache.setEntry(caches.GENERAL, 'loadedTorrent', detail?.id)
+    cache.setEntry(caches.GENERAL, 'loadedTorrent', detail)
     deduplicateTorrents(detail?.infoHash, 'stagingTorrents', 'seedingTorrents', 'completedTorrents')
     client.emit('untrack', detail?.infoHash)
   })

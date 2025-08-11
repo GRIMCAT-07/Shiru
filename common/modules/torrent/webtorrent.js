@@ -136,9 +136,9 @@ export default class TorrentClient extends WebTorrent {
    */
   async loadLastTorrent(torrent) {
     debug('Loading last torrent: ', JSON.stringify(torrent))
-    if (!torrent?.length) return
-    const cache = await this.torrentCache.get(await getInfoHash(torrent))
-    this.addTorrent(cache?.torrentFile ? fromBase64(cache?.torrentFile) : torrent, cache, true)
+    if (!torrent?.length && !(typeof torrent === 'object' && Object.keys(torrent).length)) return
+    const cache = await this.torrentCache.get(torrent?.infoHash || await getInfoHash(torrent))
+    this.addTorrent(cache?.torrentFile ? fromBase64(cache?.torrentFile) : (torrent?.id || torrent), cache, true)
   }
 
   /**
@@ -550,11 +550,11 @@ export default class TorrentClient extends WebTorrent {
           await this.remove(current, { destroyStore: false })
           this.currentFile = null
           if (cache) {
-            this.dispatch('loaded', null)
+            this.dispatch('loaded', {})
             this.addTorrent(fromBase64(cache?.torrentFile), cache)
           }
         } else if (data.data) {
-          const cache = await this.torrentCache.get(data.data?.hash && data.data?.torrent || (await getInfoHash(data.data?.torrent || data.data)))
+          const cache = await this.torrentCache.get(data.data?.infoHash || (data.data?.hash && data.data?.torrent) || (await getInfoHash(data.data?.torrent || data.data)))
           if (cache?.infoHash) {
             const torrentStats = await getProgressAndSize(cache)
             const stats = { infoHash: cache.infoHash, name: cache.name, size: torrentStats.size, progress: torrentStats.progress, incomplete: torrentStats.progress < 1 }
