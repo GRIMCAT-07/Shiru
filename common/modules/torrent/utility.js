@@ -58,11 +58,10 @@ export const stringifyQuery = obj => {
  * @returns {string} The stream URL with the filename segment URI-encoded.
  */
 export const encodeStreamURL = (streamURL) => {
-  if (!streamURL) return streamURL
-  const parts = streamURL.split('/')
-  if (parts.length === 0) return streamURL
-  parts[parts.length - 1] = encodeURIComponent(parts[parts.length - 1])
-  return parts.join('/')
+  if (!streamURL?.length) return streamURL
+  const match = streamURL.replace(/\\/g, '/').match(/^(.*?\/webtorrent\/[^/]+\/?)(.*)$/);
+  if (!match) return streamURL
+  return match[1] + match[2].split('/').map(segment => encodeURIComponent(decodeURIComponent(segment))).join('/')
 }
 
 /**
