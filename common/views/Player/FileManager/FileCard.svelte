@@ -102,7 +102,7 @@
             <button type='button' class='ml-auto edit-btn btn btn-square d-flex align-items-center justify-content-center px-5' class:ml-auto={file?.locked || file?.media?.locked || !episode?.length} title='Opens a prompt to select the correct series' use:click={() => { prompt = false; fileEdit(file, files, file?.media?.media ? anilistClient.title(file?.media.media) : file?.media?.parseObject?.anime_title || '') } }><SquarePen size='1.7rem' strokeWidth='3'/></button>
         </div>
         <p class='font-scale-12 my-5 mr-40 text-muted text-break-word overflow-hidden line-2'>{file?.name || 'UNK'}</p>
-        <div class='d-flex align-items-center justify-content-center mt-5'>
+        <div class='d-flex align-items-center mt-5'>
             {#if playing}<span class='badge text-dark bg-announcement' title='The current file'>Now Playing</span>{/if}
             {#if file?.locked || file?.media?.locked}<span class='badge text-dark bg-success-subtle' class:ml-5={playing} title='This series was manually set by the user'>Locked</span>{/if}
             {#if file?.failed || file?.media?.failed}<span class='badge text-dark bg-danger-dim ml-auto h-27 mr-5 d-flex align-items-center justify-content-center' title='Failed to resolve the playing media based on the file name.'>Failed</span>{/if}
