@@ -50,6 +50,22 @@ export const stringifyQuery = obj => {
 }
 
 /**
+ * Safely encodes the filename segment of a stream URL, preserving the path structure.
+ * Encodes only the last path segment to ensure special characters in filenames are properly escaped for use in intents or URLs.
+ * THIS IS VERY IMPORTANT FOR ANDROID!
+ *
+ * @param {string} streamURL - The stream URL containing the filename to encode.
+ * @returns {string} The stream URL with the filename segment URI-encoded.
+ */
+export const encodeStreamURL = (streamURL) => {
+  if (!streamURL) return streamURL
+  const parts = streamURL.split('/')
+  if (parts.length === 0) return streamURL
+  parts[parts.length - 1] = encodeURIComponent(parts[parts.length - 1])
+  return parts.join('/')
+}
+
+/**
  * Compares two binary buffers for equality.
  * @param {Uint8Array|Buffer} a - First buffer.
  * @param {Uint8Array|Buffer} b - Second buffer.

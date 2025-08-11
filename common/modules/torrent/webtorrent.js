@@ -2,7 +2,7 @@ import WebTorrent from 'webtorrent'
 import Client from 'bittorrent-tracker'
 import HTTPTracker from 'bittorrent-tracker/lib/client/http-tracker.js'
 import { hex2bin, arr2hex, text2arr } from 'uint8-util'
-import { toBase64, fromBase64, makeHash, getInfoHash, buffersEqual, hasIntegrity, getProgressAndSize, stringifyQuery, errorToString, ANNOUNCE, TMP } from './utility.js'
+import { toBase64, fromBase64, makeHash, getInfoHash, buffersEqual, hasIntegrity, getProgressAndSize, stringifyQuery, errorToString, encodeStreamURL, ANNOUNCE, TMP } from './utility.js'
 import { fontRx, sleep, subRx, videoRx } from '../util.js'
 import { SUPPORTS } from '@/modules/support.js'
 import { spawn } from 'node:child_process'
@@ -157,7 +157,7 @@ export default class TorrentClient extends WebTorrent {
         type: file.type,
         size: file.size,
         path: file.path,
-        url: this.serverMode === 'node' ? 'http://localhost:' + this.server.address().port + file.streamURL : file.streamURL
+        url: this.serverMode === 'node' ? 'http://localhost:' + this.server.address().port + encodeStreamURL(file.streamURL) : encodeStreamURL(file.streamURL)
       }
     })
     this.dispatch('files', files)
@@ -460,7 +460,7 @@ export default class TorrentClient extends WebTorrent {
           this.bumpTorrent(torrent)
           if (data.data.external) {
             if (this.player) {
-              this.playerProcess = spawn(this.player, ['' + new URL('http://localhost:' + this.server.address().port + found.streamURL)])
+              this.playerProcess = spawn(this.player, ['' + new URL('http://localhost:' + this.server.address().port + encodeStreamURL(found.streamURL))])
               this.playerProcess.stdout.on('data', () => {})
               const startTime = Date.now()
               this.playerProcess.once('close', () => {
@@ -472,7 +472,7 @@ export default class TorrentClient extends WebTorrent {
               return
             }
             if (SUPPORTS.isAndroid) {
-              this.dispatch('open', `intent://localhost:${this.server.address().port}${found.streamURL}#Intent;type=video/any;scheme=http;end;`)
+              this.dispatch('open', `intent://localhost:${this.server.address().port}${encodeStreamURL(found.streamURL)}#Intent;type=video/any;scheme=http;end;`)
               return
             }
           }
