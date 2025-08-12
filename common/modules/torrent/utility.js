@@ -59,7 +59,7 @@ export const stringifyQuery = obj => {
  */
 export const encodeStreamURL = (streamURL) => {
   if (!streamURL?.length) return streamURL
-  const match = streamURL.replace(/\\/g, '/').match(/^(.*?\/webtorrent\/[^/]+\/?)(.*)$/);
+  const match = streamURL.replace(/\\/g, '/').match(/^(.*?\/webtorrent\/[^/]+\/?)(.*)$/)
   if (!match) return streamURL
   return match[1] + match[2].split('/').map(segment => encodeURIComponent(decodeURIComponent(segment))).join('/')
 }
@@ -82,35 +82,17 @@ export const buffersEqual = (a, b) => {
 }
 
 /**
- * Encodes binary data to a Base64 string.
- * @param {ArrayBuffer|Uint8Array|string} data - The data to encode.
- * @returns {string} Base64-encoded string.
- */
-export function toBase64(data) {
-  return Buffer.from(data).toString('base64')
-}
-
-/**
- * Decodes a Base64 string into a Uint8Array.
- * @param {string} buffer - Base64 string to decode.
- * @returns {Uint8Array} Decoded binary data.
- */
-export function fromBase64(buffer) {
-  return Uint8Array.from(Buffer.from(buffer, 'base64'))
-}
-
-/**
  * Calculates progress and total size from a cached torrent.
  * @param {Object} cache - Cached torrent object.
- * @param {string} cache.torrentFile - Base64-encoded torrent file.
- * @param {Uint8Array} cache.bitfield - Bitfield indicating completed pieces.
+ * @param {Uint8Array} cache._bitfield - Bitfield indicating completed pieces.
  * @returns {Promise<{progress: number, size: number} | null>}
  */
 export async function getProgressAndSize(cache) {
   if (!cache) return null
   try {
-    const parsed = await parseTorrent(fromBase64(cache.torrentFile))
-    const bits = new Uint8Array(cache.bitfield)
+    let parsed = cache
+    if (cache.legacy) parsed = await parseTorrent(cache.info)
+    const bits = new Uint8Array(cache._bitfield)
     let pieces = 0
     for (let i = 0; i < parsed.pieces.length; i++) {
       if (bits[i >> 3] & (1 << (7 - (i & 7)))) pieces++
@@ -123,14 +105,15 @@ export async function getProgressAndSize(cache) {
 
 /**
  * Checks whether all video files in a torrent are fully downloaded and match expected sizes.
- * @param {Uint8Array|Buffer} torrentFile - Torrent file buffer.
+ * @param {Object} cache - Cached torrent object.
  * @param {string} torrentPath - Path to downloaded torrent content.
  * @returns {Promise<boolean|null>} True if complete, false if incomplete, null if invalid input.
  */
-export async function hasIntegrity(torrentFile, torrentPath) {
-  if (!torrentFile || torrentPath == null) return null
+export async function hasIntegrity(cache, torrentPath) {
+  if (!cache || torrentPath == null) return null
   try {
-    const parsed = await parseTorrent(torrentFile)
+    let parsed = cache
+    if (cache.legacy) parsed = await parseTorrent(cache.info)
     if (parsed.files && parsed.files.length) {
       for (const file of parsed.files?.filter(file => videoRx.test(file.name))) {
         const stats = await stat(path.join(torrentPath, file.path))
@@ -189,7 +172,6 @@ export async function getInfoHash(input) {
       if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`)
       input = new Uint8Array(await res.arrayBuffer())
     }
-
     const parsed = await parseTorrent(input)
     if (!parsed.infoHash) throw new Error('Invalid torrent data or magnet link')
     return parsed.infoHash.toLowerCase()

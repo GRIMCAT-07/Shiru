@@ -2,7 +2,7 @@ import WebTorrent from 'webtorrent'
 import Client from 'bittorrent-tracker'
 import HTTPTracker from 'bittorrent-tracker/lib/client/http-tracker.js'
 import { hex2bin, arr2hex, text2arr } from 'uint8-util'
-import { toBase64, fromBase64, makeHash, getInfoHash, buffersEqual, hasIntegrity, getProgressAndSize, stringifyQuery, errorToString, encodeStreamURL, ANNOUNCE, TMP } from './utility.js'
+import { makeHash, getInfoHash, buffersEqual, hasIntegrity, getProgressAndSize, stringifyQuery, errorToString, encodeStreamURL, ANNOUNCE, TMP } from './utility.js'
 import { fontRx, sleep, subRx, videoRx } from '../util.js'
 import { SUPPORTS } from '@/modules/support.js'
 import { spawn } from 'node:child_process'
@@ -138,7 +138,7 @@ export default class TorrentClient extends WebTorrent {
     debug('Loading last torrent: ', JSON.stringify(torrent))
     if (!torrent?.length && !(typeof torrent === 'object' && Object.keys(torrent).length)) return
     const cache = await this.torrentCache.get(torrent?.infoHash || await getInfoHash(torrent))
-    this.addTorrent(cache?.torrentFile ? fromBase64(cache?.torrentFile) : (torrent?.id || torrent), cache, true)
+    this.addTorrent(torrent?.id ?? torrent, cache, true)
   }
 
   /**
@@ -215,14 +215,14 @@ export default class TorrentClient extends WebTorrent {
    * Adds a torrent to the client for downloading or staging.
    * Restores from cache if available, verifies existing files, and begins progress tracking.
    *
-   * @param {string|Buffer} id - Magnet URI, torrent file, or info hash.
+   * @param {string|Buffer} id - Magnet URI, torrent file, info hash, or parseTorrent from cache.
    * @param {object} [cache] - Cached torrent metadata (if available).
    * @param {boolean} [current=false] - Whether to set as the active torrent for playback.
    * @param {boolean} [rescan=false] - True if adding during a cache rescan.
    */
   async addTorrent(id, cache, current = false, rescan = false) {
     if (this.destroyed || !id) return
-    debug(`${current ? 'Adding' : 'Staging'} torrent:` + id, JSON.stringify(cache, (key, value) => (key === 'bitfield' || key === 'torrentFile' ? undefined : value)))
+    debug(`${current ? 'Adding' : 'Staging'} torrent: ${!cache ? JSON.stringify(id) : `${cache.infoHash}:${cache.name}`}`)
 
     const currentTorrent = current && this.torrents.find(torrent => torrent.current)
     if (currentTorrent) await this.promoteTorrent(currentTorrent, true)
@@ -233,16 +233,16 @@ export default class TorrentClient extends WebTorrent {
         existing.seeding = false
         existing.current = current
         this.bumpTorrent(existing)
-        this.dispatch('loaded', { id: existing.torrentFile, infoHash: existing.infoHash })
+        this.dispatch('loaded', { id: (await this.torrentCache.get(existing.infoHash)) ?? existing.torrentFile, infoHash: existing.infoHash })
         if (existing.ready) this.torrentReady(existing)
       } else if (!rescan) this.dispatch('info', 'This torrent is already queued and downloading in the background...')
       return
     }
 
-    const torrent = await this.add(id, {
+    const torrent = await this.add((!cache?.legacy ? cache : cache.info) ?? id, {
       path: this.settings.torrentPathNew || undefined,
       announce: ANNOUNCE,
-      bitfield: cache?.bitfield,
+      bitfield: cache?._bitfield,
       deselect: current ? this.settings.torrentStreamedDownload : false
     })
     torrent.current = current
@@ -271,14 +271,16 @@ export default class TorrentClient extends WebTorrent {
     let dataStored = cache
     const torrentStore = this.torrentCache
     const cacheBitfield = async () => {
-      if (dataStored?.bitfield && buffersEqual(dataStored.bitfield, torrent.bitfield?.buffer)) return
+      if (torrent.destroyed) clearInterval(interval)
+      if (torrent.destroyed || (!cache.legacy && dataStored?._bitfield && buffersEqual(dataStored._bitfield, torrent.bitfield?.buffer))) return
+      if (cache.legacy) cache.legacy = false
       dataStored = {
-        infoHash: torrent.infoHash,
-        name: torrent.name,
+        info: torrent.info,
+        'url-list': torrent.urlList ?? [],
+        'announce-list': (torrent.announce ?? []).map(url => [text2arr(url)]),
+        _bitfield: Buffer.from(torrent.bitfield?.buffer),
         cachedAt: dataStored?.cachedAt || Date.now(),
-        updatedAt: Date.now(),
-        bitfield: Buffer.from(torrent.bitfield?.buffer),
-        torrentFile: dataStored?.torrentFile || toBase64(torrent.torrentFile)
+        updatedAt: Date.now()
       }
       await torrentStore.set(torrent.infoHash, dataStored)
     }
@@ -295,12 +297,11 @@ export default class TorrentClient extends WebTorrent {
     }
     this.bindTracker(torrent)
     if (torrent.current) {
-      this.dispatch('loaded', { id: torrent.torrentFile, infoHash: torrent.infoHash })
+      this.dispatch('loaded', { id: (await this.torrentCache.get(torrent.infoHash)) ?? torrent.torrentFile, infoHash: torrent.infoHash })
       this.torrentReady(torrent)
     } else if (torrent.staging && torrent.progress < 1) this.dispatch('staging', torrent.infoHash)
 
     torrent.on('done', wrapTorrent)
-    torrent.on('destroy', wrapTorrent)
   }
 
   /**
@@ -399,12 +400,12 @@ export default class TorrentClient extends WebTorrent {
         for (const torrent of torrents) {
           if ((await getProgressAndSize(torrent))?.progress < 1) {
             missingCount++
-            this.addTorrent(fromBase64(torrent.torrentFile), torrent, false, true)
+            this.addTorrent(torrent, torrent, false, true)
           }
           else if (await this.torrentCache.exists(torrent.name, this.torrentPath)) {
             missingCount++
             const torrentStats = await getProgressAndSize(torrent)
-            const verified = await hasIntegrity(fromBase64(torrent?.torrentFile), this.torrentPath)
+            const verified = await hasIntegrity(torrent, this.torrentPath)
             const stats = { infoHash: torrent.infoHash, name: torrent.name, size: torrentStats.size, progress: torrentStats.progress, incomplete: torrentStats.progress < 1 || !verified, missing_pieces: !verified }
             this.completed = Array.from(new Map([...(this.completed || []), stats].map(item => [item.infoHash, item])).values())
             this.dispatch('completed', stats)
@@ -486,13 +487,13 @@ export default class TorrentClient extends WebTorrent {
         const torrentID = data.data && data.data.id
         const cache = await this.torrentCache.get(hash || (await getInfoHash(torrentID)))
         if (!cache?.infoHash && data.data.magnet) this.dispatch('info', 'A Magnet Link has been detected and is being processed. Files will be loaded shortly...')
-        this.addTorrent(cache?.torrentFile ? fromBase64(cache?.torrentFile) : torrentID, cache, true)
+        this.addTorrent(torrentID, cache, true)
         break
       } case 'stage': {
         const hash = data.data && data.data.hash
         const torrentID = data.data && data.data.id
         const cache = await this.torrentCache.get(hash || (await getInfoHash(torrentID)))
-        this.addTorrent(cache?.torrentFile ? fromBase64(cache?.torrentFile) : torrentID, cache)
+        this.addTorrent(torrentID, cache)
         break
       } case 'complete': {
         const cache = await this.torrentCache.get(data.data)
@@ -515,7 +516,7 @@ export default class TorrentClient extends WebTorrent {
       } case 'stage_all': {
         for (const hash of data.data) {
           const cache = await this.torrentCache.get(hash)
-          if (cache?.torrentFile) this.addTorrent(fromBase64(cache?.torrentFile), cache)
+          if (cache) this.addTorrent(cache, cache)
           else this.dispatch('untrack', hash)
         }
         debug('Loaded staging torrents:', JSON.stringify(data.data))
@@ -523,7 +524,7 @@ export default class TorrentClient extends WebTorrent {
       } case 'seed_all': {
         for (const hash of data.data) {
           const cache = await this.torrentCache.get(hash)
-          if (cache?.torrentFile && await this.torrentCache.exists(cache.name, this.torrentPath)) this.addTorrent(fromBase64(cache?.torrentFile), cache)
+          if (cache && await this.torrentCache.exists(cache.name, this.torrentPath)) this.addTorrent(cache, cache)
           else this.dispatch('untrack', hash)
         }
         debug('Loaded seeding torrents:', JSON.stringify(data.data))
@@ -536,7 +537,7 @@ export default class TorrentClient extends WebTorrent {
             return null
           }
           const torrentStats = await getProgressAndSize(cache)
-          const verified = await hasIntegrity(fromBase64(cache?.torrentFile), this.torrentPath)
+          const verified = await hasIntegrity(cache, this.torrentPath)
           return { infoHash: cache.infoHash, name: cache.name, size: torrentStats.size, progress: torrentStats.progress, incomplete: torrentStats.progress < 1 || !verified, missing: !verified }
         }))
         this.completed = Array.from(new Map([...(this.completed || []), ...(stats.filter(Boolean) || [])].map(item => [item.infoHash, item])).values())
@@ -551,7 +552,7 @@ export default class TorrentClient extends WebTorrent {
           this.currentFile = null
           if (cache) {
             this.dispatch('loaded', {})
-            this.addTorrent(fromBase64(cache?.torrentFile), cache)
+            this.addTorrent(cache, cache)
           }
         } else if (data.data) {
           const cache = await this.torrentCache.get(data.data?.infoHash || (data.data?.hash && data.data?.torrent) || (await getInfoHash(data.data?.torrent || data.data)))
@@ -584,6 +585,7 @@ export default class TorrentClient extends WebTorrent {
       } case 'debug': {
         Debug.disable()
         if (data.data) Debug.enable(data.data)
+        break
       }
     }
   }
