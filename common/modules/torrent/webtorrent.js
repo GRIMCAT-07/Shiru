@@ -272,8 +272,8 @@ export default class TorrentClient extends WebTorrent {
     const torrentStore = this.torrentCache
     const cacheBitfield = async () => {
       if (torrent.destroyed) clearInterval(interval)
-      if (torrent.destroyed || (!cache.legacy && dataStored?._bitfield && buffersEqual(dataStored._bitfield, torrent.bitfield?.buffer))) return
-      if (cache.legacy) cache.legacy = false
+      if (torrent.destroyed || (!cache?.legacy && dataStored?._bitfield && buffersEqual(dataStored._bitfield, torrent.bitfield?.buffer))) return
+      if (cache?.legacy) cache.legacy = false
       dataStored = {
         info: torrent.info,
         'url-list': torrent.urlList ?? [],
