@@ -47,10 +47,6 @@ export const loadedTorrent = writable({})
 export const stagingTorrents = writable([])
 export const seedingTorrents = writable([])
 export const completedTorrents = writable([])
-
-let aliveTimer
-let aliveToast = false
-let aliveInterval
 setupTorrentClient()
 
 status.subscribe(value => client.send('networking', value))
@@ -64,14 +60,11 @@ settings.subscribe(value => {
 
 IPC.on('webtorrent-crashed', () => {
   console.error('Ooops! WebTorrent Crashed! A crash has been detected... The process has automatically been restarted.')
-  aliveToast = false
   toast.dismiss()
   toast.error('Ooops! WebTorrent Crashed!', {
     description: 'A crash has been detected... The process has automatically been restarted.',
     duration: 15000
   })
-  clearTimeout(aliveTimer)
-  clearInterval(aliveInterval)
   client = new TorrentWorker()
   setupTorrentClient()
 })
@@ -176,28 +169,6 @@ function setupTorrentClient() {
     cache.setEntry(caches.GENERAL, 'seedingTorrents', [])
   }
   client.send('complete_all', cache.getEntry(caches.GENERAL, 'completedTorrents').filter(Boolean))
-
-  if (!SUPPORTS.isAndroid) {
-    clearTimeout(aliveTimer)
-    clearInterval(aliveInterval)
-    aliveInterval = setInterval(() => {
-      client.send('alive')
-      aliveTimer = setTimeout(() => {
-        if (!aliveToast) {
-          console.error('Ooops! WebTorrent Not Responding! The WebTorrent process stopped responding. User has been prompted to restart it.')
-          aliveToast = true
-          toast.error('Ooops! WebTorrent Not Responding!', {
-            description: 'The WebTorrent process stopped responding. Dismiss this toast to restart it.',
-            duration: Infinity,
-            onDismiss: () => { aliveToast = false; IPC.emit('webtorrent-restart') }
-          })
-        }
-      }, 60_000)
-      aliveTimer.unref?.()
-    }, 10_000)
-    aliveInterval.unref?.()
-    client.on('alive', () => clearTimeout(aliveTimer))
-  }
 
   client.on('rescan_done', () => window.dispatchEvent(new Event('rescan_done')))
 
