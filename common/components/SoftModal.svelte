@@ -2,6 +2,8 @@
   export let id
   export let showModal
   export let close
+  export let css = ''
+  export let innerCss = ''
 
   function checkClose ({ keyCode }) {
     if (keyCode === 27) close()
@@ -11,8 +13,8 @@
   $: showModal && requestAnimationFrame(() => requestAnimationFrame(() => modal?.focus()))
 </script>
 
-<div class='modal-soft position-absolute d-flex align-items-center justify-content-center z-50 w-full h-full' class:hide={!showModal} class:show={showModal} id={id}>
-  <div class='modal-soft-dialog d-flex align-items-center justify-content-center pt-40' class:hide={!showModal} class:show={showModal} on:pointerdown|self={close} on:keydown={checkClose} tabindex='-1' role='button' bind:this={modal}>
+<div class='modal-soft position-absolute d-flex align-items-center justify-content-center z-50 w-full h-full {css}' class:hide={!showModal} class:show={showModal} id={id}>
+  <div class='modal-soft-dialog d-flex align-items-center justify-content-center pt-40 {innerCss}' class:hide={!showModal} class:show={showModal} on:pointerdown|self={close} on:keydown={checkClose} tabindex='-1' role='button' bind:this={modal}>
     <div class='overflow-hidden d-flex flex-column overflow-y-scroll scroll-container {$$restProps.class}'>
       {#if showModal}
         <slot />

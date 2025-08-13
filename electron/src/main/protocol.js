@@ -24,7 +24,9 @@ export default class Protocol {
     search: id => this.play(id),
     w2g: link => this.window.webContents.send('w2glink', link),
     schedule: () => this.window.webContents.send('schedule'),
-    donate: () => shell.openExternal('https://github.com/sponsors/RockinChaos/')
+    donate: () => shell.openExternal('https://github.com/sponsors/RockinChaos/'),
+    update: () => ipcMain.emit('quit-and-install'),
+    show: () => ipcMain.emit('window-show')
   }
 
   protocolRx = /shiru:\/\/([a-z0-9]+)\/(.*)/i

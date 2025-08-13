@@ -2,10 +2,13 @@
   import { persisted } from 'svelte-persisted-store'
   import { client } from '@/modules/torrent/torrent.js'
   import { capitalize, defaults } from '@/modules/util.js'
+  import { CloudDownload } from 'lucide-svelte'
   import { onDestroy } from 'svelte'
+  import { updateState } from '@/views/Updater/UpdateModal.svelte'
   import { platformMap } from '@/views/Settings/Settings.svelte'
   import SettingCard from '@/views/Settings/SettingCard.svelte'
   import Changelog from '@/views/Settings/Changelog.svelte'
+  import { toast } from 'svelte-sonner'
   import Debug from 'debug'
   const debug = persisted('debug', '', { serializer: { parse: e => e, stringify: e => e } })
 
@@ -50,7 +53,6 @@
 
 <script context='module'>
   import { click } from '@/modules/click.js'
-  import { toast } from 'svelte-sonner'
   import { cache, caches } from '@/modules/cache.js'
   import { SUPPORTS } from '@/modules/support.js'
   import IPC from '@/modules/ipc.js'
@@ -94,22 +96,26 @@
 
 <h4 class='mb-10 font-weight-bold'>App Settings</h4>
 <SettingCard title='About This App' description="Restart may be required for some settings to take effect. If you don't know what settings do what, use defaults." class='d-lg-none'>
-  {version ? `v${version}` : ``} {platformMap[window.version.platform] || 'dev'} {window.version.arch || 'dev'} {capitalize(window.version.session) || ''}
+  <div class='d-flex flex-column'>
+    <span class='text-nowrap'>{version ? `v${version}` : ``} {platformMap[window.version.platform] || 'dev'} {window.version.arch || 'dev'} {capitalize(window.version.session) || ''}</span>
+    <button type='button' use:click={() => { toast('Update is downloading...', { description: 'This may take a moment, the update will be ready shortly.' }) }} class='btn btn-primary mt-5 d-none align-items-center justify-content-center' style='background-color: #4a90e2;' class:d-flex={$updateState === 'downloading'}><span class='text-truncate'>Update Downloading...</span></button>
+    <button type='button' use:click={() => { $updateState = 'ready' }} class='btn btn-primary mt-5 d-none align-items-center justify-content-center' style='background-color: #47cb6a;' class:d-flex={$updateState === 'ready' || $updateState === 'ignored'}><span class='text-truncate'>Update Available!</span></button>
+  </div>
 </SettingCard>
 {#if !SUPPORTS.isAndroid}
-  <SettingCard title='Close Action' description='Choose the functionality of the close button for the app. You can choose to receive a Prompt to Minimize or Close, default to Minimize, or default to Closing the app.'>
-    <div>
-      <select class='form-control bg-dark mw-150 w-150 text-truncate' bind:value={settings.closeAction}>
-        <option value='Prompt'>Prompt</option>
-        <option value='Minimize'>Minimize</option>
-        <option value='Close'>Close</option>
-      </select>
-    </div>
-  </SettingCard>
+<SettingCard title='Close Action' description='Choose the functionality of the close button for the app. You can choose to receive a Prompt to Minimize or Close, default to Minimize, or default to Closing the app.'>
+  <div>
+    <select class='form-control bg-dark mw-150 w-150 text-truncate' bind:value={settings.closeAction}>
+      <option value='Prompt'>Prompt</option>
+      <option value='Minimize'>Minimize</option>
+      <option value='Close'>Close</option>
+    </select>
+  </div>
+</SettingCard>
 {/if}
 <SettingCard title='Query Complexity' description="Complex queries result in slower loading times but help in reducing the chances of hitting AniList's rate limit. Simple queries split up the requests into multiple queries which are requested as needed.">
   <div>
-    <select class='form-control bg-dark mw-150 w-150 text-truncate' bind:value={settings.queryComplexity}>
+    <select class='form-control bg-dark mw-180 w-180 text-truncate' bind:value={settings.queryComplexity}>
       <option value='Complex'>Complex (slow)</option>
       <option value='Simple'>Simple (fast)</option>
     </select>
@@ -142,7 +148,7 @@
   </select>
 </SettingCard>
 <SettingCard title='Toast Levels' description='Changes what toasts are shown in the app, limiting what toasts are shown could be useful if an api is down to prevent spam.'>
-  <select class='form-control bg-dark mw-200 w-200 text-truncate' bind:value={settings.toasts}>
+  <select class='form-control bg-dark mw-220 w-220 text-truncate' bind:value={settings.toasts}>
     <option value='All' selected>All</option>
     <option value='Warnings / Successes'>Warnings / Successes</option>
     <option value='Errors'>Errors</option>

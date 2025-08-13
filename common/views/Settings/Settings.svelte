@@ -18,7 +18,7 @@
     sunos: 'SunOS',
     win32: 'Windows'
   }
-  let version = '1.0.0'
+  export let version = '1.0.0'
   IPC.on('version', data => {
     version = data
     debug(`v${version} ${platformMap[window.version.platform] || 'dev'} ${window.version.arch || 'dev'} ${capitalize(window.version.session) || ''}`, JSON.stringify(settings))

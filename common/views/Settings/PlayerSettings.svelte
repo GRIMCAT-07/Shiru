@@ -150,7 +150,7 @@
   </div>
 </SettingCard>
 <SettingCard title='Chapter Source Preference' description='The chapter source to use during video playback. If your preferred source isn’t available, another source will be used automatically.'>
-  <select class='form-control bg-dark mw-120 w-120 text-truncate' bind:value={settings.playerChapterSkip}>
+  <select class='form-control bg-dark mw-150 w-150 text-truncate' bind:value={settings.playerChapterSkip}>
     <option value='embedded' selected>Embedded</option>
     <option value='aniskip'>Aniskip</option>
   </select>

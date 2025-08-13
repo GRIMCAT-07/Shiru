@@ -8,6 +8,8 @@ export default class Updater {
   window
   torrentWindow
   destroyed
+  availableInterval
+  downloadedInterval
 
   /**
    * @param {import('electron').BrowserWindow} window
@@ -16,37 +18,44 @@ export default class Updater {
   constructor (window, torrentWindow) {
     this.window = window
     this.torrentWindow = torrentWindow
-    ipcMain.on('update', () => {
-      if (!this.downloading && !this.hasUpdate) autoUpdater.checkForUpdatesAndNotify()
-      else autoUpdater.checkForUpdates()
-    })
-    autoUpdater.on('update-available', () => {
+    autoUpdater.autoInstallOnAppQuit = false
+    ipcMain.on('update', () => autoUpdater.checkForUpdates())
+    autoUpdater.on('update-available', (info) => {
       if (!this.downloading) {
         this.downloading = true
-        setInterval(() => { if (!this.hasUpdate && !this.destroyed) this.window.webContents.send('update-available', true) }, 1000)
+        this.availableInterval = setInterval(() => {
+          if (!this.hasUpdate && !this.destroyed) this.window.webContents.send('update-available', info.version)
+        }, 1000)
+        this.availableInterval.unref?.()
       }
     })
-    autoUpdater.on('update-downloaded', () => {
+    autoUpdater.on('update-downloaded', (info) => {
       if (!this.hasUpdate) {
         this.hasUpdate = true
-        setInterval(() => { if (!this.destroyed) this.window.webContents.send('update-downloaded', true) }, 1000)
+        clearInterval(this.availableInterval)
+        this.downloadedInterval = setInterval(() => {
+          if (!this.destroyed) this.window.webContents.send('update-downloaded', info.version)
+        }, 1000)
+        this.downloadedInterval.unref?.()
       }
     })
-    autoUpdater.checkForUpdatesAndNotify()
+    autoUpdater.checkForUpdates()
   }
 
   install (forceRunAfter = false) {
-    if (this.hasUpdate) {
+    if (this.hasUpdate && forceRunAfter) {
       setImmediate(() => {
         try {
           this.window.close()
           this.torrentWindow().close()
         } catch (e) {}
-        autoUpdater.quitAndInstall(true, forceRunAfter)
+        clearInterval(this.downloadedInterval)
+        autoUpdater.quitAndInstall(true, true)
       })
       if (process.platform === 'darwin') shell.openExternal('https://github.com/RockinChaos/Shiru/releases/latest')
       this.hasUpdate = false
       return true
     }
+    return false
   }
 }

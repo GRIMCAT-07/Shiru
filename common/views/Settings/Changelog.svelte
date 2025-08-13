@@ -1,21 +1,30 @@
 <script context='module'>
   import ChangelogSk from '@/components/skeletons/ChangelogSk.svelte'
   import Debug from 'debug'
+  import IPC from '@/modules/ipc.js'
   const debug = Debug('ui:changelog-view')
 
-  let changeLog = getChanges()
+  export let changeLog = getChanges()
   window.addEventListener('online', () => changeLog = getChanges())
+  let updateVersion
+  const updateTime = Date.now()
+  IPC.on('update-downloaded', (version) => {
+    if (updateVersion !== version) {
+      updateVersion = version
+      if ((Date.now() - updateTime) >= 60_000) changeLog = getChanges()
+    }
+  })
   async function getChanges() {
     try {
       const json = await (await fetch('https://api.github.com/repos/RockinChaos/Shiru/releases')).json()
-      return json.map(({body, tag_name: version, published_at: date, assets}) => ({body, version, date, assets}))
+      return json.map(({body, tag_name: version, published_at: date, assets, html_url: url}) => ({body, version, date, assets, url}))
     } catch (error) {
       debug('Failed to changelog', error)
       return {}
     }
   }
 
-  function markdownToHtml(text) {
+  export function markdownToHtml(text) {
     const cleaned = text.replace(/<[^>]+>.*?<\/[^>]+>/gs, '').replace(/<[^>]+>/gs, '').replace(/(## Preview:|# Preview:)/g, '').trim()
     let htmlOutput = ''
     let listStack = []

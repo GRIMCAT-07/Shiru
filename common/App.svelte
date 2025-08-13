@@ -79,6 +79,7 @@
   import TorrentModal from '@/views/TorrentSearch/TorrentModal.svelte'
   import Menubar from '@/components/Menubar.svelte'
   import { Toaster } from 'svelte-sonner'
+  import UpdateModal from '@/views/Updater/UpdateModal.svelte'
   import Profiles from '@/components/Profiles.svelte'
   import Notifications from '@/components/Notifications.svelte'
   import MinimizeTray from '@/components/MinimizeTray.svelte'
@@ -89,6 +90,7 @@
   IPC.emit('main-ready')
 </script>
 
+<UpdateModal bind:overlay={$overlay} />
 <div class='page-wrapper with-transitions bg-dark position-relative' data-sidebar-type='overlayed-all'>
   <Status />
   <Menubar bind:page={$page} />

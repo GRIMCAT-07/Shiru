@@ -14,6 +14,7 @@
   --navbar-height: 7rem;
   --statusbar-height: 3.2rem;
   --tertiary-color: #2e74e4 !important;
+  --tertiary-color-dim: #204b9a !important;
   --quaternary-color: #98c379 !important;
   --highlight-color: rgb(255, 255, 255);
   --dark-color-base-hue: 220deg !important;
@@ -105,23 +106,24 @@
 .w-30 {
   width: 3rem;
 }
-
 .w-40 {
   width: 4rem;
 }
-
 .w-115 {
   width: 11.5rem;
 }
-
 .w-120 {
   width: 12rem;
 }
-
+.w-180 {
+  width: 18rem;
+}
+.w-220 {
+  width: 22rem;
+}
 .w-800 {
   width: 80rem !important
 }
-
 .w-1000 {
   width: 100rem
 }
@@ -143,27 +145,27 @@
 .mw-0 {
   min-width: 0;
 }
-
 .mw-100 {
   min-width: 10rem !important;
 }
-
 .mw-120 {
   min-width: 12rem;
 }
-
 .mw-150 {
   min-width: 15rem;
 }
-
+.mw-180 {
+  min-width: 18rem;
+}
 .mw-200 {
   min-width: 20rem;
 }
-
+.mw-220 {
+  min-width: 22rem;
+}
 .mw-350 {
   min-width: 35rem;
 }
-
 .wm-600 {
   max-width: 60rem;
 }
@@ -171,11 +173,9 @@
 .wm-1000 {
   max-width: 100rem;
 }
-
 .wm-1150 {
   max-width: 115rem;
 }
-
 .wm-1200 {
   max-width: 120rem;
 }
@@ -339,12 +339,24 @@ a[href]:active, button:not([disabled]):active:not([data-sonner-toast] > button),
 .z-102 {
   z-index: 102;
 }
+.z-105 {
+    z-index: 105 !important;
+}
 
 .text-success-subtle {
   color: var(--success-color-subtle);
 }
 .text-dark-light {
   color: var(--gray-color-light);
+}
+
+.custom-link {
+    color: var(--tertiary-color);
+    cursor: pointer;
+}
+.custom-link:hover {
+    text-decoration: underline;
+    color: var(--tertiary-color-dim);
 }
 
 .pointer {
@@ -671,7 +683,7 @@ img[src=''], img[src=' '] {
 }
 
 .rounded-10 {
-  border-radius: 1rem;
+  border-radius: 1rem !important;
 }
 .rounded-top-10 {
   border-radius: 1rem 1rem 0 0;

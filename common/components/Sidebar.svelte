@@ -5,6 +5,7 @@
   import { profileView } from '@/components/Profiles.svelte'
   import { notifyView, hasUnreadNotifications } from '@/components/Notifications.svelte'
   import { actionPrompt } from '@/components/MinimizeTray.svelte'
+  import { updateState } from '@/views/Updater/UpdateModal.svelte'
   import { settings } from '@/modules/settings.js'
   import { SUPPORTS } from '@/modules/support.js'
   import { status } from '@/modules/networking.js'
@@ -13,15 +14,6 @@
   import IPC from '@/modules/ipc.js'
   import SidebarLink from '@/components/SidebarLink.svelte'
   import { CalendarSearch, Download, CloudDownload, Heart, Home, Search, ListVideo, History, TvMinimalPlay, LogIn, Settings, Users, Bell, BellDot } from 'lucide-svelte'
-
-  let updateState = ''
-
-  IPC.on('update-available', () => {
-    updateState = 'downloading'
-  })
-  IPC.on('update-downloaded', () => {
-    updateState = 'ready'
-  })
 
   const view = getContext('view')
   const btnSize = !SUPPORTS.isAndroid ? '3.1rem' : '3.6rem'
@@ -81,16 +73,16 @@
         <Heart size={btnSize} class='flex-shrink-0 p-5 m-5 rounded donate' strokeWidth='2.5' fill='currentColor' />
       </SidebarLink>
     {/if}
-    {#if updateState === 'downloading'}
-      <SidebarLink click={() => { toast('Update is downloading...', { description: 'This may take a moment, the update will be ready shortly.' }) }} icon='download' text='Update Downloading...' css='{!$settings.donate && !SUPPORTS.isAndroid ? `mt-auto` : ``}' {page} let:active>
+    {#if $updateState === 'downloading'}
+      <SidebarLink click={() => { toast('Update is downloading...', { description: 'This may take a moment, the update will be ready shortly.' }) }} icon='download' text='Update Downloading...' css='{!$settings.donate ? `mt-auto` : ``} d-sm-h-none' {page} let:active>
         <CloudDownload size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color='#4a90e2' />
       </SidebarLink>
-    {:else if updateState === 'ready'}
-      <SidebarLink click={() => { IPC.emit('quit-and-install') }} icon='download' text='Update Ready!' css='{!$settings.donate && !SUPPORTS.isAndroid ? `mt-auto` : ``}' {page} let:active>
+    {:else if $updateState === 'ready' || $updateState === 'ignored'}
+      <SidebarLink click={() => { $updateState = 'ready' }} icon='download' text='Update Available!' css='{!$settings.donate ? `mt-auto` : ``} d-sm-h-none' {page} let:active>
         <CloudDownload size={btnSize} class='flex-shrink-0 p-5 m-5 rounded update' strokeWidth='2.5' color='currentColor' />
       </SidebarLink>
     {/if}
-    <SidebarLink click={() => { $notifyView = !$notifyView }} icon='bell' text='Notifications' css='{!$settings.donate && !SUPPORTS.isAndroid && updateState !== `downloading` && updateState !== `ready` ? `mt-auto` : ``}' {page} overlay={!$actionPrompt && $notifyView && 'notify'} nowPlaying={$view} let:active>
+    <SidebarLink click={() => { $notifyView = !$notifyView }} icon='bell' text='Notifications' css='{!$settings.donate && $updateState !== `downloading` && $updateState !== `ready` && $updateState !== `ignored` ? `mt-auto` : ``}' {page} overlay={!$actionPrompt && $notifyView && 'notify'} nowPlaying={$view} let:active>
       {#if $hasUnreadNotifications && $hasUnreadNotifications > 0}
         <BellDot size={btnSize} class='flex-shrink-0 p-5 m-5 rounded notify {$notifyView ? `` : `notify-color`}' strokeWidth='2.5' color='currentColor' />
       {:else}

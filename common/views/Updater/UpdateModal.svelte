@@ -1,0 +1,113 @@
+<script context='module'>
+  import { click } from '@/modules/click.js'
+  import { writable } from 'simple-store-svelte'
+  import { version } from '@/views/Settings/Settings.svelte'
+  import { BadgeAlert, ExternalLink } from 'lucide-svelte'
+  import { SUPPORTS } from '@/modules/support.js'
+  import ChangelogSk from '@/components/skeletons/ChangelogSk.svelte'
+  import SoftModal from '@/components/SoftModal.svelte'
+  import { changeLog, markdownToHtml } from '@/views/Settings/Changelog.svelte'
+  import IPC from '@/modules/ipc.js'
+
+  export const updateState = writable('up-to-date')
+  let updateVersion
+  IPC.on('update-available', () => {
+    if (updateState.value !== 'ready') updateState.value = 'downloading'
+  })
+  IPC.on('update-downloaded', async (version) => {
+    if ((updateState.value !== 'ignored' && updateState.value !== 'updating' && updateVersion !== version)) {
+      updateVersion = version
+      updateState.value = 'ready'
+      IPC.emit('notification', {
+        title: 'Update Available!',
+        message: `An update to v${version} has been downloaded and is ready for installation.`,
+        button: [{ text: 'Update Now', activation: `shiru://update` }], // , { text: 'What's New', activation: `shiru://changelog` }
+        activation: {
+          type: 'protocol',
+          launch: `shiru://show`
+        }
+      })
+    }
+  })
+</script>
+
+<script>
+  export let overlay
+  $: $updateState && setOverlay()
+  $: !$updateState && close()
+  function setOverlay() {
+    if (!overlay.includes('updateRequest')) overlay = [...overlay, 'updateRequest']
+  }
+  window.addEventListener('overlay-check', () => { if ($updateState) close() })
+  function close(ignored = true) {
+    if (ignored) $updateState = 'ignored'
+    if (overlay.includes('updateRequest')) overlay = overlay.filter(item => item !== 'updateRequest')
+  }
+  function confirm() {
+    IPC.emit('quit-and-install')
+    $updateState = 'updating'
+  }
+  function compareVersions(v1, v2) {
+    const a = ((v1 || '').match(/[\d.]+/g)?.join('') || '').split('.').map(Number)
+    const b = ((v2 || '').match(/[\d.]+/g)?.join('') || '').split('.').map(Number)
+    for (let i = 0; i < Math.max(a.length, b.length); i++) {
+      const num1 = a[i] || 0
+      const num2 = b[i] || 0
+      if (num1 > num2) return 1
+      if (num1 < num2) return -1
+    }
+    return 0
+  }
+
+  $: latestLog = (async () => {
+    const changelog = await changeLog
+    return [changelog?.[0], changelog?.[1]]
+  })()
+</script>
+
+<SoftModal class='m-0 pt-0 d-flex flex-column rounded bg-very-dark scrollbar-none viewport-md-4-3 border-md w-full h-full rounded-10' css='z-105 m-0 p-0' innerCss='m-0 p-0' showModal={$updateState === 'ready'} close={() => {}} id='updateModal'>
+  <p class='mt-20 px-20 px-md-40 overflow-y-auto'>
+    {#await latestLog}
+      <ChangelogSk />
+    {:then changelog}
+      {@const isLesser = compareVersions(version, changelog[1].version) < 0}
+      <div class='row px-md-20 position-relative'>
+        <div class='text-muted w-full mt-30 mt-md-0'>
+          <h3 class='font-weight-bold text-white title font-scale-34 d-flex mb-5'><BadgeAlert class='mr-20 block-scale-43' strokeWidth='2'/> Update Available!</h3>
+          <div class='font-scale-20'>{changelog[0].version} - {new Date(changelog[0].date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+          <hr class='my-20'>
+          {#if isLesser}
+            <div class='mt-20'>
+              It looks like you're upgrading from an earlier version, consider checking out the <span class='custom-link' use:click={() => IPC.emit('open', 'https://github.com/RockinChaos/Shiru/releases')}>past release notes</span>.
+            </div>
+          {/if}
+          <div class:mt-20={!isLesser}>
+            Consider <span class='custom-link' use:click={() => IPC.emit('open', 'https://github.com/sponsors/RockinChaos')}>donating on GitHub</span> to help support future Shiru development.
+          </div>
+          <hr class='my-20'/>
+          <h4 class='mt-0 font-weight-bold text-white'>Changelog</h4>
+          <div class='ml-10'>{@html markdownToHtml(changelog[0].body)}</div>
+        </div>
+      </div>
+      <div class='mt-20'><span class='custom-link font-weight-bold d-flex' use:click={() => IPC.emit('open', changelog[0].url)}>View on GitHub <ExternalLink class='ml-10' size='1.8rem' /></span></div>
+      {#if SUPPORTS.isAndroid}<div class='mt-20 font-italic'>This update was delivered directly from the GitHub release. If you originally downloaded this app from F-Droid or IzzyOnDroid, note that updating through this method bypasses the extra review and screening normally conducted by those platforms.</div>{/if}
+    {:catch e}
+      <ChangelogSk />
+    {/await}
+  </p>
+  <div class='mt-auto border-top px-40'>
+    <div class='d-flex my-20 flex-column-reverse flex-md-row font-enlarge-14'>
+      <button class='btn btn-close mr-5 font-weight-bold rounded-2 w-full mt-10 mt-md-0 py-10 h-auto py-md-2 w-md-auto px-md-30' type='button' on:click={() => close()}>Not now</button>
+      <button class='btn btn-secondary text-dark font-weight-bold ml-md-auto rounded-2 w-full py-10 h-auto py-md-2 w-md-auto px-md-30' type='button' on:click={confirm}>Update</button>
+    </div>
+  </div>
+</SoftModal>
+
+<style>
+  .btn-close {
+    background-color: var(--dark-color-light);
+  }
+  .btn-close:hover {
+    background-color: var(--gray-color-light) !important;
+  }
+</style>

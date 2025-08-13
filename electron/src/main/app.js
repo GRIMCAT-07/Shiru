@@ -235,9 +235,7 @@ export default class App {
     })
 
     ipcMain.on('quit-and-install', () => {
-      if (this.updater.hasUpdate) {
-        this.destroy(true)
-      }
+      if (this.updater.hasUpdate) this.destroy(true)
     })
   }
 
