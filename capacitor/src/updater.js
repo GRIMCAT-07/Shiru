@@ -6,7 +6,8 @@ const versionCodes = { 'arm64-v8a': 1, 'armeabi-v7a': 2, 'x86': 3, 'universal': 
 const sanitizeVersion = (version) => ((version || '').match(/[\d.]+/g)?.join('') || '')
 export default class Updater {
   hasUpdate = false
-  downloading = false
+  updateAvailable = false
+  availableInterval
 
   updateURL
   main
@@ -28,7 +29,7 @@ export default class Updater {
   }
 
   async parseABI() {
-    if (this.build.length === 7) {
+    if (this.build?.length === 7) {
       const versionCode = parseInt(this.build.substring(0, 1))
       if (versionCode < 5) {
         for (const [arch, code] of Object.entries(versionCodes)) {
@@ -40,75 +41,54 @@ export default class Updater {
   }
 
   async checkForUpdates() {
-    try {
-      this.releaseInfo = await (await fetch(this.updateURL)).json()
-      //if (this.isOutdated(this.releaseInfo.tag_name, this.currentVersion)) {
-        this.downloading = true
-        //if (!development) {
-          //this.main.emit('update-available', sanitizeVersion(this.releaseInfo.tag_name))
-          this.main.emit('update-available', sanitizeVersion('v6.1.6'))
-          this.downloadUpdate()
-       // } else console.debug('Skip checkForUpdates because application is not packed and dev update config is not forced')
-      //}
-    } catch (error) {
-      console.error('Error checking for update:', error)
-    }
+    if (!development) {
+      try {
+        this.releaseInfo = await (await fetch(this.updateURL)).json()
+        if (this.isOutdated()) {
+          if (!this.updateAvailable && !this.hasUpdate) {
+            this.updateAvailable = true
+            this.availableInterval = setInterval(() => {
+              if (!this.hasUpdate) this.main.emit('update-available', sanitizeVersion(this.releaseInfo.tag_name))
+            }, 1000)
+            this.availableInterval.unref?.()
+          }
+        }
+      } catch (error) {
+        console.error('Error checking for update:', error)
+      }
+    } else console.debug('Skip checkForUpdates because application is not packed and dev update config is not forced')
   }
 
-  isOutdated(v1, v2) {
-    const a = sanitizeVersion(v1).split('.').map(Number)
-    const b = sanitizeVersion(v2).split('.').map(Number)
+  isOutdated() {
+    const a = sanitizeVersion(this.releaseInfo.tag_name).split('.').map(Number)
+    const b = sanitizeVersion(this.currentVersion).split('.').map(Number)
     for (let i = 0; i < Math.max(a.length, b.length); i++) {
-      const num1 = a[i] || 0
-      const num2 = b[i] || 0
-      if (num1 > num2) return true
-      if (num1 < num2) return false
+      const numA = a[i] || 0
+      const numB = b[i] || 0
+      if (numA > numB) return true
+      if (numA < numB) return false
     }
     return false
   }
 
-  async downloadUpdate() {
-    try {
-     // const regex = new RegExp(`${(this.releaseInfo.tag_name || '').match(/[\d.]+/g)?.join('') || ''}.*${this.versionCode}`, 'i')
-     // const asset = this.releaseInfo.assets.find(a => regex.test(a.browser_download_url))
-     // if (!asset) {
-     //   console.error('Update file not found for version and architecture:', this.releaseInfo.tag_name, this.versionCode)
-     //   return
-    //  }
-      // ApkUpdater.download(asset.browser_download_url, { }, () => {
-      //   this.hasUpdate = true
-      //   this.main.emit('update-downloaded', sanitizeVersion(this.releaseInfo.tag_name))
-      // }, (error) => {
-      //   //console.error('Error opening update URL222:', error)
-      // })
-
-      console.error("Getting update")
-      await ApkUpdater.download(
-        'https://github.com/RockinChaos/Shiru/releases/download/v6.1.6/android-Shiru-v6.1.6-arm64-v8a.apk',
-        {
-          onDownloadProgress: console.error
-        },
-        () => {
-          console.error('Download complete, ready to apply')
-          this.hasUpdate = true
-          this.main.emit('update-downloaded', sanitizeVersion('v6.1.6'))
-        },
-        console.error
-      )
-    } catch (error) {
-      console.error('Error opening update URL:', error)
-    }
-  }
-
-  install (forceRunAfter = false) {
-    if (this.hasUpdate && forceRunAfter) {
-      ApkUpdater.install(console.error, console.error)
-      this.hasUpdate = false
-      return true
+  async install(forceRequestInstall = false) {
+    if (!this.hasUpdate && forceRequestInstall) {
+      try {
+        clearInterval(this.availableInterval)
+        this.updateAvailable = false
+        const regex = new RegExp(`${sanitizeVersion(this.releaseInfo.tag_name)}.*${this.versionCode}`, 'i')
+        const asset = this.releaseInfo.assets.find(a => regex.test(a.browser_download_url))
+        if (!asset) {
+          console.error('Update file not found for version and architecture:', this.releaseInfo.tag_name, this.versionCode)
+          return
+        }
+        this.hasUpdate = true
+        await ApkUpdater.download(asset.browser_download_url, { onDownloadProgress: console.debug }, () => ApkUpdater.install(console.error, console.error), (error) => console.error('Updater failed to download update', error))
+        return true
+      } catch (error) {
+        console.error(error)
+      }
     }
     return false
   }
-
-  //clearInterval(this.downloadedInterval)
-  //autoUpdater.quitAndInstall(true, true)
 }

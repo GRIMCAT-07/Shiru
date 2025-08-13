@@ -7,7 +7,6 @@ export default class Updater {
 
   window
   torrentWindow
-  destroyed
   availableInterval
   downloadedInterval
 
@@ -24,7 +23,7 @@ export default class Updater {
       if (!this.downloading) {
         this.downloading = true
         this.availableInterval = setInterval(() => {
-          if (!this.hasUpdate && !this.destroyed) this.window.webContents.send('update-available', info.version)
+          if (!this.hasUpdate) this.window.webContents.send('update-available', info.version)
         }, 1000)
         this.availableInterval.unref?.()
       }
@@ -34,12 +33,11 @@ export default class Updater {
         this.hasUpdate = true
         clearInterval(this.availableInterval)
         this.downloadedInterval = setInterval(() => {
-          if (!this.destroyed) this.window.webContents.send('update-downloaded', info.version)
+          if (this.hasUpdate) this.window.webContents.send('update-downloaded', info.version)
         }, 1000)
         this.downloadedInterval.unref?.()
       }
     })
-    autoUpdater.checkForUpdates()
   }
 
   install (forceRunAfter = false) {

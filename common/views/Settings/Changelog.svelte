@@ -2,13 +2,14 @@
   import ChangelogSk from '@/components/skeletons/ChangelogSk.svelte'
   import Debug from 'debug'
   import IPC from '@/modules/ipc.js'
+  import { SUPPORTS } from '@/modules/support.js'
   const debug = Debug('ui:changelog-view')
 
   export let changeLog = getChanges()
   window.addEventListener('online', () => changeLog = getChanges())
   let updateVersion
   const updateTime = Date.now()
-  IPC.on('update-downloaded', (version) => {
+  IPC.on(SUPPORTS.isAndroid ? 'update-available' : 'update-downloaded', (version) => {
     if (updateVersion !== version) {
       updateVersion = version
       if ((Date.now() - updateTime) >= 60_000) changeLog = getChanges()
@@ -23,7 +24,6 @@
       return {}
     }
   }
-
   export function markdownToHtml(text) {
     const cleaned = text.replace(/<[^>]+>.*?<\/[^>]+>/gs, '').replace(/<[^>]+>/gs, '').replace(/(## Preview:|# Preview:)/g, '').trim()
     let htmlOutput = ''

@@ -2,7 +2,6 @@
   import { persisted } from 'svelte-persisted-store'
   import { client } from '@/modules/torrent/torrent.js'
   import { capitalize, defaults } from '@/modules/util.js'
-  import { CloudDownload } from 'lucide-svelte'
   import { onDestroy } from 'svelte'
   import { updateState } from '@/views/Updater/UpdateModal.svelte'
   import { platformMap } from '@/views/Settings/Settings.svelte'
@@ -76,8 +75,6 @@
       duration: 5000
     })
   }
-  setTimeout(IPC.emit('update'), 15000)
-  setInterval(() => IPC.emit('update'), 300000)
 
   IPC.on('log-exported', detail => {
     if (detail.error) {

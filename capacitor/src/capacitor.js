@@ -139,6 +139,19 @@ LocalNotifications.registerActionTypes({
           title: 'View Anime'
         }
       ]
+    },
+    {
+      id: 'update_app',
+      actions: [
+        {
+          id: 'update_now',
+          title: 'Update Now'
+        },
+        {
+          id: 'whats_new',
+          title: `What's New`
+        }
+      ]
     }
   ]
 })
@@ -154,14 +167,9 @@ IPC.on('notification', opts => {
     id: id++,
     title: opts.title,
     body: opts.message,
-    actionTypeId: opts.button.length > 1 ? opts.button[0].text?.includes('Start') ? 'start_watching' : opts.button[0].text?.includes('Continue') ? 'continue_watching' : 'watch_now' : 'view_anime',
-    attachments: [{ id: 'my_preview',
-        url: opts.heroImg || opts.iconXL || opts.icon
-      }
-    ],
-    extra: {
-      buttons: opts.button
-    }
+    actionTypeId: opts.button.length > 1 ? opts.button[0].text?.includes('Start') ? 'start_watching' : (opts.button[0].text?.includes('Continue') ? 'continue_watching' : (opts.button[0].text?.includes('Update') ? 'update_app' : 'watch_now')) : 'view_anime',
+    attachments: [{ id: 'my_preview', url: opts.heroImg || opts.iconXL || opts.icon }],
+    extra: { buttons: opts.button }
   }
   if (canShowNotifications) LocalNotifications.schedule({ notifications: [notification] })
 })
@@ -170,7 +178,7 @@ IPC.on('notification', opts => {
 let handleNotifications = false
 IPC.on('portRequest', () => handleNotifications = true)
 LocalNotifications.addListener('localNotificationActionPerformed', (notification) => {
-  const url = notification.actionId === 'watch_anime' ? notification.notification.extra?.buttons?.[0]?.activation : notification.notification.extra?.buttons?.[1]?.activation
+  const url = notification.actionId === 'watch_anime' || notification.actionId === 'update_now' ? notification.notification.extra?.buttons?.[0]?.activation : notification.notification.extra?.buttons?.[1]?.activation
   if (url) {
     const checkInterval = setInterval(() => {
       if (handleNotifications) {
@@ -225,7 +233,10 @@ const protocolMap = {
   search: id => play(id),
   w2g: link => IPC.emit('w2glink', link),
   schedule: () => IPC.emit('schedule'),
-  donate: () => Browser.open({ url: 'https://github.com/sponsors/RockinChaos/' })
+  donate: () => Browser.open({ url: 'https://github.com/sponsors/RockinChaos/' }),
+  update: () => IPC.emit('quit-and-install'),
+  changelog: () => Browser.open({ url: 'https://github.com/RockinChaos/Shiru/releases/latest' }),
+  show: () => IPC.emit('window-show')
 }
 
 const protocolRx = /shiru:\/\/([a-z0-9]+)\/(.*)/i

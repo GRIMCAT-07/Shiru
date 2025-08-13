@@ -7,45 +7,59 @@
   import ChangelogSk from '@/components/skeletons/ChangelogSk.svelte'
   import SoftModal from '@/components/SoftModal.svelte'
   import { changeLog, markdownToHtml } from '@/views/Settings/Changelog.svelte'
+  import { page } from '@/App.svelte'
   import IPC from '@/modules/ipc.js'
 
   export const updateState = writable('up-to-date')
   let updateVersion
-  IPC.on('update-available', () => {
-    if (updateState.value !== 'ready') updateState.value = 'downloading'
-  })
-  IPC.on('update-downloaded', async (version) => {
-    if ((updateState.value !== 'ignored' && updateState.value !== 'updating' && updateVersion !== version)) {
-      updateVersion = version
-      updateState.value = 'ready'
-      IPC.emit('notification', {
-        title: 'Update Available!',
-        message: `An update to v${version} has been downloaded and is ready for installation.`,
-        button: [{ text: 'Update Now', activation: `shiru://update` }], // , { text: 'What's New', activation: `shiru://changelog` }
-        activation: {
-          type: 'protocol',
-          launch: `shiru://show`
-        }
-      })
+  if (!SUPPORTS.isAndroid) {
+    IPC.on('update-available', () => {
+      if (updateState.value !== 'ready') updateState.value = 'downloading'
+    })
+  }
+  IPC.on(SUPPORTS.isAndroid ? 'update-available' : 'update-downloaded', async (version) => {
+    if ((updateState.value !== 'ignored' && updateVersion !== version)) {
+      if (!document.fullscreenElement || page.value !== 'player') {
+        updateVersion = version
+        updateState.value = 'ready'
+        IPC.emit('notification', {
+          title: 'Update Available!',
+          message: `An update to v${version} ${SUPPORTS.isAndroid ? 'is available for download and installation' : 'has been downloaded and is ready for installation'}.`,
+          button: [{ text: 'Update Now', activation: 'shiru://update/' }, { text: `What's New`, activation: 'shiru://changelog/' }],
+          activation: {
+            type: 'protocol',
+            launch: 'shiru://show/'
+          }
+        })
+      }
     }
   })
+  setTimeout(() => IPC.emit('update'), 2500).unref?.()
+  setInterval(() => IPC.emit('update'), 300000).unref?.()
 </script>
-
 <script>
   export let overlay
-  $: $updateState && setOverlay()
-  $: !$updateState && close()
+
+  $: latestLog = (async () => {
+    const changelog = await changeLog
+    return [changelog?.[0], changelog?.[1]]
+  })()
+  $: $updateState === 'ready' && setOverlay()
+  $: ($updateState === 'up-to-date' || $updateState === 'ignored' || $updateState === 'downloading') && close()
+  $: androidUpdating = false
+
   function setOverlay() {
     if (!overlay.includes('updateRequest')) overlay = [...overlay, 'updateRequest']
   }
-  window.addEventListener('overlay-check', () => { if ($updateState) close() })
-  function close(ignored = true) {
+  function close(ignored = false) {
+    if (androidUpdating) return
     if (ignored) $updateState = 'ignored'
     if (overlay.includes('updateRequest')) overlay = overlay.filter(item => item !== 'updateRequest')
   }
   function confirm() {
+    if (androidUpdating) return
+    if (SUPPORTS.isAndroid) androidUpdating = true
     IPC.emit('quit-and-install')
-    $updateState = 'updating'
   }
   function compareVersions(v1, v2) {
     const a = ((v1 || '').match(/[\d.]+/g)?.join('') || '').split('.').map(Number)
@@ -58,11 +72,6 @@
     }
     return 0
   }
-
-  $: latestLog = (async () => {
-    const changelog = await changeLog
-    return [changelog?.[0], changelog?.[1]]
-  })()
 </script>
 
 <SoftModal class='m-0 pt-0 d-flex flex-column rounded bg-very-dark scrollbar-none viewport-md-4-3 border-md w-full h-full rounded-10' css='z-105 m-0 p-0' innerCss='m-0 p-0' showModal={$updateState === 'ready'} close={() => {}} id='updateModal'>
@@ -97,8 +106,8 @@
   </p>
   <div class='mt-auto border-top px-40'>
     <div class='d-flex my-20 flex-column-reverse flex-md-row font-enlarge-14'>
-      <button class='btn btn-close mr-5 font-weight-bold rounded-2 w-full mt-10 mt-md-0 py-10 h-auto py-md-2 w-md-auto px-md-30' type='button' on:click={() => close()}>Not now</button>
-      <button class='btn btn-secondary text-dark font-weight-bold ml-md-auto rounded-2 w-full py-10 h-auto py-md-2 w-md-auto px-md-30' type='button' on:click={confirm}>Update</button>
+      <button class='btn btn-close mr-5 font-weight-bold rounded-2 w-full mt-10 mt-md-0 py-10 h-auto py-md-2 w-md-auto px-md-30' type='button' disabled={androidUpdating} on:click={() => close(true)}>Not now</button>
+      <button class='btn btn-secondary text-dark font-weight-bold ml-md-auto rounded-2 w-full py-10 h-auto py-md-2 w-md-auto px-md-30' type='button' disabled={androidUpdating} on:click={confirm}>{SUPPORTS.isAndroid ? (!androidUpdating ? 'Download' : 'Downloading...') : 'Update'}</button>
     </div>
   </div>
 </SoftModal>

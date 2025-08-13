@@ -50,4 +50,6 @@ main.once('version', async () => {
 
 const autoUpdater = new Updater(main, 'https://api.github.com/repos/RockinChaos/Shiru/releases/latest')
 main.on('update', () => autoUpdater.checkForUpdates())
-main.on('quit-and-install', () => autoUpdater.install(true))
+main.on('quit-and-install', () => {
+  if (autoUpdater.updateAvailable) autoUpdater.install(true)
+})

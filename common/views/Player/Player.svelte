@@ -339,25 +339,27 @@
   }
   $: pagePause(page, playPage, overlay)
   let pagePaused = 0
-  function pagePause(page, playPage, overlay) {
+  function pagePause(page, _playPage, overlay) {
     if (buffer === 0 && pagePaused) {
       pagePaused = 1
       return
     }
-    const playerPage = page === 'player'
+    const updateRequest = overlay.includes('updateRequest')
+    const playerPage = page === 'player' || (!_playPage && updateRequest)
+    const playPage = _playPage || updateRequest
     const viewDetails = overlay.length === 1 && overlay.includes('viewanime')
     const overlayCount = overlay.length
     if (!video?.ended) {
-      if ((!playerPage || viewDetails) && !paused && playPage && !pip) {
+      if ((!playerPage || viewDetails || updateRequest) && !paused && playPage && !pip) {
         pagePaused = 2
         playPause()
       } else if (playerPage && paused && pagePaused === 2 && !overlayCount && playPage && !pip) {
         pagePaused = 1
         playPause()
-      } else if (overlayCount && ((!viewDetails && !playerPage) || overlayCount > 1) && !paused && !playPage && !pip) {
+      } else if (overlayCount && ((!viewDetails && !updateRequest && !playerPage) || overlayCount > 1) && !paused && !playPage && !pip) {
         pagePaused = 2
         playPause()
-      } else if ((!overlayCount || viewDetails) && paused && pagePaused === 2 && !playPage && !pip) {
+      } else if ((!overlayCount || viewDetails || updateRequest) && paused && pagePaused === 2 && !playPage && !pip) {
         pagePaused = 1
         playPause()
       } else if ((!playerPage || overlayCount) && paused && pagePaused && pagePaused !== 2) {
