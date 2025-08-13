@@ -1,6 +1,7 @@
 import { App } from '@capacitor/app'
 import { NodeJS } from 'capacitor-nodejs'
 import { cache, caches } from '@/modules/cache.js'
+import Updater from './updater.js'
 import EventEmitter from 'events'
 
 const ready = NodeJS.whenReady()
@@ -46,3 +47,7 @@ main.once('version', async () => {
   const { version } = await App.getInfo()
   main.emit('version', version)
 })
+
+const autoUpdater = new Updater(main, 'https://api.github.com/repos/RockinChaos/Shiru/releases/latest')
+main.on('update', () => autoUpdater.checkForUpdates())
+main.on('quit-and-install', () => autoUpdater.install(true))
