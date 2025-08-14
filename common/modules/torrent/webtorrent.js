@@ -313,6 +313,7 @@ export default class TorrentClient extends WebTorrent {
    */
   async seedTorrent(torrent, swapping = false) {
     if (!torrent || torrent.destroyed) return
+    let seedingOffset = 1
     const seedingLimit = this.settings.seedingLimit > SUPPORTS.maxSeeding ? SUPPORTS.maxSeeding : (this.settings.seedingLimit || 1)
     const seedingTorrents = this.torrents.filter(_torrent => _torrent.seeding && !_torrent.destroyed)
     if (!torrent.seeding && !torrent.destroyed) {
@@ -320,13 +321,14 @@ export default class TorrentClient extends WebTorrent {
         torrent.current = false
         torrent.staging = false
         torrent.seeding = true
+        if (!swapping) seedingOffset++
         this.bumpTorrent(torrent)
         this.dispatch('seeding', torrent.infoHash)
         debug(`Seeding torrent: ${torrent.infoHash}`, torrent.magnetURI)
       } else seedingTorrents.push(torrent)
     }
 
-    const offloadSeeds = (seedingTorrents.length + 1) - seedingLimit
+    const offloadSeeds = (seedingTorrents.length + seedingOffset) - seedingLimit
     if (offloadSeeds > 0) {
       for (const completed of seedingTorrents.sort((a, b) => (b.ratio || 0) - (a.ratio || 0)).slice(0, offloadSeeds)) {
         await this.completeTorrent(completed)
