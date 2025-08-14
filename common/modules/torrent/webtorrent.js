@@ -489,10 +489,10 @@ export default class TorrentClient extends WebTorrent {
           torrent.current = true
           this.bumpTorrent(torrent)
           if (data.data.external) {
+            const startTime = Date.now()
             if (this.player) {
               this.playerProcess = spawn(this.player, ['' + new URL('http://localhost:' + this.server.address().port + encodeStreamURL(found.streamURL))])
               this.playerProcess.stdout.on('data', () => {})
-              const startTime = Date.now()
               this.playerProcess.once('close', () => {
                 if (this.destroyed) return
                 this.playerProcess = null
@@ -503,6 +503,11 @@ export default class TorrentClient extends WebTorrent {
             }
             if (SUPPORTS.isAndroid) {
               this.dispatch('open', `intent://localhost:${this.server.address().port}${encodeStreamURL(found.streamURL)}#Intent;type=video/any;scheme=http;end;`)
+              this.ipc.once('external-close', () => {
+                if (this.destroyed) return
+                const seconds = (Date.now() - startTime) / 1000
+                this.dispatch('externalWatched', seconds)
+              })
               return
             }
           }

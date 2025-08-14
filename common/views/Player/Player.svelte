@@ -1249,7 +1249,8 @@
   }
 
   function checkCompletionByTime (currentTime, safeduration) {
-    const threshold = $settings.playerAutocompleteThreshold / 100
+    let threshold = $settings.playerAutocompleteThreshold / 100
+    if (externalPlayerReady && threshold > 0.7) threshold = 0.7 // accommodates skipping op/ed in external player.
     if (safeduration && currentTime && (video?.readyState || externalPlayerReady) && (currentTime >= safeduration * threshold) && (media?.media?.episodes || (media?.media?.nextAiringEpisode?.episode >= (media.episodeRange?.last || media.episode)))) {
       debug(`Marking current episode as completed as it has met the ${$settings.playerAutocompleteThreshold}% threshold.`)
       completed = true

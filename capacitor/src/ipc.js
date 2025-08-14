@@ -44,6 +44,10 @@ globalThis.version = {
   arch
 }
 
+App.addListener('appStateChange', async (state) => {
+  if (state.isActive) NodeJS.send({eventName: 'external-close', args: []})
+})
+
 main.once('version', async () => {
   const { version } = await App.getInfo()
   main.emit('version', version)
