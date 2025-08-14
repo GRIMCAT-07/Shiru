@@ -107,6 +107,9 @@ importers:
       '@capacitor/status-bar':
         specifier: ^6.0.1
         version: 6.0.1(@capacitor/core@6.1.2)
+      '@capawesome-team/capacitor-android-battery-optimization':
+        specifier: ^6.0.0
+        version: 6.0.0(@capacitor/core@6.1.2)
       capacitor-folder-picker:
         specifier: ^0.0.2
         version: 0.0.2(@capacitor/core@6.1.2)
@@ -394,6 +397,11 @@ packages:
 
   '@capacitor/status-bar@6.0.1':
     resolution: {integrity: sha512-Usd9hZZQVAqy+jJfL7jRcYI7dcsxN09Na1yttwdl+F1bk3Ztoukk7CGPDm5VgKUSs53ihQBOy1+sczCACxhNiw==}
+    peerDependencies:
+      '@capacitor/core': ^6.0.0
+
+  '@capawesome-team/capacitor-android-battery-optimization@6.0.0':
+    resolution: {integrity: sha512-NeVSviweTusMBaTDad7QD6s/iAElueLKEJVE4z6hO8JZgctB1csvys+MZkpbvaqPXujP+mWz9ePWaKLQnVSjaQ==}
     peerDependencies:
       '@capacitor/core': ^6.0.0
 
@@ -6207,6 +6215,10 @@ snapshots:
       '@capacitor/core': 6.1.2
 
   '@capacitor/status-bar@6.0.1(@capacitor/core@6.1.2)':
+    dependencies:
+      '@capacitor/core': 6.1.2
+
+  '@capawesome-team/capacitor-android-battery-optimization@6.0.0(@capacitor/core@6.1.2)':
     dependencies:
       '@capacitor/core': 6.1.2
 

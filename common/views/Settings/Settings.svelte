@@ -2,6 +2,7 @@
   import { settings } from '@/modules/settings.js'
   import { SUPPORTS } from '@/modules/support.js'
   import { capitalize } from '@/modules/util.js'
+  import { toast } from 'svelte-sonner'
   import IPC from '@/modules/ipc.js'
   import Debug from 'debug'
   const debug = Debug('ui:settings-view')
@@ -26,6 +27,16 @@
   IPC.emit('version')
   IPC.emit('discord-rpc', settings.value.enableRPC)
   if (SUPPORTS.angle) settings.value.angle = await IPC.invoke('get:angle')
+  if (SUPPORTS.isAndroid) {
+    setTimeout(() => { if (settings.value.enableExternal) IPC.emit('battery-opt-ignore') }, 2500)
+    IPC.on('battery-opt-enabled', () => {
+      toast.warning('Battery Optimization Detected', {
+        description: 'To stream reliably to an external player, please disable Battery Optimization for this app in your device settings. Dismiss this toast to disable battery optimization.',
+        duration: Infinity,
+        onDismiss: () => IPC.emit('battery-opt-ignore')
+      })
+    })
+  }
 </script>
 
 <script>

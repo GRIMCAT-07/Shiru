@@ -1,5 +1,6 @@
 import { App } from '@capacitor/app'
 import { NodeJS } from 'capacitor-nodejs'
+import { BatteryOptimization } from '@capawesome-team/capacitor-android-battery-optimization'
 import { cache, caches } from '@/modules/cache.js'
 import Updater from './updater.js'
 import EventEmitter from 'events'
@@ -52,4 +53,20 @@ const autoUpdater = new Updater(main, 'https://api.github.com/repos/RockinChaos/
 main.on('update', () => autoUpdater.checkForUpdates())
 main.on('quit-and-install', () => {
   if (autoUpdater.updateAvailable) autoUpdater.install(true)
+})
+
+let batteryPromptListener
+main.on('battery-opt-ignore', async () => {
+  if (batteryPromptListener) {
+    batteryPromptListener.remove()
+    batteryPromptListener = null
+  }
+  await BatteryOptimization.requestIgnoreBatteryOptimization()
+  batteryPromptListener = App.addListener('appStateChange', async (state) => {
+    if (state.isActive) {
+      batteryPromptListener.remove()
+      batteryPromptListener = null
+      if ((await BatteryOptimization.isBatteryOptimizationEnabled())?.enabled) main.emit('battery-opt-enabled')
+    }
+  })
 })
