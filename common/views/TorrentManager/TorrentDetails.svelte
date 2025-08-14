@@ -15,6 +15,7 @@
   export let data
   export let current = false
   export let completed = false
+  export let disableRescan = false
 
   const view = getContext('view')
   const infoHash = data.infoHash
@@ -93,7 +94,7 @@
     </div>
     <div class='p-5 w-150 d-none d-md-block'>{fastPrettyBytes(data.size)}</div>
     <div class='p-5 w-150'>{data.size && !data.missing_pieces ? `${((data.progress * 100) || 0).toFixed(1)}%` : (data.missing_pieces ? '—' : '0.0%')}</div>
-    <div class='p-5 w-150'>{completed ? (data.incomplete ? (data.missing_pieces ? 'Missing Pieces' : 'Incomplete') : 'Completed') : data.progress === 1 ? 'Seeding' : data.size && (data.downloadSpeed || data.uploadSpeed) ? 'Downloading' : !(data.downloadSpeed || data.uploadSpeed) && data.eta > 1000 && data.progress < 1 ? 'Scanning' : data.name ? 'Stalled' : '—'}</div>
+    <div class='p-5 w-150'>{completed ? (data.incomplete ? (data.missing_pieces ? 'Missing Pieces' : 'Incomplete') : 'Completed') : data.progress === 1 ? 'Seeding' : data.size && (data.downloadSpeed || data.uploadSpeed) ? 'Downloading' : !(data.downloadSpeed || data.uploadSpeed) && data.eta > 1000 && data.progress < 1 && !settings.value.torrentStreamedDownload ? 'Scanning' : data.name ? 'Stalled' : '—'}</div>
     <div class='p-5 w-150 d-none d-md-block'>{!completed && data.name && (data.progress ? ((Math.ceil((data.ratio || 0) * 100) / 100)?.toFixed(2)) : '0.00') || (data.incomplete && !data.missing_pieces ? '0.01' : '—')}<span class='text-muted text-nowrap' class:d-none={(completed && (!data.incomplete || data.missing_pieces)) || !data.name}>{` (${ratioType(data.ratio || 0, data.progress)})`}</span></div>
     <div class='p-5 w-150'>{completed ? '—' : `${fastPrettyBytes(data.downloadSpeed || 0)}/s`}</div>
     <div class='p-5 w-150 d-none d-md-block'>{completed ? '—' : `${fastPrettyBytes(data.uploadSpeed || 0)}/s`}</div>
@@ -113,16 +114,16 @@
       <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details py-5 px-10' class:d-flex={resolvedId && $mediaCache[resolvedId]} aria-label='View Media' title='View Media' use:click={() => { viewMedia(); toggleDropdown() }}>
         View Media
       </div>
-      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details py-5 px-10' class:d-flex={!completed && !current && data.progress === 1} aria-label='Stop Seeding' title='Stop Seeding' use:click={() => { complete(infoHash); toggleDropdown() }}>
+      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details py-5 px-10' class:d-flex={!completed && !current && data.progress === 1 && settings.value.torrentPersist} aria-label='Stop Seeding' title='Stop Seeding' use:click={() => { complete(infoHash); toggleDropdown() }}>
         Stop Seeding
       </div>
-      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details py-5 px-10' class:d-flex={!completed && !current && data.progress < 1} aria-label='Stop Download' title='Stop Download' use:click={() => { unload(infoHash, true); toggleDropdown() }}>
+      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details py-5 px-10' class:d-flex={!completed && !current && data.progress < 1 && settings.value.torrentPersist} aria-label='Stop Download' title='Stop Download' use:click={() => { unload(infoHash, true); toggleDropdown() }}>
         Stop Download
       </div>
-      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details py-5 px-10' class:d-flex={completed && !data.incomplete && settings.value.seedingLimit > 1} aria-label='Start Seeding' title='Start Seeding' use:click={() => { stage(infoHash, null, infoHash); toggleDropdown() }}>
+      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details py-5 px-10' class:d-flex={completed && !data.incomplete && settings.value.seedingLimit > 1 && !disableRescan} aria-label='Start Seeding' title='Start Seeding' use:click={() => { stage(infoHash, null, infoHash); toggleDropdown() }}>
         Start Seeding
       </div>
-      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details py-5 px-10' class:d-flex={completed && data.incomplete} aria-label='Continue Downloading' title='Continue Downloading' use:click={() => { stage(infoHash, null, infoHash); toggleDropdown() }}>
+      <div role='button' class='pointer d-none align-items-center justify-content-center font-size-16 rounded option details py-5 px-10' class:d-flex={completed && data.incomplete && settings.value.seedingLimit > 1 && !disableRescan} aria-label='Continue Downloading' title='Continue Downloading' use:click={() => { stage(infoHash, null, infoHash); toggleDropdown() }}>
         Continue Downloading
       </div>
     </div>

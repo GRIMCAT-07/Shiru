@@ -6,7 +6,7 @@
   import { loadedTorrent, completedTorrents, seedingTorrents, stagingTorrents } from '@/modules/torrent/torrent.js'
   import ErrorCard from '@/components/cards/ErrorCard.svelte'
   import TorrentDetails from '@/views/TorrentManager/TorrentDetails.svelte'
-  import { Search, RefreshCw, Package, Percent, Activity, Scale, Gauge, CloudDownload, CloudUpload, Sprout, Magnet, Timer } from 'lucide-svelte'
+  import { Search, RefreshCw, TriangleAlert, Package, Percent, Activity, Scale, Gauge, CloudDownload, CloudUpload, Sprout, Magnet, Timer } from 'lucide-svelte'
   const rescanning = writable(true)
   window.addEventListener('rescan_done', () => rescanning.value = false)
 </script>
@@ -19,7 +19,7 @@
     if (!searchText?.length) return dedupe
     return dedupe.filter(({ name }) => matchPhrase(searchText, name, 0.4, false, true)) || []
   }
-  $: disableRescan = settings.value.seedingLimit <= 1 && !settings.value.torrentPersist
+  $: disableRescan = ($seedingTorrents?.length + $stagingTorrents?.length + 1) >= settings.value.seedingLimit && !settings.value.torrentPersist
   $: filteredLoaded = matchPhrase(searchText, $loadedTorrent?.name, 0.4, false, true)
   $: filteredStaging = filterResults($stagingTorrents, searchText) || []
   $: filteredSeeding = filterResults($seedingTorrents, searchText) || []
@@ -41,7 +41,13 @@
           data-option='search'
           placeholder='Filter torrents by text, or manually specify one by pasting a magnet link or torrent file' bind:value={searchText} />
       </div>
-      <button type='button' use:click={() => { if (!disableRescan) { $rescanning = true; window.dispatchEvent(new Event('rescan')) } }} disabled={disableRescan || $rescanning} title={disableRescan ? 'Enable in Settings' : $rescanning ? 'Rescanning Cache...' : 'Rescan Cache'} class='btn btn-primary d-flex align-items-center justify-content-center ml-20 mr-20 font-scale-16 h-full' class:cursor-wait={$rescanning}><RefreshCw class='mr-10' size='1.8rem' strokeWidth='2.5'/><span>Rescan</span></button>
+      <button type='button' use:click={() => { if (!disableRescan) { $rescanning = true; window.dispatchEvent(new Event('rescan')) } }} disabled={disableRescan || $rescanning} title={disableRescan ? 'Enable Persist Files or Increase Seeding Limit' : $rescanning ? 'Rescanning Cache...' : 'Rescan Cache'} class='btn btn-primary d-flex align-items-center justify-content-center ml-20 mr-20 font-scale-16 h-full' class:cursor-wait={$rescanning}><RefreshCw class='mr-10' size='1.8rem' strokeWidth='2.5'/><span>Rescan</span></button>
+    </div>
+  </div>
+  <div class='d-none' class:d-inline-block={disableRescan}>
+    <div class='alert bg-warn p-10 pl-15 mt-10 mb-5 d-flex {$$restProps.class ? `ml-20` : ``}'>
+      <TriangleAlert class='flex-shrink-0' size='1.8rem' />
+      <span class='ml-10'>You've reached your pre-download limit. To pre-download more torrents, stop seeding some, increase your seeding limit, or enable Persist Files in Client Settings.</span>
     </div>
   </div>
   <div class='d-flex flex-column w-full text-wrap text-break-word font-scale-16 mt-20'>
@@ -61,16 +67,16 @@
     </div>
     {#if foundResults}
       {#if !searchText?.length || filteredLoaded}
-        <TorrentDetails bind:data={$loadedTorrent} current={true} />
+        <TorrentDetails bind:data={$loadedTorrent} current={true} {disableRescan} />
       {/if}
       {#each filteredStaging as torrent (torrent.infoHash)}
-        <TorrentDetails data={torrent}/>
+        <TorrentDetails data={torrent} {disableRescan}/>
       {/each}
       {#each filteredSeeding as torrent (torrent.infoHash)}
-        <TorrentDetails data={torrent}/>
+        <TorrentDetails data={torrent} {disableRescan}/>
       {/each}
       {#each filteredCompleted as torrent (torrent.infoHash)}
-        <TorrentDetails data={torrent} completed={true}/>
+        <TorrentDetails data={torrent} completed={true} {disableRescan}/>
       {/each}
     {:else}
       <ErrorCard promise={{ errors: [ { message: 'found no results' }]}}/>
