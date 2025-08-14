@@ -2,6 +2,7 @@ import { createHash } from 'crypto'
 import { videoRx } from '../util.js'
 import querystring from 'querystring'
 import parseTorrent from 'parse-torrent'
+import { SUPPORTS } from '@/modules/support.js'
 import { stat } from 'fs/promises'
 import { statSync } from 'fs'
 import path from 'path'
@@ -58,10 +59,15 @@ export const stringifyQuery = obj => {
  * @returns {string} The stream URL with the filename segment URI-encoded.
  */
 export const encodeStreamURL = (streamURL) => {
-  if (!streamURL?.length) return streamURL
-  const match = streamURL.replace(/\\/g, '/').match(/^(.*?\/webtorrent\/[^/]+\/?)(.*)$/)
-  if (!match) return streamURL
-  return match[1] + match[2].split('/').map(segment => encodeURIComponent(decodeURIComponent(segment))).join('/')
+  if (!streamURL?.length || !SUPPORTS.isAndroid) return streamURL
+  return streamURL.replace(/\\/g, '/').split('/').map(segment => {
+    return encodeURIComponent(decodeURIComponent(segment))
+      .replace(/%5B/g, '[')
+      .replace(/%5D/g, ']')
+      .replace(/%2C/g, ',')
+      .replace(/%28/g, '(')
+      .replace(/%29/g, ')')
+  }).join('/')
 }
 
 /**
