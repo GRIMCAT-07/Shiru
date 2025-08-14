@@ -54,7 +54,7 @@
     <label for='rss-autoplay'>{settings.rssAutoplay ? 'On' : 'Off'}</label>
   </div>
 </SettingCard>
-<SettingCard title='Auto-Select Files' description='Automatically selects the requested file when clicking the desired episode if it already exists in the batch before prompting the torrent selection. Disable this to always be prompted to select a torrent regardless of what is in the current batch.'>
+<SettingCard title='Auto-Select Files' description='Automatically selects the requested file when clicking the desired episode if it already exists in the batch or if you already have the torrent file before prompting the torrent selection. With this setting enabled you may get unexpected results if the video file(s) fail to determine what media is playing. Disable this to always be prompted to select a torrent regardless of what you already downloaded or is in the current batch. '>
   <div class='custom-switch'>
     <input type='checkbox' id='rss-autofile' bind:checked={settings.rssAutofile} />
     <label for='rss-autofile'>{settings.rssAutofile ? 'On' : 'Off'}</label>
