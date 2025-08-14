@@ -224,9 +224,9 @@ export default class TorrentClient extends WebTorrent {
     if (this.destroyed || !id) return
     debug(`${current ? 'Adding' : 'Staging'} torrent: ${!cache ? JSON.stringify(id) : `${cache.infoHash}:${cache.name}`}`)
 
-    const currentTorrent = current && this.torrents.find(torrent => torrent.current)
-    if (currentTorrent) await this.promoteTorrent(currentTorrent, true)
     const existing = await this.get(id)
+    const currentTorrent = current && this.torrents.find(torrent => torrent.current)
+    if (currentTorrent) await this.promoteTorrent(currentTorrent, true, !!existing)
     if (existing) {
       if (current) {
         existing.staging = false
@@ -309,8 +309,9 @@ export default class TorrentClient extends WebTorrent {
    * Removes oldest seeding torrent if limit exceeded.
    *
    * @param {import('webtorrent').Torrent} torrent - Torrent to seed.
+   * @param {boolean} [swapping=false] - True when switching from the current torrent to an existing torrent.
    */
-  async seedTorrent(torrent) {
+  async seedTorrent(torrent, swapping = false) {
     if (!torrent || torrent.destroyed) return
     const seedingLimit = this.settings.seedingLimit > SUPPORTS.maxSeeding ? SUPPORTS.maxSeeding : (this.settings.seedingLimit || 1)
     const seedingTorrents = this.torrents.filter(_torrent => _torrent.seeding && !_torrent.destroyed)
@@ -328,17 +329,7 @@ export default class TorrentClient extends WebTorrent {
     const offloadSeeds = (seedingTorrents.length + 1) - seedingLimit
     if (offloadSeeds > 0) {
       for (const completed of seedingTorrents.sort((a, b) => (b.ratio || 0) - (a.ratio || 0)).slice(0, offloadSeeds)) {
-        completed.current = false
-        completed.staging = false
-        completed.seeding = false
-        if (!this.settings.torrentPersist) await this.torrentCache.delete(completed.infoHash)
-        else {
-          const stats = { infoHash: completed.infoHash, name: completed.name, size: completed.length, progress: completed.progress, incomplete: completed.progress < 1 }
-          this.completed = Array.from(new Map([...(this.completed || []), stats].map(item => [item.infoHash, item])).values())
-          this.dispatch('completed', stats)
-        }
-        debug(`Completed torrent: ${completed.infoHash}`)
-        await this.remove(completed, { destroyStore: !this.settings.torrentPersist })
+        await this.completeTorrent(completed)
       }
     }
   }
@@ -349,25 +340,46 @@ export default class TorrentClient extends WebTorrent {
    *
    * @param {import('webtorrent').Torrent} torrent - Torrent to promote.
    * @param {boolean} [loaded=false] - True when switching from the current torrent to a new current torrent.
+   * @param {boolean} [swapping=false] - True when switching from the current torrent to an existing torrent.
    */
-  async promoteTorrent(torrent, loaded = false) {
+  async promoteTorrent(torrent, loaded = false, swapping = false) {
     if (this.destroyed || torrent.destroyed) return
     if (torrent.current) {
-      if (this.settings.torrentPersist) {
-        if (torrent.progress < 1) {
+      const seedingLimit = this.settings.seedingLimit > SUPPORTS.maxSeeding ? SUPPORTS.maxSeeding : (this.settings.seedingLimit || 1)
+      if (torrent.progress < 1) {
+        if (this.settings.torrentPersist || (seedingLimit > 1 && (this.torrents.filter(_torrent => (_torrent.seeding || _torrent.staging) && !_torrent.destroyed)?.length + (!swapping ? 1 : 0) < seedingLimit))) {
           torrent.current = false
           torrent.staging = true
           this.bumpTorrent(torrent)
           this.dispatch('staging', torrent.infoHash)
           debug(`Loaded torrent did not finish downloading, moving to staging: ${torrent.infoHash}`, torrent.magnetURI)
-        } else if (loaded) await this.seedTorrent(torrent)
-      }
-      this.torrents.filter(_torrent => (_torrent.staging || _torrent.seeding) && Array.isArray(_torrent.files)).forEach(_torrent => {
+        } else this.completeTorrent(torrent)
+      } else if (loaded) await this.seedTorrent(torrent, swapping)
+      this.torrents.filter(_torrent => Array.isArray(_torrent.files)).forEach(_torrent => {
         _torrent.files.forEach(file => {
           if (!file._destroyed) file.select()
         })
       })
-    } else await this.seedTorrent(torrent)
+    } else await this.seedTorrent(torrent, swapping)
+  }
+
+  /**
+   * Marks the torrent as complete, handles persistence or cache removal, and removes it from the client.
+   *
+   *  @param torrent the torrent to complete
+   */
+  async completeTorrent(torrent) {
+    torrent.current = false
+    torrent.staging = false
+    torrent.seeding = false
+    if (!this.settings.torrentPersist) await this.torrentCache.delete(torrent.infoHash)
+    else {
+      const stats = { infoHash: torrent.infoHash, name: torrent.name, size: torrent.length, progress: torrent.progress, incomplete: torrent.progress < 1 }
+      this.completed = Array.from(new Map([...(this.completed || []), stats].map(item => [item.infoHash, item])).values())
+      this.dispatch('completed', stats)
+    }
+    debug(`Completed torrent: ${torrent.infoHash}:${this.settings.torrentPersist}`)
+    await this.remove(torrent, { destroyStore: !this.settings.torrentPersist })
   }
 
   /**
