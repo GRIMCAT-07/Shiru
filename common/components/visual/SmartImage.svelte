@@ -5,8 +5,8 @@
     let index = 0
     let resolvedImages = []
     $: filteredImages = images.filter(Boolean)
-    $: loadNextImage(index)
-    async function loadNextImage(index) {
+    $: loadNextImage(index, filteredImages)
+    async function loadNextImage(index, filteredImages) {
         let image = filteredImages[index]
         try {
             if (typeof image === 'function') image = image()
