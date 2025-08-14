@@ -178,16 +178,16 @@
           placeholder='Any'/>
       </div>
     </div>
-    <div class='col-lg col-4 p-10 d-flex {advancedSearch} flex-column justify-content-end'>
+    <div class='col-lg col-4 p-10 z-3 d-flex {advancedSearch} flex-column justify-content-end'>
       <div class='pb-10 font-weight-semi-bold d-flex align-items-center font-scale-24'>
         <Hash class='mr-10 block-scale-30'/>
         <div>Genres</div>
       </div>
-      <div class='input-group z-5' title={(!Helper.isAniAuth() && Helper.isUserSort(search)) ? 'Cannot use with sort: ' + sortOptions[search.sort] : ''}>
+      <div class='input-group' title={(!Helper.isAniAuth() && Helper.isUserSort(search)) ? 'Cannot use with sort: ' + sortOptions[search.sort] : ''}>
         <CustomDropdown id={`tags-input`} bind:form headers={searchTags.headers} options={[...toArray(genreList), ...toArray(tagList)]} bind:value={searchTags.tags} bind:altValue={searchTags.tags_not} constrainAlt={false} disabled={search.disableSearch || (!Helper.isAniAuth() && Helper.isUserSort(search))}/>
       </div>
     </div>
-    <div class='col-lg col-4 p-10 d-none z-5 {advancedSearch} flex-column justify-content-end' class:d-flex={!search.scheduleList}>
+    <div class='col-lg col-4 p-10 z-3 d-none {advancedSearch} flex-column justify-content-end' class:d-flex={!search.scheduleList}>
       <div class='pb-10 font-weight-semi-bold d-flex align-items-center font-scale-24'>
         <CalendarRange class='mr-10 block-scale-30'/>
         <div>Season</div>
@@ -202,26 +202,26 @@
             <option value='FALL'>Fall</option>
           </select>
         </div>
-        <div class='input-group z-5'>
+        <div class='input-group'>
           <CustomDropdown id={`year-input`} class='radius-left-0' bind:form options={Array.from({ length: currentYear - 1940 + 2 }, (_, i) => currentYear + 1 - i)} bind:value={search.year} arrayValue={false} bind:disabled={search.disableSearch}/>
         </div>
       </div>
     </div>
-    <div class='col p-10 d-flex {advancedSearch} flex-column justify-content-end'>
+    <div class='col p-10 z-2 d-flex {advancedSearch} flex-column justify-content-end'>
       <div class='pb-10 font-weight-semi-bold d-flex align-items-center font-scale-24'>
         <Tv class='mr-10 block-scale-30'/>
         <div>Format</div>
       </div>
-      <div class='input-group z-5'>
+      <div class='input-group'>
         <CustomDropdown id={`format-input`} bind:form options={{ TV: 'TV Show', MOVIE: 'Movie', TV_SHORT: 'TV Short', SPECIAL: 'Special', OVA: 'OVA', ONA: 'ONA' }} bind:value={search.format} bind:altValue={search.format_not} bind:disabled={search.disableSearch}/>
       </div>
     </div>
-    <div class='col p-10 d-none {advancedSearch} flex-column justify-content-end' class:d-flex={!search.scheduleList}>
+    <div class='col p-10 z-1 d-none {advancedSearch} flex-column justify-content-end' class:d-flex={!search.scheduleList}>
       <div class='pb-10 font-weight-semi-bold d-flex align-items-center font-scale-24'>
         <MonitorPlay class='mr-10 block-scale-30'/>
         <div>Status</div>
       </div>
-      <div class='input-group z-5'>
+      <div class='input-group'>
         <CustomDropdown id={`status-input`} bind:form options={{ RELEASING: 'Releasing', FINISHED: 'Finished', NOT_YET_RELEASED: 'Not Yet Released', CANCELLED: 'Cancelled' }} bind:value={search.status} bind:altValue={search.status_not} bind:disabled={search.disableSearch}/>
       </div>
     </div>
