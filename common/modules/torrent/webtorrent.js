@@ -560,13 +560,19 @@ export default class TorrentClient extends WebTorrent {
         break
       } case 'unload': {
         if (!data.data && this.torrents.find(torrent => torrent.current)) {
+          this.currentFile = null
           const current = this.torrents.find(torrent => torrent.current)
           const cache = await this.torrentCache.get(current.infoHash)
-          await this.remove(current, { destroyStore: false })
-          this.currentFile = null
-          if (cache) {
-            this.dispatch('loaded', {})
-            this.addTorrent(cache, cache)
+          const seedingLimit = this.settings.seedingLimit > SUPPORTS.maxSeeding ? SUPPORTS.maxSeeding : (this.settings.seedingLimit || 1)
+          if (this.settings.torrentPersist || (seedingLimit > 1 && (this.torrents.filter(_torrent => (_torrent.seeding || _torrent.staging) && !_torrent.destroyed)?.length + 1 < seedingLimit))) {
+            await this.remove(current, { destroyStore: false })
+            if (cache) {
+              this.dispatch('loaded', {})
+              this.addTorrent(cache, cache)
+            }
+          } else {
+            this.torrentCache.delete(current.infoHash)
+            await this.remove(current, { destroyStore: true })
           }
         } else if (data.data) {
           const cache = await this.torrentCache.get(data.data?.infoHash || (data.data?.hash && data.data?.torrent) || (await getInfoHash(data.data?.torrent || data.data)))
