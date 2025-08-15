@@ -1,6 +1,7 @@
 <script context='module'>
   import { animeSchedule } from '@/modules/anime/animeschedule.js'
   import { malDubs } from '@/modules/anime/animedubs.js'
+  import { SUPPORTS } from '@/modules/support.js'
   import { settings } from '@/modules/settings.js'
   import { past } from '@/modules/util.js'
 
@@ -294,11 +295,11 @@
                     {/if}
                   </div>
                   {#if completed}
-                    <div class='progress mb-15' style='height: .2rem; min-height: .2rem;'>
+                    <div class='progress mb-15' class:mt--10={SUPPORTS.isAndroid} style='height: .2rem; min-height: .2rem;'>
                       <div class='progress-bar w-full'/>
                     </div>
                   {:else if progress}
-                    <div class='progress mb-15' style='height: .2rem; min-height: .2rem;'>
+                    <div class='progress mb-15' class:mt--10={SUPPORTS.isAndroid} style='height: .2rem; min-height: .2rem;'>
                       <div class='progress-bar' style='width: {progress}%'/>
                     </div>
                   {/if}

@@ -375,6 +375,9 @@ a[href]:active, button:not([disabled]):active:not([data-sonner-toast] > button),
   margin-bottom: 3rem;
 }
 
+.mt--10 {
+  margin-top: -1rem !important;
+}
 .mt-2 {
   margin-top: .2rem;
 }
