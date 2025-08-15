@@ -32,7 +32,7 @@
   }
   mediaCache.subscribe((value) => { if (value && (JSON.stringify(value[media?.id]) !== JSON.stringify(media))) media = value[media?.id] })
   $: episodeRange = episodesList.handleArray(data?.episode, data?.parseObject?.file_name)
-  $: lastEpisode = (data?.episodeRange || data?.parseObject?.episodeRange)?.last || episodeRange?.last || data?.episode
+  $: lastEpisode = (data?.episodeRange || data?.parseObject?.episodeRange)?.last || episodeRange?.last || data?.episode || (media?.episodes === 1 && media?.episodes)
   $: episodeThumbnail = ((!media?.mediaListEntry?.status || !(['CURRENT', 'REPEATING', 'PAUSED', 'PLANNING'].includes(media.mediaListEntry.status) && media.mediaListEntry.progress < lastEpisode)) && data.episodeData?.image) || media?.bannerImage || media?.coverImage.extraLarge || ' '
   let hide = true
 
@@ -41,13 +41,15 @@
     $view = media
   }
   function setClickState() {
-    if (!$prompt && data.episode && !Array.isArray(data.episode) && (data.episode - 1) >= 1 && media?.mediaListEntry?.status !== 'COMPLETED' && (media?.mediaListEntry?.progress || -1) < (data.episode - 1)) prompt.set(true)
-    else data.episode ? (media ? playActive(data.hash, { media, episode: data.episode }, data.link) : data.onclick()) : viewMedia()
+    const episode = data.episode || (media?.episodes === 1 && media?.episodes)
+    if (!$prompt && episode && !Array.isArray(episode) && (episode - 1) >= 1 && media?.mediaListEntry?.status !== 'COMPLETED' && (media?.mediaListEntry?.progress || -1) < (episode - 1)) prompt.set(true)
+    else episode ? (media ? playActive(data.hash, { media, episode }, data.link) : data.onclick()) : viewMedia()
     clicked.set(true)
     setTimeout(() => clicked.set(false))
   }
   function setHoverState (state, tapped) {
-    if (!$prompt && data.episode && !Array.isArray(data.episode) && (data.episode - 1) >= 1 && media?.mediaListEntry?.status !== 'COMPLETED' && (media?.mediaListEntry?.progress || -1) < (data.episode - 1)) prompt.set(!!tapped)
+    const episode = data.episode || (media?.episodes === 1 && media?.episodes)
+    if (!$prompt && episode && !Array.isArray(episode) && (episode - 1) >= 1 && media?.mediaListEntry?.status !== 'COMPLETED' && (media?.mediaListEntry?.progress || -1) < (episode - 1)) prompt.set(!!tapped)
     if (!$prompt || !$clicked) preview = state
   }
 
