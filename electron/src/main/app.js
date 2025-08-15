@@ -71,8 +71,8 @@ export default class App {
     this.mainWindow.on('show', () => this.mainWindow.webContents.postMessage('visibilitychange', 'visible'))
     if (development) this.mainWindow.once('ready-to-show', () => this.showAndFocus(true))
     else ipcMain.once('main-ready', () => this.showAndFocus(true)) // HACK: Prevents the window from being shown while it's still loading. This is nice for production as the window can't be moved without the elements being rendered.
-    ipcMain.on('torrent-devtools', () => this.webtorrentWindow.webContents.openDevTools())
-    ipcMain.on('ui-devtools', ({ sender }) => sender.openDevTools())
+    ipcMain.on('torrent-devtools', () => this.webtorrentWindow.webContents.openDevTools({ mode: 'detach' }))
+    ipcMain.on('ui-devtools', ({ sender }) => sender.openDevTools({ mode: 'detach' }))
     ipcMain.on('window-hide', () => this.mainWindow.hide())
     ipcMain.on('window-show', () => this.showAndFocus())
     ipcMain.on('minimize', () => this.mainWindow?.minimize())
