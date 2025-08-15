@@ -10,6 +10,7 @@
   import IPC from '@/modules/ipc.js'
   import { cache, caches, mediaCache } from '@/modules/cache.js'
   import { SUPPORTS } from '@/modules/support.js'
+  import { settings } from '@/modules/settings.js'
 
   export const notifyView = writable(false)
   export const notifications = writable(cache.getEntry(caches.NOTIFICATIONS, 'notifications') || [])
@@ -49,9 +50,52 @@
   }
 
   window.addEventListener('overlay-check', () => { if ($notifyView) close() })
-  window.addEventListener('notification-app', (event) => addNotification(event.detail))
+  window.addEventListener('notification-app', (event) => queueNotification(event.detail, settings.value.systemNotify && (event.detail.button?.length || event.detail.activation)))
   window.addEventListener('notification-read', (event) => markRead(event.detail))
-  window.addEventListener('notification-reset', () => notifications.set([]))
+  window.addEventListener('notification-reset', () => { notifications.set([]); incomingNotifications.length = 0 })
+
+  const incomingNotifications = []
+  const debounceNotification = debounce(processNotifications, 10_000)
+  function queueNotification(detail, systemNotify = false) {
+    incomingNotifications.push({ detail, systemNotify })
+    debounceNotification()
+  }
+
+  function dedupeNotifications(notifications) {
+    const map = new Map()
+    for (const notification of notifications) {
+      const key = `${notification.detail.id}-${notification.detail.episode}-${notification.detail.dub}`
+      const existing = map.get(key)
+      if (!existing || (notification.detail.click_action === 'TORRENT' && existing.detail.click_action !== 'TORRENT')) map.set(key, notification)
+    }
+    return Array.from(map.values())
+  }
+
+  const SYSTEM_KEYS = ['id', 'title', 'message', 'timestamp', 'icon', 'iconXL', 'heroImg', 'button', 'activation']
+  function splitLocalAndSystem(notifications) {
+    const localNotifications = []
+    const systemNotifications = []
+    for (const { detail, systemNotify } of notifications) {
+      const { button, activation, ...localDetails } = detail
+      localNotifications.push(localDetails)
+      if (systemNotify) {
+        const systemDetails = {}
+        for (const key of SYSTEM_KEYS) {
+          if (key in detail) systemDetails[key] = detail[key]
+        }
+        systemNotifications.push(systemDetails)
+      }
+    }
+    return { localNotifications, systemNotifications: systemNotifications.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)).slice(0, 20) }
+  }
+
+  function processNotifications() {
+    if (!incomingNotifications.length) return
+    const { localNotifications, systemNotifications } = splitLocalAndSystem(dedupeNotifications(incomingNotifications))
+    for (const notification of localNotifications) addNotification(notification)
+    systemNotifications.forEach((notification, i) => setTimeout(() => IPC.emit('notification', notification), 80 * (i + 1)))
+    incomingNotifications.length = 0
+  }
 
   function addNotification(notification) {
     notifications.update((n) => {

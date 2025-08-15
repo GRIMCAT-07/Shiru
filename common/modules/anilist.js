@@ -302,34 +302,24 @@ class AnilistClient {
       debug(`Found ${newNotifications?.length} new notifications`)
       for (const { media, episode, type, createdAt } of newNotifications) {
         if ((settings.value.aniNotify !== 'limited' || type !== 'AIRING') && media.type === 'ANIME' && media.format !== 'MUSIC' && (!settings.value.preferDubs || !(await malDubs.isDubMedia(media)) || await isSubbedProgress(mediaCache.value[media?.id]))) {
-          const details = {
-            id: media?.id,
-            title: media.title.userPreferred,
-            message: type === 'AIRING' ? `${media.format !== 'MOVIE' ? `Episode ${episode}` : `The Movie`} (Sub) is out in Japan, ${media.format !== 'MOVIE' ? `it should be available soon.` : `, if this is a theatrical release it will likely a few months before it is available for streaming.`}` : 'Was recently announced!',
-            icon: media.coverImage.medium,
-            iconXL: media.coverImage.extraLarge,
-            heroImg: media?.bannerImage || (media?.trailer?.id && `https://i.ytimg.com/vi/${media?.trailer?.id}/hqdefault.jpg`)
-          }
-          if (settings.value.systemNotify) {
-            IPC.emit('notification', {
-              ...details,
-              button: [
-                {text: 'View Anime', activation: `shiru://anime/${media?.id}`},
-              ],
-              activation: {
-                type: 'protocol',
-                launch: `shiru://anime/${media?.id}`
-              }
-            })
-          }
           window.dispatchEvent(new CustomEvent('notification-app', {
             detail: {
-              ...details,
+              id: media?.id,
+              title: media.title.userPreferred,
+              message: type === 'AIRING' ? `${media.format !== 'MOVIE' ? `Episode ${episode}` : `The Movie`} (Sub) is out in Japan, ${media.format !== 'MOVIE' ? `it should be available soon.` : `, if this is a theatrical release it will likely a few months before it is available for streaming.`}` : 'Was recently announced!',
+              icon: media.coverImage.medium,
+              iconXL: media.coverImage.extraLarge,
+              heroImg: media?.bannerImage || (media?.trailer?.id && `https://i.ytimg.com/vi/${media?.trailer?.id}/hqdefault.jpg`),
               ...(type === 'AIRING' ? { episode: episode } : {}),
               timestamp: createdAt,
               format: media?.format,
               dub: false,
-              click_action: (type === 'AIRING' ? 'PLAY' : 'VIEW')
+              click_action: (type === 'AIRING' ? 'PLAY' : 'VIEW'),
+              button: [{ text: 'View Anime', activation: `shiru://anime/${media?.id}` }],
+              activation: {
+                type: 'protocol',
+                launch: `shiru://anime/${media?.id}`
+              }
             }
           }))
         }
