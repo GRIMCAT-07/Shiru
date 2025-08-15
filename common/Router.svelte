@@ -22,7 +22,8 @@
   setInterval(() => (miniplayerPadding = getPadding()), 500)
   function getPadding() {
     miniplayerTop = cache.getEntry(caches.GENERAL, 'posMiniplayer')?.includes('top')
-    return (miniplayerTop ? `padding-top: ` : `padding-bottom: `) + (!$isMobile ? `${(parseFloat(cache.getEntry(caches.GENERAL, 'widthMiniplayer')) || 0) * 11 / 16}px !important` : `18rem !important`)
+    const pixelPadding = (parseFloat(cache.getEntry(caches.GENERAL, 'widthMiniplayer')) || 0) * 11 / 16
+    return (miniplayerTop ? `padding-top: ` : `padding-bottom: `) + (!$isMobile && pixelPadding > 0 ? `${pixelPadding}px !important` : `22rem !important`)
   }
 
   $: document.documentElement.style.setProperty('--safe-bar-top', !SUPPORTS.isAndroid && $status !== 'offline' ? '18px' : '0px')
