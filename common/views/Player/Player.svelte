@@ -6,7 +6,7 @@
   import { anilistClient } from '@/modules/anilist.js'
   import { episodesList } from '@/modules/episodes.js'
   import AnimeResolver from '@/modules/anime/animeresolver.js'
-  import { getMediaMaxEp } from '@/modules/anime/anime.js'
+  import { durationMap, getMediaMaxEp } from '@/modules/anime/anime.js'
   import { client } from '@/modules/torrent/torrent.js'
   import { writable } from 'simple-store-svelte'
   import { getContext, createEventDispatcher } from 'svelte'
@@ -262,12 +262,12 @@
         subs = new Subtitles(video, files, current, handleHeaders)
         video.load()
         await loadAnimeProgress()
-      } else if (current.media?.media?.duration) {
-        const duration = current.media?.media?.duration
+      } else if (current.media?.media?.duration || durationMap[current.media?.media?.format]) {
+        const duration = current.media?.media?.duration || durationMap[current.media?.media?.format]
         client.removeEventListener('externalWatched', watchedListener)
         watchedListener = ({ detail }) => {
           externalPlayerReady = true
-          checkCompletionByTime(detail, duration)
+          checkCompletionByTime(detail, duration * 60)
         }
         client.on('externalWatched', watchedListener)
       }
