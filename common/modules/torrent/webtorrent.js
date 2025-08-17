@@ -224,7 +224,7 @@ export default class TorrentClient extends WebTorrent {
     if (this.destroyed || !id) return
     debug(`${current ? 'Adding' : 'Staging'} torrent: ${!cache ? JSON.stringify(id) : `${cache.infoHash}:${cache.name}`}`)
 
-    const existing = await this.get(id)
+    const existing = await this.get(structuredClone(id))
     const currentTorrent = current && this.torrents.find(torrent => torrent.current)
     if (currentTorrent) await this.promoteTorrent(currentTorrent, true, !!existing)
     if (existing) {
@@ -239,7 +239,7 @@ export default class TorrentClient extends WebTorrent {
       return
     }
 
-    const torrent = await this.add((!cache?.legacy ? cache : cache.info) ?? id, {
+    const torrent = await this.add(structuredClone((!cache?.legacy ? cache : cache.info) ?? id), {
       path: this.settings.torrentPathNew || undefined,
       announce: ANNOUNCE,
       bitfield: cache?._bitfield,

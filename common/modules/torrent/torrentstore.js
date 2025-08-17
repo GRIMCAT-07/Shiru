@@ -39,10 +39,21 @@ export default class TorrentStore {
             customFields[key] = value
           }
         }
-        return {...parsed, ...customFields}
-      } catch (error) {
+        const { announce, urlList, ...safeParsed } = { ...parsed, ...customFields }
+        return safeParsed
+      } catch (error) { // legacy cache format (will be removed at a later date).
         const store = this.#decodeStore(decoded)
-        return { ...store, _bitfield: store.bitfield, info: Uint8Array.from(Buffer.from(store.torrentFile, 'base64')), legacy: true } // fallback for base64 torrentFile.
+        const { announce, urlList, ...safeStore } = store
+        let cleanedTorrent = Buffer.from(store.torrentFile, 'base64')
+        try { // fix for torrents getting stuck.
+          const decodedTorrent = bencode.decode(cleanedTorrent)
+          delete decodedTorrent.urlList
+          delete decodedTorrent.announce
+          delete decodedTorrent['announce-list'] // shouldn't exist in legacy cache...
+          delete decodedTorrent['url-list'] // shouldn't exist in legacy cache...
+          cleanedTorrent = bencode.encode(decodedTorrent)
+        } catch {}
+        return { ...safeStore, _bitfield: store.bitfield, info: Uint8Array.from(cleanedTorrent), legacy: true } // fallback for base64 torrentFile.
       }
     } catch {
       return null
