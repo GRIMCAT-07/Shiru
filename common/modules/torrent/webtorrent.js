@@ -43,7 +43,8 @@ export default class TorrentClient extends WebTorrent {
     this.settings = settings
     this.player = settings.playerPath
     this.ipc = ipc
-    this.torrentPath = this.settings.torrentPathNew || TMP || ''
+    this.TMPDIR = this.settings.TMPDIR
+    this.torrentPath = this.settings.torrentPathNew || (SUPPORTS.isAndroid ? this.TMPDIR : TMP) || ''
     this.torrentCache = new TorrentStore(this.torrentPath)
     ipc.send('torrentRequest')
     this._ready = new Promise(resolve => {
@@ -436,7 +437,7 @@ export default class TorrentClient extends WebTorrent {
         this.throttleDownload(this.settings.downloadLimit)
         this.throttleUpload(this.settings.uploadLimit)
         this.player = this.settings.playerPath
-        this.torrentPath = this.settings.torrentPathNew || TMP || ''
+        this.torrentPath = this.settings.torrentPathNew || (SUPPORTS.isAndroid ? this.TMPDIR : TMP) || ''
         this.torrentCache = new TorrentStore(this.torrentPath)
         break
       } case 'current': {

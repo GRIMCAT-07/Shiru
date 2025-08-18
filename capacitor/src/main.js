@@ -29,7 +29,7 @@ function setHeartBeat() {
 channel.on('main-heartbeat', async settings => {
   clearInterval(heartbeatId)
   const { default: TorrentClient } = await import('common/modules/torrent/webtorrent.js')
-  client = new TorrentClient(channel, storageQuota, 'node', { userID: settings.userID, dht: !settings.torrentDHT, maxConns: settings.maxConns, downloadLimit: (settings.torrentSpeed * 1048576) || 0, uploadLimit: (settings.torrentSpeed * 1048576) || 0, torrentPort: settings.torrentPort || 0, dhtPort: settings.dhtPort || 0, torrentPersist: settings.torrentPersist, torrentPeX: !settings.torrentPeX, torrentStreamedDownload: settings.torrentStreamedDownload, torrentPathNew: (settings.torrentPathNew || env.TMPDIR), playerPath: settings.playerPath, seedingLimit: settings.seedingLimit })
+  client = new TorrentClient(channel, storageQuota, 'node', { userID: settings.userID, dht: !settings.torrentDHT, maxConns: settings.maxConns, downloadLimit: (settings.torrentSpeed * 1048576) || 0, uploadLimit: (settings.torrentSpeed * 1048576) || 0, torrentPort: settings.torrentPort || 0, dhtPort: settings.dhtPort || 0, torrentPersist: settings.torrentPersist, torrentPeX: !settings.torrentPeX, torrentStreamedDownload: settings.torrentStreamedDownload, torrentPathNew: (settings.torrentPathNew || env.TMPDIR), TMPDIR: env.TMPDIR, playerPath: settings.playerPath, seedingLimit: settings.seedingLimit })
 })
 
 channel.on('port-init', () => {
