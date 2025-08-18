@@ -53,7 +53,7 @@ main.once('version', async () => {
   main.emit('version', version)
 })
 
-const autoUpdater = new Updater(main, 'https://api.github.com/repos/RockinChaos/Shiru/releases/latest')
+const autoUpdater = new Updater(main, 'https://github.com/RockinChaos/Shiru/releases/latest/download/latest-android.yml', 'https://api.github.com/repos/RockinChaos/Shiru/releases/latest')
 main.on('update', () => autoUpdater.checkForUpdates())
 main.on('quit-and-install', () => {
   if (autoUpdater.updateAvailable) autoUpdater.install(true)

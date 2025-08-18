@@ -1,5 +1,6 @@
 import { App } from '@capacitor/app'
 import ApkUpdater from 'cordova-plugin-apkupdater'
+import YAML from 'yaml'
 
 const development = process.env.NODE_ENV?.trim() === 'development'
 const versionCodes = { 'arm64-v8a': 1, 'armeabi-v7a': 2, 'x86': 3, 'universal': 4 }
@@ -10,14 +11,16 @@ export default class Updater {
   availableInterval
 
   updateURL
+  assetURL
   main
   build
   currentVersion
   versionCode
-  releaseInfo
-  constructor(main, updateURL) {
+  latestRelease
+  constructor(main, updateURL, assetURL) {
     this.main = main
     this.updateURL = updateURL
+    this.assetURL = assetURL
     this.getInfo()
   }
 
@@ -43,12 +46,12 @@ export default class Updater {
   async checkForUpdates() {
     if (!development) {
       try {
-        this.releaseInfo = await (await fetch(this.updateURL)).json()
+        this.latestRelease = YAML.parse(await (await fetch(this.updateURL)).text()).version
         if (this.isOutdated()) {
           if (!this.updateAvailable && !this.hasUpdate) {
             this.updateAvailable = true
             this.availableInterval = setInterval(() => {
-              if (!this.hasUpdate) this.main.emit('update-available', sanitizeVersion(this.releaseInfo.tag_name))
+              if (!this.hasUpdate) this.main.emit('update-available', sanitizeVersion(this.latestRelease))
             }, 1000)
             this.availableInterval.unref?.()
           }
@@ -60,7 +63,7 @@ export default class Updater {
   }
 
   isOutdated() {
-    const a = sanitizeVersion(this.releaseInfo.tag_name).split('.').map(Number)
+    const a = sanitizeVersion(this.latestRelease).split('.').map(Number)
     const b = sanitizeVersion(this.currentVersion).split('.').map(Number)
     for (let i = 0; i < Math.max(a.length, b.length); i++) {
       const numA = a[i] || 0
@@ -76,16 +79,21 @@ export default class Updater {
       try {
         clearInterval(this.availableInterval)
         this.updateAvailable = false
-        const regex = new RegExp(`${sanitizeVersion(this.releaseInfo.tag_name)}.*${this.versionCode}`, 'i')
-        const asset = this.releaseInfo.assets.find(a => regex.test(a.browser_download_url))
+        this.hasUpdate = true
+        const releaseInfo = await (await fetch(this.assetURL)).json()
+        const regex = new RegExp(`${sanitizeVersion(releaseInfo.tag_name)}.*${this.versionCode}`, 'i')
+        const asset = releaseInfo.assets.find(a => regex.test(a.browser_download_url))
         if (!asset) {
-          console.error('Update file not found for version and architecture:', this.releaseInfo.tag_name, this.versionCode)
+          console.error('Update file not found for version and architecture:', this.latestRelease, releaseInfo.tag_name, this.versionCode)
+          this.hasUpdate = false
           return
         }
-        this.hasUpdate = true
         await ApkUpdater.download(asset.browser_download_url, { onDownloadProgress: console.debug }, () => ApkUpdater.install(console.error, console.error), (error) => console.error('Updater failed to download update', error))
         return true
       } catch (error) {
+        clearInterval(this.availableInterval)
+        this.updateAvailable = false
+        this.hasUpdate = false
         console.error(error)
       }
     }

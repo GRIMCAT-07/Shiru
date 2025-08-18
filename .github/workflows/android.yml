@@ -87,7 +87,7 @@ jobs:
           GIT_CURR_TAG=$(gh release list --limit 1 --json tagName --jq '.[0].tagName')
           echo "GIT_CURR_TAG=$GIT_CURR_TAG" >> $GITHUB_ENV
           echo Last Tag is: $GIT_CURR_TAG
-        
+
       - uses: Wandalen/wretry.action@master
         name: Sign app APK
         id: sign_app
@@ -109,7 +109,11 @@ jobs:
         with:
           msg: ${{ fromJSON( steps.sign_app.outputs.outputs ).signedFiles }}
           separator: ':'
-      
+
+      - name: Generate latest-android.yml
+        run: |
+          echo "version: ${GIT_CURR_TAG#v}" > latest-android.yml
+
       - name: Upload APK to release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -119,3 +123,4 @@ jobs:
           gh release upload --clobber ${{ env.GIT_CURR_TAG }} ../${{ steps.signed_files.outputs._1 }}
           gh release upload --clobber ${{ env.GIT_CURR_TAG }} ../${{ steps.signed_files.outputs._2 }}
           gh release upload --clobber ${{ env.GIT_CURR_TAG }} ../${{ steps.signed_files.outputs._3 }}
+          gh release upload --clobber ${{ env.GIT_CURR_TAG }} latest-android.yml
