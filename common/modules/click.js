@@ -76,6 +76,19 @@ export function click(node, cb = noop) {
 }
 
 /**
+ * Adds blur (focus lost) event listener to the specified node.
+ * @param {HTMLElement} node - The node to attach the blur event listener to.
+ * @param {Function} [onBlur=noop] - The callback function to be executed on blur.
+ */
+export function blurExit(node, onBlur = noop) {
+  if (!node.hasAttribute('tabindex')) node.tabIndex = 0
+  node.role = 'button'
+  node.addEventListener('blur', e => {
+    onBlur()
+  })
+}
+
+/**
  * Adds hover event listener to the specified node.
  * @param {HTMLElement} node - The node to attach the click event listener to.
  * @param {Function} [hoverUpdate=noop] - The callback function to be executed on hover.

@@ -1,6 +1,6 @@
 <script context='module'>
   import { derived, writable } from 'simple-store-svelte'
-  import { click, hoverExit } from '@/modules/click.js'
+  import { click, hoverExit, blurExit } from '@/modules/click.js'
   import { getHash } from '@/modules/anime/animehash.js'
   import { createListener, matchPhrase, matchKeys, debounce, since } from '@/modules/util.js'
   import { Search, MailCheck, MailOpen, Play, X } from 'lucide-svelte'
@@ -198,7 +198,7 @@
         {@const watched = !announcement && !delayed && !notWatching && !behind && notification.episode && ($mediaCache[notification?.id]?.mediaListEntry?.status === 'COMPLETED' || ($mediaCache[notification?.id]?.mediaListEntry?.progress >= (!notification.season ? notification.episode : $mediaCache[notification?.id].episodes)))}
         {@const resolvedHash = getHash(notification.id, { episode: notification.episode, client: true }, false, true)}
         {#if watched && !notification.read}{(notification.read = true) && updateSort() && ''}{/if}
-        <div class='notification-item shadow-lg position-relative d-flex align-items-center mx-20 my-5 p-5 scale pointer' class:mt-10={index === 0} role='button' tabindex='0' use:hoverExit={() => { notification.prompt = false; delete notification.prompt }} use:click={() => { if (!behind || notification.prompt) { notification.prompt = false; delete notification.prompt; notification.read = true; onclick(notification) } else { notification.prompt = true } } } on:contextmenu|preventDefault={() => { notification.read = true; onclick(notification, true); }} class:not-reactive={!$reactive} class:read={notification.read} class:behind={(behind && !notWatching) || delayed} class:current={!behind && !notWatching} class:not-watching={notWatching} class:watched={watched} class:announcement={announcement}>
+        <div class='notification-item shadow-lg position-relative d-flex align-items-center mx-20 my-5 p-5 scale pointer' class:mt-10={index === 0} role='button' tabindex='0' use:blurExit={ () => { if (notification.prompt) setTimeout(() => { notification.prompt = false; delete notification.prompt }) }} use:hoverExit={() => { if (notification.prompt) setTimeout(() => { notification.prompt = false; delete notification.prompt }) }} use:click={() => { if (!behind || notification.prompt) { notification.prompt = false; delete notification.prompt; notification.read = true; onclick(notification) } else { notification.prompt = true } } } on:contextmenu|preventDefault={() => { notification.read = true; onclick(notification, true); }} class:not-reactive={!$reactive} class:read={notification.read} class:behind={(behind && !notWatching) || delayed} class:current={!behind && !notWatching} class:not-watching={notWatching} class:watched={watched} class:announcement={announcement}>
           {#if notification.heroImg}
             <div class='position-absolute top-0 left-0 w-full h-full'>
               <img src={notification.heroImg} alt='bannerImage' class='hero-img img-cover w-full h-full' />
@@ -247,14 +247,14 @@
             </div>
           </div>
           <div class='overlay position-absolute w-full h-full z-40 d-flex flex-column align-items-center' class:visible={notification.prompt} class:invisible={!notification.prompt}>
-            <p class='mx-20 font-size-20 text-white text-center mt-auto mb-0'>
+            <p class='mx-20 font-scale-20 text-white text-center mt-auto mb-0'>
               {#if !$mediaCache[notification?.id]?.mediaListEntry?.progress}
                 You Haven't Watched Any Episodes Yet!
               {:else}
                 Your Current Progress Is At <b>Episode {$mediaCache[notification?.id]?.mediaListEntry?.progress}</b>
               {/if}
             </p>
-            <button type='button' class='continue-button btn btn-lg btn-secondary w-230 h-33 text-dark font-size-16 font-weight-bold shadow-none border-0 d-flex align-items-center mt-10 mb-auto' use:click={() => { notification.prompt = false; delete notification.prompt; notification.read = true; onclick(notification) } }>
+            <button type='button' class='continue-button btn btn-lg btn-secondary w-230 h-33 text-dark font-scale-16 font-weight-bold shadow-none border-0 d-flex align-items-center mt-10 mb-auto' use:click={() => { notification.prompt = false; delete notification.prompt; notification.read = true; onclick(notification) } }>
               <Play class='mr-10' fill='currentColor' size='1.4rem' />
               Continue Anyway?
             </button>
