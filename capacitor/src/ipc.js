@@ -61,6 +61,7 @@ main.on('quit-and-install', () => {
 
 let batteryPromptListener
 main.on('battery-opt-ignore', async () => {
+  if (!(await BatteryOptimization.isBatteryOptimizationEnabled())?.enabled) return
   if (batteryPromptListener) {
     batteryPromptListener.remove()
     batteryPromptListener = null
@@ -71,6 +72,23 @@ main.on('battery-opt-ignore', async () => {
       batteryPromptListener.remove()
       batteryPromptListener = null
       if ((await BatteryOptimization.isBatteryOptimizationEnabled())?.enabled) main.emit('battery-opt-enabled')
+    }
+  })
+})
+
+let accessPromptListener
+main.on('request-file-access', () => { // Request "All Files" Access when switching away from the /tmp/webtorrent folder.
+  if (window.NativeBridge?.hasAllFilesAccess()) return
+  if (accessPromptListener) {
+    accessPromptListener.remove()
+    accessPromptListener = null
+  }
+  window.NativeBridge?.requestAllFilesAccess()
+  accessPromptListener = App.addListener('appStateChange', async (state) => {
+    if (state.isActive) {
+      accessPromptListener.remove()
+      accessPromptListener = null
+      if (!window.NativeBridge?.hasAllFilesAccess()) main.emit('no-file-access')
     }
   })
 })

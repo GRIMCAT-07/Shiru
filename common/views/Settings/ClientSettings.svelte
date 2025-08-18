@@ -2,6 +2,7 @@
   import { click } from '@/modules/click.js'
   import { defaults } from '@/modules/util.js'
   import IPC from '@/modules/ipc.js'
+  import { toast } from 'svelte-sonner'
   import { Eraser } from 'lucide-svelte'
   import ClampedNumber from '@/components/inputs/ClampedNumber.svelte'
   import SettingCard from '@/views/Settings/SettingCard.svelte'
@@ -34,10 +35,10 @@
     {#if !SUPPORTS.isAndroid}
       <input type='url' class='form-control bg-dark mw-100 text-truncate' readonly bind:value={settings.torrentPathNew} placeholder='/tmp' />
     {:else}
-      <input type='text' class='form-control bg-dark mw-100 text-truncate' bind:value={settings.torrentPathNew} placeholder='/tmp' />
+      <input type='text' class='form-control bg-dark mw-100 text-truncate' bind:value={settings.torrentPathNew} disabled={true} placeholder='/tmp' />
     {/if}
     <div class='input-group-prepend'>
-      <button type='button' use:click={() => settings.torrentPathNew = undefined} disabled={!settings.torrentPathNew} class='btn btn-danger btn-square input-group-append px-5 d-flex align-items-center' title='Reset Location'><Eraser size='1.8rem' /></button>
+      <button type='button' use:click={() => { settings.torrentPathNew = undefined; if (SUPPORTS.isAndroid) toast.dismiss() }} disabled={!settings.torrentPathNew} class='btn btn-danger btn-square input-group-append px-5 d-flex align-items-center' title='Reset Location'><Eraser size='1.8rem' /></button>
     </div>
   </div>
 </SettingCard>

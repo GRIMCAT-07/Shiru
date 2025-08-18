@@ -12,6 +12,7 @@ public class MainActivity extends BridgeActivity {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    bridge.getWebView().addJavascriptInterface(new NativeBridge(this), "NativeBridge");
 
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
       ServiceWorkerController swController = null;
