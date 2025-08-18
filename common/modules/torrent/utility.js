@@ -67,6 +67,15 @@ export const encodeStreamURL = (streamURL) => {
       .replace(/%2C/g, ',')
       .replace(/%28/g, '(')
       .replace(/%29/g, ')')
+      .replace(/%2A/g, '*')
+      .replace(/%2B/g, '+')
+      .replace(/%3B/g, ';')
+      .replace(/%3D/g, '=')
+      .replace(/%40/g, '@')
+      .replace(/%21/g, '!')
+      .replace(/%24/g, '$')
+      .replace(/%26/g, '&')
+      .replace(/%27/g, "'")
   }).join('/')
 }
 
