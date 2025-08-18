@@ -78,7 +78,7 @@ class RSSMediaManager {
       res.catch(error => {
         if (settings.value.toasts.includes('All') || settings.value.toasts.includes('Errors')) {
           toast.error('Search Failed', {
-            description: 'Failed to load media for home feed!\n' + e.message
+            description: 'Failed to load media for home feed!\n' + error.message
           })
         }
         debug('Failed to load media for home feed', error.stack)

@@ -230,7 +230,7 @@ class AnimeSchedule {
         res.catch(error => {
             if (settings.value.toasts.includes('All') || settings.value.toasts.includes('Errors')) {
                 toast.error('Search Failed', {
-                    description: `Failed to load media for home feed for ${type}!` + e.message
+                    description: `Failed to load media for home feed for ${type}!` + error.message
                 })
             }
             debug(`Failed to load media for home feed for ${type}`, error.stack)
