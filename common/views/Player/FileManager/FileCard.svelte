@@ -6,6 +6,7 @@
     import { createListener } from '@/modules/util.js'
     import { setHash } from '@/modules/anime/animehash.js'
     import { anilistClient } from '@/modules/anilist.js'
+    import Helper from '@/modules/helper.js'
     import Debug from 'debug'
     const debug = Debug('ui:file-editor')
     const { reactive, init } = createListener(['verify-btn', 'edit-btn', 'cnt-button', 'episode-input'])
@@ -20,7 +21,7 @@
     export let playFile
 
     $: notWatching = ((!$mediaCache[file?.media?.media?.id]?.mediaListEntry?.progress) || ($mediaCache[file?.media?.media?.id]?.mediaListEntry?.progress === 0 && ($mediaCache[file?.media?.media?.id]?.mediaListEntry?.status !== 'CURRENT' || $mediaCache[file?.media?.media?.id]?.mediaListEntry?.status !== 'REPEATING' && $mediaCache[file?.media?.media?.id]?.mediaListEntry?.status !== 'COMPLETED')))
-    $: behind = file?.media?.episode && !Array.isArray(file?.media?.episode) && (file?.media?.episode - 1) >= 1 && ($mediaCache[file?.media?.media?.id]?.mediaListEntry?.status !== 'COMPLETED' && (($mediaCache[file?.media?.media?.id]?.mediaListEntry?.progress || -1) < (file?.media?.episode - 1)))
+    $: behind = Helper.isAuthorized() && file?.media?.episode && !Array.isArray(file?.media?.episode) && (file?.media?.episode - 1) >= 1 && ($mediaCache[file?.media?.media?.id]?.mediaListEntry?.status !== 'COMPLETED' && (($mediaCache[file?.media?.media?.id]?.mediaListEntry?.progress || -1) < (file?.media?.episode - 1)))
     $: watched = !notWatching && !behind && file?.media?.episode && ($mediaCache[file?.media?.media?.id]?.mediaListEntry?.status === 'COMPLETED' || ($mediaCache[file?.media?.media?.id]?.mediaListEntry?.progress >= file?.media?.episode))
 
     let prompt = false

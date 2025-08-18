@@ -7,6 +7,7 @@
   import TorrentButton, { playActive } from '@/components/TorrentButton.svelte'
   import ErrorCard from '@/components/cards/ErrorCard.svelte'
   import SoftModal from '@/components/SoftModal.svelte'
+  import Helper from '@/modules/helper.js'
   import IPC from '@/modules/ipc.js'
   import { cache, caches, mediaCache } from '@/modules/cache.js'
   import { SUPPORTS } from '@/modules/support.js'
@@ -194,7 +195,7 @@
         {@const delayed = notification.delayed}
         {@const announcement = notification.click_action === 'VIEW' && !delayed}
         {@const notWatching = !announcement && !delayed && ((!$mediaCache[notification?.id]?.mediaListEntry?.progress) || ($mediaCache[notification?.id]?.mediaListEntry?.progress === 0 && ($mediaCache[notification?.id]?.mediaListEntry?.status !== 'CURRENT' || $mediaCache[notification?.id]?.mediaListEntry?.status !== 'REPEATING' && $mediaCache[notification?.id]?.mediaListEntry?.status !== 'COMPLETED')))}
-        {@const behind = !announcement && !delayed && notification.episode && !Array.isArray(notification.episode) && (notification.episode - 1) >= 1 && ($mediaCache[notification?.id]?.mediaListEntry?.status !== 'COMPLETED' && (($mediaCache[notification?.id]?.mediaListEntry?.progress || -1) < ((!notification.season ? notification.episode : $mediaCache[notification?.id].episodes) - 1)))}
+        {@const behind = Helper.isAuthorized() && !announcement && !delayed && notification.episode && !Array.isArray(notification.episode) && (notification.episode - 1) >= 1 && ($mediaCache[notification?.id]?.mediaListEntry?.status !== 'COMPLETED' && (($mediaCache[notification?.id]?.mediaListEntry?.progress || -1) < ((!notification.season ? notification.episode : $mediaCache[notification?.id].episodes) - 1)))}
         {@const watched = !announcement && !delayed && !notWatching && !behind && notification.episode && ($mediaCache[notification?.id]?.mediaListEntry?.status === 'COMPLETED' || ($mediaCache[notification?.id]?.mediaListEntry?.progress >= (!notification.season ? notification.episode : $mediaCache[notification?.id].episodes)))}
         {@const resolvedHash = getHash(notification.id, { episode: notification.episode, client: true }, false, true)}
         {#if watched && !notification.read}{(notification.read = true) && updateSort() && ''}{/if}
