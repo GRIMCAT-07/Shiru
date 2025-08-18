@@ -9,8 +9,22 @@
   import { changeLog, markdownToHtml } from '@/views/Settings/Changelog.svelte'
   import { page } from '@/App.svelte'
   import IPC from '@/modules/ipc.js'
+  import Debug from 'debug'
+  const debug = Debug('ui:update-modal')
 
   export const updateState = writable('up-to-date')
+  let latestLog
+  const sanitizeVersion = (version) => ((version || '').match(/[\d.]+/g)?.join('') || '')
+  async function getChangelog(version) {
+    try {
+      const json = await (await fetch(`https://api.github.com/repos/RockinChaos/Shiru/releases/tags/v${sanitizeVersion(version)}`)).json()
+      return { version: json.tag_name, date: json.published_at, body: json.body, url: json.html_url }
+    } catch (error) {
+      debug('Failed to fetch changelog', error)
+      return null
+    }
+  }
+
   let updateVersion
   if (!SUPPORTS.isAndroid) {
     IPC.on('update-available', () => {
@@ -20,6 +34,7 @@
   IPC.on(SUPPORTS.isAndroid ? 'update-available' : 'update-downloaded', async (version) => {
     if ((updateState.value !== 'ignored' && updateVersion !== version)) {
       if (!document.fullscreenElement || page.value !== 'player') {
+        latestLog = getChangelog(version)
         updateVersion = version
         updateState.value = 'ready'
         IPC.emit('notification', {
@@ -40,13 +55,18 @@
 <script>
   export let overlay
 
-  $: latestLog = (async () => {
-    const changelog = await changeLog
-    return [changelog?.[0], changelog?.[1]]
-  })()
-  $: $updateState === 'ready' && setOverlay()
+  $: $updateState === 'ready' && getChangeLogs() && setOverlay()
   $: ($updateState === 'up-to-date' || $updateState === 'ignored' || $updateState === 'downloading') && close()
   $: androidUpdating = false
+  const defaultLogs = [{ version: '0.0.1', date: new Date().getTime(), body: '', url: 'https://github.com/RockinChaos/Shiru/releases/latest' }, { version: '0.0.1' }]
+  let changeLogs = defaultLogs
+  async function getChangeLogs() {
+    changeLogs = (async () => {
+      const changelog = await changeLog
+      const latestlog = await latestLog
+      return [latestlog || defaultLogs[0], changelog?.[sanitizeVersion(latestlog?.version) === sanitizeVersion(changelog?.[0]?.version) ? 1 : 0] || defaultLogs[1]]
+    })()
+  }
 
   function setOverlay() {
     if (!overlay.includes('updateRequest')) overlay = [...overlay, 'updateRequest']
@@ -61,14 +81,14 @@
     if (SUPPORTS.isAndroid) androidUpdating = true
     IPC.emit('quit-and-install')
   }
-  function compareVersions(v1, v2) {
-    const a = ((v1 || '').match(/[\d.]+/g)?.join('') || '').split('.').map(Number)
-    const b = ((v2 || '').match(/[\d.]+/g)?.join('') || '').split('.').map(Number)
+  function compareVersions(currentVersion, previousVersion) {
+    const a = sanitizeVersion(currentVersion).split('.').map(Number)
+    const b = sanitizeVersion(previousVersion).split('.').map(Number)
     for (let i = 0; i < Math.max(a.length, b.length); i++) {
-      const num1 = a[i] || 0
-      const num2 = b[i] || 0
-      if (num1 > num2) return 1
-      if (num1 < num2) return -1
+      const numA = a[i] || 0
+      const numB = b[i] || 0
+      if (numA > numB) return 1
+      if (numA < numB) return -1
     }
     return 0
   }
@@ -76,14 +96,14 @@
 
 <SoftModal class='m-0 pt-0 d-flex flex-column rounded bg-very-dark scrollbar-none viewport-md-4-3 border-md w-full h-full rounded-10' css='z-105 m-0 p-0' innerCss='m-0 p-0' showModal={$updateState === 'ready'} close={() => {}} id='updateModal'>
   <p class='mt-20 px-20 px-md-40 overflow-y-auto'>
-    {#await latestLog}
+    {#await changeLogs}
       <ChangelogSk />
-    {:then changelog}
-      {@const isLesser = compareVersions(version, changelog[1].version) < 0}
+    {:then changelogs}
+      {@const isLesser = compareVersions(version, changelogs[1].version) < 0}
       <div class='row px-md-20 position-relative'>
         <div class='text-muted w-full mt-30 mt-md-0'>
           <h3 class='font-weight-bold text-white title font-scale-34 d-flex mb-5'><BadgeAlert class='mr-20 block-scale-43' strokeWidth='2'/> Update Available!</h3>
-          <div class='font-scale-20'>{changelog[0].version} - {new Date(changelog[0].date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+          <div class='font-scale-20'>{updateVersion} - {new Date(changelogs[0].date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
           <hr class='my-20'>
           {#if isLesser}
             <div class='mt-20'>
@@ -94,11 +114,11 @@
             Consider <span class='custom-link' use:click={() => IPC.emit('open', 'https://github.com/sponsors/RockinChaos')}>donating on GitHub</span> to help support future Shiru development.
           </div>
           <hr class='my-20'/>
-          <h4 class='mt-0 font-weight-bold text-white'>Changelog</h4>
-          <div class='ml-10'>{@html markdownToHtml(changelog[0].body)}</div>
+          <h4 class='mt-0 font-weight-bold text-white' class:d-none={!changelogs[0].body.trim().length}>Changelog</h4>
+          <div class='ml-10'>{@html markdownToHtml(changelogs[0].body)}</div>
         </div>
       </div>
-      <div class='mt-20'><span class='custom-link font-weight-bold d-flex' use:click={() => IPC.emit('open', changelog[0].url)}>View on GitHub <ExternalLink class='ml-10' size='1.8rem' /></span></div>
+      <div class='mt-20'><span class='custom-link font-weight-bold d-flex' use:click={() => IPC.emit('open', changelogs[0].url)}>View on GitHub <ExternalLink class='ml-10' size='1.8rem' /></span></div>
       {#if SUPPORTS.isAndroid}<div class='mt-20 font-italic'>This update was delivered directly from the GitHub release. If you originally downloaded this app from F-Droid or IzzyOnDroid, note that updating through this method bypasses the extra review and screening normally conducted by those platforms.</div>{/if}
     {:catch e}
       <ChangelogSk />
