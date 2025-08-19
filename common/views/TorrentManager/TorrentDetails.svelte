@@ -94,7 +94,7 @@
     </div>
     <div class='p-5 w-150 d-none d-md-block'>{fastPrettyBytes(data.size)}</div>
     <div class='p-5 w-150'>{data.size && !data.missing_pieces ? `${((data.progress * 100) || 0).toFixed(1)}%` : (data.missing_pieces ? '—' : '0.0%')}</div>
-    <div class='p-5 w-150'>{completed ? (data.incomplete ? (data.missing_pieces ? 'Missing Pieces' : 'Incomplete') : 'Completed') : data.progress === 1 ? 'Seeding' : data.size && (data.downloadSpeed || data.uploadSpeed) ? 'Downloading' : !(data.downloadSpeed || data.uploadSpeed) && data.eta > 1000 && data.progress < 1 && !settings.value.torrentStreamedDownload ? 'Scanning' : data.name ? 'Stalled' : '—'}</div>
+    <div class='p-5 w-150'>{completed ? (data.incomplete ? (data.missing_pieces ? 'Missing Pieces' : 'Incomplete') : 'Completed') : data.progress === 1 ? 'Seeding' : data.size && (data.downloadSpeed || data.uploadSpeed) ? 'Downloading' : !(data.downloadSpeed || data.uploadSpeed) && data.eta > 1000 && data.eta < Infinity && data.progress < 1 && !settings.value.torrentStreamedDownload ? 'Scanning' : data.name ? 'Stalled' : '—'}</div>
     <div class='p-5 w-150 d-none d-md-block'>{!completed && data.name && (data.progress ? ((Math.ceil((data.ratio || 0) * 100) / 100)?.toFixed(2)) : '0.00') || (data.incomplete && !data.missing_pieces ? '0.01' : '—')}<span class='text-muted text-nowrap' class:d-none={(completed && (!data.incomplete || data.missing_pieces)) || !data.name}>{` (${ratioType(data.ratio || 0, data.progress)})`}</span></div>
     <div class='p-5 w-150'>{completed ? '—' : `${fastPrettyBytes(data.downloadSpeed || 0)}/s`}</div>
     <div class='p-5 w-150 d-none d-md-block'>{completed ? '—' : `${fastPrettyBytes(data.uploadSpeed || 0)}/s`}</div>
