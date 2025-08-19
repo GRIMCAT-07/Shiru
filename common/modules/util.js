@@ -114,6 +114,7 @@ export function since (date) {
 /** @param {Date} date */
 export function eta(date) {
   const secondsElapsed = (date.getTime() - Date.now()) / 1000
+  if (!isFinite(secondsElapsed)) return '∞'
   for (const key in ranges) {
     const seconds = ranges[key]
     if (Math.abs(secondsElapsed) >= seconds) {
