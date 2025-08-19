@@ -179,7 +179,7 @@ class MALClient {
 
   async malEntry (media, variables) {
     variables.idMal = media.idMal
-    const res = await malClient.entry(variables)
+    const res = await this.entry(variables)
     if (!variables.token) mediaCache.value[media.id].mediaListEntry = res?.data?.SaveMediaListEntry
     return res
   }
