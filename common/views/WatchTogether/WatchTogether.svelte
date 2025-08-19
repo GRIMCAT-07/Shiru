@@ -1,11 +1,11 @@
 <script context='module'>
   import { EventEmitter } from 'events'
   import { writable } from 'simple-store-svelte'
-  import { client } from '@/modules/torrent/torrent.js'
   import { SUPPORTS } from '@/modules/support.js'
   import { toast } from 'svelte-sonner'
   import { page } from '@/App.svelte'
   import IPC from '@/modules/ipc.js'
+  import WPC from '@/modules/wpc.js'
   import 'browser-event-target-emitter'
   import Debug from 'debug'
   const debug = Debug('ui:w2g')
@@ -25,7 +25,7 @@
 
     if (!code) invite()
   }
-  client.on('magnet', ({ detail }) => state.value?.magnetLink(detail))
+  WPC.listen('magnet', (detail) => state.value?.magnetLink(detail))
 
   w2gEmitter.on('player', data => state.value?.playerStateChanged(data))
   w2gEmitter.on('index', index => state.value?.mediaIndexChanged(index))

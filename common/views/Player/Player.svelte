@@ -7,7 +7,6 @@
   import { episodesList } from '@/modules/episodes.js'
   import AnimeResolver from '@/modules/anime/animeresolver.js'
   import { durationMap, getMediaMaxEp } from '@/modules/anime/anime.js'
-  import { client } from '@/modules/torrent/torrent.js'
   import { writable } from 'simple-store-svelte'
   import { getContext, createEventDispatcher } from 'svelte'
   import Subtitles from '@/modules/subtitles.js'
@@ -25,6 +24,7 @@
   import { SUPPORTS } from '@/modules/support.js'
   import 'rvfc-polyfill'
   import IPC from '@/modules/ipc.js'
+  import WPC from '@/modules/wpc.js'
   import { X, Minus, ArrowDown, ArrowUp, Captions, CircleHelp, Contrast, FastForward, Keyboard, EllipsisVertical, List, Eye, FilePlus2, ListMusic, ListVideo, Maximize, Minimize, Pause, PictureInPicture, PictureInPicture2, Play, Proportions, RefreshCcw, Rewind, RotateCcw, RotateCw, ScreenShare, SkipBack, SkipForward, Users, Volume1, Volume2, VolumeX, SlidersVertical, SquarePen, Milestone } from 'lucide-svelte'
   import Debug from 'debug'
   const debug = Debug('ui:player')
@@ -264,15 +264,15 @@
         await loadAnimeProgress()
       } else if (current.media?.media?.duration || durationMap[current.media?.media?.format]) {
         const duration = current.media?.media?.duration || durationMap[current.media?.media?.format]
-        client.removeEventListener('externalWatched', watchedListener)
-        watchedListener = ({ detail }) => {
+        WPC.clear('externalWatched', watchedListener)
+        watchedListener = (detail) => {
           externalPlayerReady = true
           checkCompletionByTime(detail, duration * 60)
         }
-        client.on('externalWatched', watchedListener)
+        WPC.listen('externalWatched', watchedListener)
       }
       emit('current', current)
-      client.send('current', { current: file, external: settings.value.enableExternal })
+      WPC.send('current', { current: file, external: settings.value.enableExternal })
     }
   }
 
@@ -993,13 +993,13 @@
     return 0
   }
   let buffer = 0
-  client.on('progress', ({ detail }) => {
+  WPC.listen('progress', (detail) => {
     buffer = detail * 100
   })
 
   let chapters = []
   let embeddedChapters = []
-  client.on('chapters', ({ detail }) => {
+  WPC.listen('chapters', (detail) => {
     if (detail.length) {
       chapters = detail
       embeddedChapters = detail
@@ -1261,8 +1261,8 @@
     }
   }
   const torrent = {}
-  client.on('stats', updateStats)
-  function updateStats ({ detail }) {
+  WPC.listen('stats', updateStats)
+  function updateStats (detail) {
     torrent.peers = detail.numPeers || 0
     torrent.up = detail.uploadSpeed || 0
     torrent.down = detail.downloadSpeed || 0

@@ -10,7 +10,6 @@ import { printError, status } from '@/modules/networking.js'
 import { cache, caches, mediaCache } from '@/modules/cache.js'
 import { malClient } from '@/modules/myanimelist.js'
 import Helper from '@/modules/helper.js'
-import IPC from '@/modules/ipc.js'
 import Debug from 'debug'
 const debug = Debug('ui:anilist')
 const query = Debug('ui:alquery')

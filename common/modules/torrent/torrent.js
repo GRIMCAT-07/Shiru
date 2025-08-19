@@ -9,6 +9,7 @@ import { toast } from 'svelte-sonner'
 import clipboard from '@/modules/clipboard.js'
 import { setHash } from '@/modules/anime/animehash.js'
 import IPC from '@/modules/ipc.js'
+import WPC from '@/modules/wpc.js'
 import 'browser-event-target-emitter'
 import Debug from 'debug'
 const debug = Debug('ui:torrent')
@@ -170,7 +171,8 @@ function setupTorrentClient() {
   }
   client.send('complete_all', cache.getEntry(caches.GENERAL, 'completedTorrents').filter(Boolean))
 
-  client.on('rescan_done', () => window.dispatchEvent(new Event('rescan_done')))
+  for (const event of ['magnet', 'stats', 'chapters', 'progress', 'externalWatched', 'debug', 'scrape_done', 'rescan_done']) client.on(event, ({ detail }) => WPC.send(event, detail))
+  for (const event of ['current', 'scrape']) WPC.listen(event, (detail) => client.send(event, detail))
 
   // external player for android
   client.on('open', ({ detail }) => {
@@ -231,7 +233,7 @@ function setupTorrentClient() {
     completedTorrents.update(prev => [detail, ...prev.filter(torrent => torrent.infoHash !== detail.infoHash)])
   })
   client.on('completedStats', ({ detail }) => {
-    window.dispatchEvent(new Event('rescan_done'))
+    WPC.send('rescan_done')
     completedTorrents.update(torrents => [...Array.from(new Map(detail.map(torrent => [torrent.infoHash, torrent])).values()), ...torrents])
   })
 

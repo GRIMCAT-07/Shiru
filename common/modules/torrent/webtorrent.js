@@ -712,7 +712,7 @@ export default class TorrentClient extends WebTorrent {
     if (batch.length) await scrape()
     debug(`Scraped ${results.length} hashes, id: ${id}`)
 
-    this.dispatch('scrape', { id, result: results })
+    this.dispatch('scrape_done', { id, result: results })
     return { id, result: results }
   }
 

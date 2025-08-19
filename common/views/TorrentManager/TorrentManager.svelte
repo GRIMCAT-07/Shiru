@@ -1,6 +1,7 @@
 <script context='module'>
   import { writable } from 'simple-store-svelte'
   import { click } from '@/modules/click.js'
+  import WPC from '@/modules/wpc.js'
   import { matchPhrase } from '@/modules/util.js'
   import { settings } from '@/modules/settings.js'
   import { loadedTorrent, completedTorrents, seedingTorrents, stagingTorrents } from '@/modules/torrent/torrent.js'
@@ -8,7 +9,7 @@
   import TorrentDetails from '@/views/TorrentManager/TorrentDetails.svelte'
   import { Search, RefreshCw, TriangleAlert, Package, Percent, Activity, Scale, Gauge, CloudDownload, CloudUpload, Sprout, Magnet, Timer } from 'lucide-svelte'
   const rescanning = writable(true)
-  window.addEventListener('rescan_done', () => rescanning.value = false)
+  WPC.listen('rescan_done', () => rescanning.value = false)
 </script>
 <script>
   export let miniplayerPadding = ''

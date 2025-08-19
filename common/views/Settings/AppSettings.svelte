@@ -1,12 +1,12 @@
 <script>
   import { persisted } from 'svelte-persisted-store'
-  import { client } from '@/modules/torrent/torrent.js'
   import { capitalize, defaults } from '@/modules/util.js'
   import { onDestroy } from 'svelte'
   import { updateState } from '@/views/Updater/UpdateModal.svelte'
   import { platformMap } from '@/views/Settings/Settings.svelte'
   import SettingCard from '@/views/Settings/SettingCard.svelte'
   import Changelog from '@/views/Settings/Changelog.svelte'
+  import WPC from '@/modules/wpc.js'
   import { toast } from 'svelte-sonner'
   import Debug from 'debug'
   const debug = persisted('debug', '', { serializer: { parse: e => e, stringify: e => e } })
@@ -22,7 +22,7 @@
   function updateDebug (debug) {
     Debug.disable()
     if (debug) Debug.enable(debug)
-    client.send('debug', debug)
+    WPC.send('debug', debug)
   }
 
   $: updateDebug($debug)

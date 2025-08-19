@@ -1,8 +1,8 @@
 import { settings } from '@/modules/settings.js'
+import WPC from '@/modules/wpc.js'
 import { sleep } from '@/modules/util.js'
 import { anilistClient } from '@/modules/anilist.js'
 import { anitomyscript, getAniMappings, getMediaMaxEp } from '@/modules/anime/anime.js'
-import { client } from '@/modules/torrent/torrent.js'
 import { status } from '@/modules/networking.js'
 import { extensionManager } from '@/modules/extensions/manager.js'
 import AnimeResolver from '@/modules/anime/animeresolver.js'
@@ -102,14 +102,14 @@ async function updatePeerCounts (entries) {
   debug(`Updating peer counts for ${entries?.length} entries`)
   const updated = await Promise.race([
     new Promise(resolve => {
-      function check ({ detail }) {
+      function check (detail) {
         if (detail.id !== id) return
         debug('Got scrape response')
-        client.removeListener('scrape', check)
+        WPC.clear('scrape_done', check)
         resolve(detail.result)
       }
-      client.on('scrape', check)
-      client.send('scrape', { id, infoHashes: entries.map(({ hash }) => hash) })
+      WPC.listen('scrape_done', check)
+      WPC.send('scrape', { id, infoHashes: entries.map(({ hash }) => hash) })
     }),
     sleep(15000)
   ])
