@@ -190,24 +190,24 @@
         <ArrowLeft size='1.8rem' />
       </button>
       <button class='close pointer z-30 bg-dark top-20 right-0 position-fixed' type='button' use:click={() => close()}> &times; </button>
-        <SmartImage class='w-full cover-img anime-details position-absolute' images={[
-          staticMedia.bannerImage,
-          ...(staticMedia.trailer?.id ? [
-            `https://i.ytimg.com/vi/${staticMedia.trailer.id}/maxresdefault.jpg`,
-            `https://i.ytimg.com/vi/${staticMedia.trailer.id}/hqdefault.jpg`] : []),
-          () => getKitsuMappings(staticMedia).then(metadata =>
-            [metadata?.included?.[0]?.attributes?.coverImage?.original,
-            metadata?.included?.[0]?.attributes?.coverImage?.large,
-            metadata?.included?.[0]?.attributes?.coverImage?.small,
-            metadata?.included?.[0]?.attributes?.coverImage?.tiny]),
-          () => getEpisodeMetadataForMedia(staticMedia).then(metadata => metadata?.[1]?.image)]}/>
+      <SmartImage class='w-full cover-img anime-details position-absolute' images={[
+        staticMedia.bannerImage,
+        ...(staticMedia.trailer?.id ? [
+          `https://i.ytimg.com/vi/${staticMedia.trailer.id}/maxresdefault.jpg`,
+          `https://i.ytimg.com/vi/${staticMedia.trailer.id}/hqdefault.jpg`] : []),
+        () => getKitsuMappings(staticMedia).then(metadata =>
+          [metadata?.included?.[0]?.attributes?.coverImage?.original,
+          metadata?.included?.[0]?.attributes?.coverImage?.large,
+          metadata?.included?.[0]?.attributes?.coverImage?.small,
+          metadata?.included?.[0]?.attributes?.coverImage?.tiny]),
+        () => getEpisodeMetadataForMedia(staticMedia).then(metadata => metadata?.[1]?.image)]}/>
       <div class='row px-20'>
         <div class='col-lg-7 col-12 pb-10'>
           <div bind:this={leftColumn}>
             <div class='d-flex flex-sm-row flex-column align-items-sm-end pb-20 mb-15'>
               <div class='cover d-flex flex-row align-items-sm-end align-items-center justify-content-center mw-full mb-sm-0 mb-20 w-full' style='max-height: 50vh;'>
                 <div class='position-relative h-full'>
-                  <img class="rounded cover-img overflow-hidden h-full" alt='cover-art' src={staticMedia.coverImage?.extraLarge || staticMedia.coverImage?.medium} />
+                  <img class='rounded cover-img overflow-hidden h-full w-full' alt='cover-art' src={staticMedia.coverImage?.extraLarge || staticMedia.coverImage?.medium} />
                   <AudioLabel media={staticMedia} smallCard={false} />
                 </div>
               </div>
