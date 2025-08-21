@@ -387,6 +387,7 @@ export default class TorrentClient extends WebTorrent {
       this.dispatch('completed', stats)
     }
     debug(`Completed torrent: ${torrent.infoHash}:${this.settings.torrentPersist}`)
+    torrent._removal = true
     await this.remove(torrent, { destroyStore: !this.settings.torrentPersist })
   }
 
@@ -548,7 +549,10 @@ export default class TorrentClient extends WebTorrent {
           }
           const completed = this.torrents.find(torrent => torrent.infoHash === cache.infoHash)
           debug(`Completed torrent: ${completed?.infoHash}`)
-          if (completed) await this.remove(completed, { destroyStore: !this.settings.torrentPersist })
+          if (completed) {
+            completed._removal = true
+            await this.remove(completed, { destroyStore: !this.settings.torrentPersist })
+          }
         }
         break
       } case 'stage_all': {
@@ -589,12 +593,14 @@ export default class TorrentClient extends WebTorrent {
           const cache = await this.torrentCache.get(current.infoHash)
           const seedingLimit = this.settings.seedingLimit > SUPPORTS.maxSeeding ? SUPPORTS.maxSeeding : (this.settings.seedingLimit || 1)
           if (this.settings.torrentPersist || (seedingLimit > 1 && (this.torrents.filter(_torrent => (_torrent.seeding || _torrent.staging) && !_torrent.destroyed)?.length + 1 < seedingLimit))) {
+            current._removal = true
             await this.remove(current, { destroyStore: false })
             if (cache) {
               this.dispatch('loaded', {})
               this.addTorrent(cache, cache)
             }
           } else {
+            current._removal = true
             this.torrentCache.delete(current.infoHash)
             await this.remove(current, { destroyStore: true })
           }
@@ -606,7 +612,10 @@ export default class TorrentClient extends WebTorrent {
             this.completed = Array.from(new Map([...(this.completed || []), stats].map(item => [item.infoHash, item])).values())
             if (data.data?.hash) {
               const unload = this.torrents.find(torrent => torrent.infoHash === data.data.torrent)
-              if (unload) await this.remove(unload, { destroyStore: !this.settings.torrentPersist })
+              if (unload) {
+                unload._removal = true
+                await this.remove(unload, { destroyStore: !this.settings.torrentPersist })
+              }
             }
             this.dispatch('completed', stats)
           }
@@ -615,6 +624,7 @@ export default class TorrentClient extends WebTorrent {
       } case 'untrack': { // User really doesn't want this, delete from cache and remove the file. (Probably should implement a prompt asking if the user wants to keep the associated files).
         const untrack = this.torrents.find(torrent => torrent.infoHash === data.data)
         if (untrack) {
+          untrack._removal = true
           await this.torrentCache.delete(untrack.infoHash)
           await this.remove(untrack, { destroyStore: true })
         } else if (this.completed?.find(torrent => torrent.infoHash === data.data)) {
