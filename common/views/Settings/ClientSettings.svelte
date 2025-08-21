@@ -65,7 +65,7 @@
 <SettingCard title='Max Number of Connections' description='Number of peers per torrent. Higher values will increase download speeds but might quickly fill up available ports if your ISP limits the maximum allowed number of open connections.'>
   <ClampedNumber bind:bindTo={settings.maxConns} min={1} max={512} class='form-control text-right bg-dark mw-100 w-100 mw-full'/>
 </SettingCard>
-<SettingCard title='Seeding Limit' description={'The maximum number of torrents that can be seeded at the same time. The minimum is 1 as you will always be seeding at least one torrent (the currently loaded torrent). When the seeding limit is reached, the highest ratio torrent will be completed.'}>
+<SettingCard title='Seeding Limit' description={'The maximum number of torrents that can be seeded at the same time. The minimum is 1 as you will always be seeding at least one torrent (the currently loaded torrent). When the seeding limit is reached, the highest ratio torrent will be completed. Raising the seeding limit may increase memory usage, which can slow down or destabilize older systems or devices with limited resources.'}>
   <ClampedNumber bind:bindTo={settings.seedingLimit} min={1} max={SUPPORTS.maxSeeding} class='form-control text-right bg-dark mw-100 w-100 mw-full'/>
 </SettingCard>
 <SettingCard title='Torrent Port' description='Port used for Torrent connections. 0 is automatic.'>
