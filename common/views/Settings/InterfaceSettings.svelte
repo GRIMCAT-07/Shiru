@@ -83,7 +83,7 @@
     <label for='prefer-dubs'>{settings.preferDubs ? 'On' : 'Off'}</label>
   </div>
 </SettingCard>
-<SettingCard title='Adult Content' description={'Adult enables searching for adult (18+) rated anime, typically series with nudity.\nHentai enables searching straight up Hentai. This includes adding the Hentai home feed, Hentai genre, and Hentai related tags for search queries.'}>
+<SettingCard title='Adult Content' description={'Adult enables searching for adult (18+) rated anime, typically series with nudity. Hentai enables searching straight up Hentai. This includes adding the Hentai home feed, Hentai genre, and Hentai related tags for search queries.'}>
   <select class='form-control bg-dark w-100 mw-full text-truncate' bind:value={settings.adult}>
     <option value='none' selected>None</option>
     <option value='adult'>Adult</option>
@@ -115,7 +115,7 @@
   </SettingCard>
 {/if}
 <h4 class='mb-10 font-weight-bold'>Notification Settings</h4>
-<SettingCard title='System Notifications' description={'Allows custom system notifications to be sent, with this disabled you will still get in-app notifications.\n\nNote: If you enable system notifications and have MULTIPLE Notification Feeds specified, such as RSS, Releases, and Anilist you WILL be spammed with multiple notifications. Consider choosing a single feed based on your needs.'}>
+<SettingCard title='System Notifications' description={'Allows custom system notifications to be sent, with this disabled you will still get in-app notifications. If you enable system notifications and have MULTIPLE Notification Feeds specified, such as RSS, Releases, and Anilist you WILL be spammed with multiple notifications. Consider choosing a single feed based on your needs.'}>
   <div class='custom-switch'>
     <input type='checkbox' id='system-notify' bind:checked={settings.systemNotify} />
     <label for='system-notify'>{settings.systemNotify ? 'On' : 'Off'}</label>
@@ -132,7 +132,7 @@
 {/if}
 {#each ['Sub', 'Dub', 'Hentai'] as type}
   {#if type !== 'Hentai' || settings.adult === 'hentai'}
-    <SettingCard title='{type} Announcements' description={`Get ${type} announcement notifications when an airing date is confirmed.\nChoose to get all announcements, updates on sequels for related anime you're following, or turn off notifications entirely.`}>
+    <SettingCard title='{type} Announcements' description={`Get ${type} announcement notifications when an airing date is confirmed. Choose to get all announcements, updates on sequels for related anime you're following, or turn off notifications entirely.`}>
       <select class='form-control bg-dark w-120 mw-120 text-truncate' bind:value={settings[`${type.toLowerCase()}Announce`]}>
         <option value='all' selected>All</option>
         <option value='following' selected>Following</option>
@@ -162,7 +162,7 @@
 <SettingCard title='RSS Default URL' description='URL of the API used to query data for torrents. Useful for proxies if your ISP blocks some domains. Needs to be CORS enabled.'>
   <input type='url' class='form-control bg-dark w-300 mw-full text-truncate' bind:value={settings.toshoURL} placeholder={defaults.toshoURL} />
 </SettingCard>
-<SettingCard title='RSS Feed' description={'When each RSS feed updates with new entries, notifications will be sent depending on your list status.\n\nThese notifications will combine with Anilist and Releases notifications for the in-app notification tray.'}>
+<SettingCard title='RSS Feed' description={'When each RSS feed updates with new entries, notifications will be sent depending on your list status. These notifications will combine with Anilist and Releases notifications for the in-app notification tray.'}>
   <div>
     {#each settings.rssNotify as status, i}
       <div class='input-group mb-10 w-210 mw-full'>
@@ -190,7 +190,7 @@
     </div>
   </SettingCard>
 {/if}
-<SettingCard title='RSS Feeds' description={'RSS feeds to display on the home screen. This needs to be a CORS enabled URL to a Nyaa or Tosho like RSS feed which cotains either an "infoHash" or "enclosure" tag.\nThis only shows the releases on the home screen, it doesn\'t automatically download the content.\nSince the feeds only provide the name of the file, Shiru might not always detect the anime correctly!\nSome presets for popular groups are already provided as an example, custom feeds require the FULL URL.\n\nNote that adding more than 5 RSS URLs could result in getting rate limited. These will always be resolved and handle notifications so not adding them as a home sections makes no difference. Newly created rss feeds will not appear in "Sections And Order" until you restart the app.'}>
+<SettingCard title='RSS Feeds' description={`RSS feeds to display on the home screen. This needs to be a CORS enabled URL to a Nyaa or Tosho like RSS feed which cotains either an "infoHash" or "enclosure" tag. This only shows the releases on the home screen, it doesn't automatically download the content.\n\nSince the feeds only provide the name of the file, Shiru might not always detect the anime correctly! Some presets for popular groups are already provided as an example, custom feeds require the FULL URL. Be aware that adding more than 5 RSS URLs could result in getting rate limited. These will always be resolved and handle notifications so not adding them as a home sections makes no difference.`}>
   <div>
     {#each settings.rssFeedsNew as _, i}
       <div class='input-group mb-10 w-500 mw-full'>
@@ -210,7 +210,7 @@
     <button type='button' use:click={() => { settings.rssFeedsNew[settings.rssFeedsNew.length] = ['New Releases', null] }} class='btn btn-primary mb-10 d-flex align-items-center justify-content-center'><span>Add Feed</span></button>
   </div>
 </SettingCard>
-<SettingCard title='Custom Sections' description={'Create custom sections that can be added to the home screen.\n\nNewly created custom sections will not appear in "Sections And Order" until you restart the app.'}>
+<SettingCard title='Custom Sections' description={'Create custom sections that can be added to the home screen.'}>
   <div>
     {#each settings.customSections as _, i}
       {#if i === 0}

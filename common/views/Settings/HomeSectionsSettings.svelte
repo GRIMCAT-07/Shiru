@@ -5,7 +5,7 @@
   import CustomDropdown from '@/components/CustomDropdown.svelte'
   import { ArrowDown, ArrowDownUp, ArrowUp, Trash2 } from 'lucide-svelte'
 
-  const allowedHomeSections = sections.map(({ title, sort, format }) => [title, sort, format])
+  $: allowedHomeSections = $sections.map(({ title, sort, format }) => [title, sort, format])
   export let homeSections
 
   let mouseYCoordinate = null // pointer y coordinate within client
@@ -23,8 +23,9 @@
   }
 
   function swapItem (a, b) {
-    b = Math.min(homeSections.length - 1, Math.max(0, b))
-    ;[homeSections[a], homeSections[b]] = [homeSections[b], homeSections[a]]
+    b = Math.min(homeSections.length - 1, Math.max(0, b));
+    [homeSections[a], homeSections[b]] = [homeSections[b], homeSections[a]]
+    homeSections = [...homeSections]
   }
 </script>
 

@@ -4,8 +4,10 @@
   import { animeSchedule } from '@/modules/anime/animeschedule.js'
   import { settings } from '@/modules/settings.js'
   import { uniqueStore } from '@/modules/util.js'
+  import equal from 'fast-deep-equal/es6'
   import { RSSManager } from '@/modules/rss.js'
   import Helper from '@/modules/helper.js'
+  import WPC from '@/modules/wpc.js'
   import { writable } from 'simple-store-svelte'
 
   const bannerData = writable(getTitles())
@@ -21,17 +23,22 @@
     else return res
   }
 
+  let mappedSections = {}
   const manager = new SectionsManager()
+  mapSections()
+  WPC.listen('remap-sections', () => {
+    manager.clear()
+    mappedSections = {}
+    mapSections()
+  })
 
-  const mappedSections = {}
-
-  for (const section of sections) {
-    mappedSections[section.title] = section
+  function mapSections() {
+    for (const section of sections.value) mappedSections[section.title] = section
+    for (const sectionTitle of settings.value.homeSections) manager.add(mappedSections[sectionTitle[0]])
   }
 
-  for (const sectionTitle of settings.value.homeSections) manager.add(mappedSections[sectionTitle[0]])
-
   const continueWatching = 'Continue Watching'
+  const resolveData = async (data) => Promise.all(data.map(async item => ({ ...item, data: item.data && typeof item.data.then === 'function' ? await item.data : item.data })))
   if (Helper.getUser()) {
     refreshSections(Helper.getClient().userLists, ['Dubbed Releases', 'Subbed Releases', 'Hentai Releases'], true)
     refreshSections(Helper.getClient().userLists, [continueWatching, 'Sequels You Missed', 'Stories You Missed', 'Planning List', 'Completed List', 'Paused List', 'Dropped List', 'Watching List'])
@@ -39,22 +46,28 @@
   if (Helper.isMalAuth()) refreshSections(animeSchedule.subAiredLists, continueWatching) // When authorized with Anilist, this is already automatically handled.
   refreshSections(animeSchedule.dubAiredLists, continueWatching)
   function refreshSections(list, sections, schedule = false) {
-    uniqueStore(list).subscribe((value) => {
+    uniqueStore(list).subscribe(async (value) => {
       if (!value) return
       for (const section of manager.sections) {
         // remove preview value, to force UI to re-request data, which updates it once in viewport
-        if (sections.includes(section.title) && !section.hide && (!schedule || section.isSchedule)) section.preview.value = section.load(1, 50, section.variables)
+        if (sections.includes(section.title) && !section.hide && (!schedule || section.isSchedule)) {
+          const loaded = section.load(1, 50, section.variables)
+          if (!section.preview.value || !equal(await resolveData(loaded), await resolveData(section.preview.value))) section.preview.value = loaded
+        }
       }
     })
   }
 
   // force update RSS feed when the user adjusts a series in the FileManager.
-  window.addEventListener('fileEdit', () => {
+  window.addEventListener('fileEdit', async () => {
     for (const section of manager.sections) {
       // remove preview value, to force UI to re-request data, which updates it once in viewport
       if (section.isRSS && !section.isSchedule) {
         const url = settings.value.rssFeedsNew.find(([feedTitle]) => feedTitle === section.title)?.[1]
-        if (url) section.preview.value = RSSManager.getMediaForRSS(1, 12, url, false, true)
+        if (url) {
+          const loaded = RSSManager.getMediaForRSS(1, 12, url, false, true)
+          if (!section.preview.value || !equal(await resolveData(loaded), await resolveData(section.preview.value))) section.preview.value = loaded
+        }
       }
     }
   })

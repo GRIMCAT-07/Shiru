@@ -5,8 +5,10 @@ import { malDubs } from '@/modules/anime/animedubs.js'
 import { writable } from 'simple-store-svelte'
 import { settings } from '@/modules/settings.js'
 import { RSSManager } from '@/modules/rss.js'
+import { debounce } from '@/modules/util.js'
 import Helper from '@/modules/helper.js'
 import Debug from 'debug'
+import WPC from '@/modules/wpc.js'
 const debug = Debug('ui:sections')
 
 const lastSearched = cache.getEntry(caches.HISTORY, 'lastSearched')
@@ -23,7 +25,6 @@ search.subscribe(value => {
 })
 
 const hideStatus = ['CURRENT', 'REPEATING', 'COMPLETED', 'DROPPED']
-const hideMyAnime = settings.value.hideMyAnime
 const format = ['TV', 'MOVIE']
 const status_not = ['NOT_YET_RELEASED', 'CANCELLED']
 
@@ -42,6 +43,10 @@ export default class SectionsManager {
     const section = { ...data, load, title, preview, variables }
     this.sections.push(section)
     return section
+  }
+
+  clear() {
+    this.sections = []
   }
 
   static createFallbackLoad (variables, type) {
@@ -75,12 +80,27 @@ export default class SectionsManager {
 }
 
 // list of all possible home screen sections
-export let sections = []
-
-//settings.subscribe(() => { // need a better method for this as this just doesn't work, horrible implementation.
-  for (const section of sections) clearInterval(section.interval)
-  sections = createSections()
-//})
+export const sections = writable(createSections() || [])
+const updateStores = [
+  { store: writable(structuredClone(settings.value.homeSections)), key: 'homeSections', wpc: true },
+  { store: writable(structuredClone(settings.value.customSections)), key: 'customSections' },
+  { store: writable(structuredClone(settings.value.rssFeedsNew)), key: 'rssFeedsNew' }
+]
+const debounceUpdate = debounce((value) => {
+  let updated = false
+  for (const { store, key, wpc } of updateStores) {
+    if (JSON.stringify(store.value) !== JSON.stringify(value[key])) {
+      if (!updated) {
+        for (const section of sections.value) clearInterval(section.interval)
+        sections.value = createSections()
+        updated = true
+      }
+      if (wpc) WPC.send('remap-sections')
+      store.set(structuredClone(value[key]))
+    }
+  }
+}, 3_000)
+settings.subscribe((value) => debounceUpdate(value))
 
 function createSections () {
   const sectionFormat = (title) => (settings.value.homeSections.find(([t]) => t === title)?.[2] || [])
@@ -88,7 +108,7 @@ function createSections () {
 
   return [
   // RSS feeds
-    ...settings.value.rssFeedsNew.map(([title, url]) => {
+    ...settings.value.rssFeedsNew.filter(([title, url]) => url).map(([title, url]) => {
       const section = {
         title,
         sort: 'N/A',
@@ -284,10 +304,10 @@ function createSections () {
       }
     }, { userList: true, droppedList: true, disableHide: true, status_not }),
     // common, non-user specific sections
-    createSection({ title: 'Popular This Season', sort: 'POPULARITY_DESC', format }, { season: currentSeason, year: currentYear, hideMyAnime, hideStatus, status_not }, true),
-    createSection({ title: 'Upcoming Next Season', sort: 'POPULARITY_DESC', format }, { season: seasons[(seasons.indexOf(currentSeason) + 1) % seasons.length], year: (currentYear + (currentSeason === 'FALL' ? 1 : 0)), hideMyAnime, hideStatus, status: ['NOT_YET_RELEASED'], status_not: ['CANCELLED'] }),
-    createSection({ title: 'Trending Now', sort: 'TRENDING_DESC', format }, { hideMyAnime, hideStatus, status_not }, true),
-    createSection({ title: 'All Time Popular', sort: 'POPULARITY_DESC', format }, { hideMyAnime, hideStatus, status_not }, true),
-    ...settings.value.customSections.map(([title, genres, tags, genre_not, tag_not]) => createSection({ title, sort: 'TRENDING_DESC', format }, { ...(genres?.length > 0 ? { genre: genres } : {}), ...(tags?.length > 0 ? { tag: tags } : {}), hideMyAnime, hideStatus, status_not }))
+    createSection({ title: 'Popular This Season', sort: 'POPULARITY_DESC', format }, { season: currentSeason, year: currentYear, hideMyAnime: settings.value.hideMyAnime, hideStatus, status_not }, true),
+    createSection({ title: 'Upcoming Next Season', sort: 'POPULARITY_DESC', format }, { season: seasons[(seasons.indexOf(currentSeason) + 1) % seasons.length], year: (currentYear + (currentSeason === 'FALL' ? 1 : 0)), hideMyAnime: settings.value.hideMyAnime, hideStatus, status: ['NOT_YET_RELEASED'], status_not: ['CANCELLED'] }),
+    createSection({ title: 'Trending Now', sort: 'TRENDING_DESC', format }, { hideMyAnime: settings.value.hideMyAnime, hideStatus, status_not }, true),
+    createSection({ title: 'All Time Popular', sort: 'POPULARITY_DESC', format }, { hideMyAnime: settings.value.hideMyAnime, hideStatus, status_not }, true),
+    ...settings.value.customSections.map(([title, genres, tags, genre_not, tag_not]) => createSection({ title, sort: 'TRENDING_DESC', format }, { ...(genres?.length > 0 ? { genre: genres } : {}), ...(tags?.length > 0 ? { tag: tags } : {}), hideMyAnime: settings.value.hideMyAnime, hideStatus, status_not }))
   ]
 }
