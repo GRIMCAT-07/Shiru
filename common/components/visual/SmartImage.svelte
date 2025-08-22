@@ -19,9 +19,7 @@
     resolvedImages[index] = image
   }
   function handleError() {
-    if (index < filteredImages.filter(Boolean).length - 1) {
-      index += 1
-    }
+    if (index < filteredImages.filter(Boolean).length - 1) index += 1
     else hidden = true
   }
 </script>
