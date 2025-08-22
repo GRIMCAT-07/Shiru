@@ -80,23 +80,6 @@ export const encodeStreamURL = (streamURL) => {
 }
 
 /**
- * Compares two binary buffers for equality.
- * @param {Uint8Array|Buffer} a - First buffer.
- * @param {Uint8Array|Buffer} b - Second buffer.
- * @returns {boolean} True if buffers match exactly.
- */
-export const buffersEqual = (a, b) => {
-  if (!a || !b) return false
-  const va = a instanceof Uint8Array ? a : new Uint8Array(a)
-  const vb = b instanceof Uint8Array ? b : new Uint8Array(b)
-  if (va.byteLength !== vb.byteLength) return false
-  for (let i = 0; i < va.length; i++) {
-    if (va[i] !== vb[i]) return false
-  }
-  return true
-}
-
-/**
  * Calculates progress and total size from a cached torrent.
  * @param {Object} cache - Cached torrent object.
  * @param {Uint8Array} cache._bitfield - Bitfield indicating completed pieces.

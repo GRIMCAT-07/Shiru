@@ -2,7 +2,7 @@ import WebTorrent from 'webtorrent'
 import Client from 'bittorrent-tracker'
 import HTTPTracker from 'bittorrent-tracker/lib/client/http-tracker.js'
 import { hex2bin, arr2hex, text2arr } from 'uint8-util'
-import { makeHash, getInfoHash, buffersEqual, hasIntegrity, getProgressAndSize, stringifyQuery, errorToString, encodeStreamURL, ANNOUNCE, TMP } from './utility.js'
+import { makeHash, getInfoHash, hasIntegrity, getProgressAndSize, stringifyQuery, errorToString, encodeStreamURL, ANNOUNCE, TMP } from './utility.js'
 import { fontRx, sleep, subRx, videoRx } from '../util.js'
 import { SUPPORTS } from '@/modules/support.js'
 import { spawn } from 'node:child_process'
@@ -234,16 +234,20 @@ export default class TorrentClient extends WebTorrent {
     const existing = await this.get(structuredClone(id))
     const currentTorrent = current && this.torrents.find(torrent => torrent.current)
     if (currentTorrent) await this.promoteTorrent(currentTorrent, true, !!existing)
-    if (existing) {
+    if (existing && !existing._removal) {
       if (current) {
         existing.staging = false
         existing.seeding = false
         existing.current = current
         this.bumpTorrent(existing)
-        this.dispatch('loaded', { id: (await this.torrentCache.get(existing.infoHash)) ?? existing.torrentFile, infoHash: existing.infoHash })
+        const data = await this.torrentCache.get(existing.infoHash)
+        const { _bitfield, updatedAt, cachedAt, ...id } = data ?? {}
+        this.dispatch('loaded', { id: Object.keys(id).length ? id : existing.torrentFile, infoHash: existing.infoHash })
         if (existing.ready) this.torrentReady(existing)
       } else if (!rescan) this.dispatch('info', 'This torrent is already queued and downloading in the background...')
       return
+    } else if (existing) {
+      while (await this.get(structuredClone(id)) !== null) await new Promise(resolve => setTimeout(resolve, 50))
     }
 
     const torrent = await this.add(structuredClone((!cache?.legacy ? cache : cache.info) ?? id), {
@@ -275,35 +279,40 @@ export default class TorrentClient extends WebTorrent {
 
     let interval
     let dataStored = cache
+    let torrentProgress = torrent.progress
+    const torrentComplete = torrent.progress === 1
     const torrentStore = this.torrentCache
-    const cacheBitfield = async () => {
+    const cacheBitfield = async (task = true) => {
       if (torrent.destroyed) clearInterval(interval)
-      if (torrent.destroyed || (!cache?.legacy && dataStored?._bitfield && buffersEqual(dataStored._bitfield, torrent.bitfield?.buffer))) return
+      if (torrent.destroyed || (!cache?.legacy && task && (torrentProgress === torrent.progress || torrent.progress === 1))) return
       if (cache?.legacy) cache.legacy = false
       dataStored = {
         info: torrent.info,
         'url-list': torrent.urlList ?? [],
         'announce-list': (torrent.announce ?? []).map(url => [text2arr(url)]),
-        _bitfield: Buffer.from(torrent.bitfield?.buffer),
+        _bitfield: torrent.bitfield?.buffer,
         cachedAt: dataStored?.cachedAt || Date.now(),
         updatedAt: Date.now()
       }
+      torrentProgress = torrent.progress
       await torrentStore.set(torrent.infoHash, dataStored)
     }
     const wrapTorrent  = async () => {
       clearInterval(interval)
-      await cacheBitfield()
+      await cacheBitfield(torrentComplete)
       await this.promoteTorrent(torrent)
     }
     if (torrent.progress === 1) await wrapTorrent()
     else {
-      interval = setInterval(cacheBitfield, 8000)
+      interval = setInterval(cacheBitfield, 5_000)
       interval.unref?.()
       await cacheBitfield()
     }
     this.bindTracker(torrent)
     if (torrent.current) {
-      this.dispatch('loaded', { id: (await this.torrentCache.get(torrent.infoHash)) ?? torrent.torrentFile, infoHash: torrent.infoHash })
+      const data = await this.torrentCache.get(torrent.infoHash)
+      const { _bitfield, updatedAt, cachedAt, ...id } = data ?? {}
+      this.dispatch('loaded', { id: Object.keys(id).length ? id : torrent.torrentFile, infoHash: torrent.infoHash })
       this.torrentReady(torrent)
     } else if (torrent.staging && torrent.progress < 1) this.dispatch('staging', torrent.infoHash)
 
