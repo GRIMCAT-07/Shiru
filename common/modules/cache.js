@@ -1,5 +1,6 @@
-import { debounce, deepEqual, generalDefaults, historyDefaults, queryDefaults, notifyDefaults } from './util.js'
+import { debounce, generalDefaults, historyDefaults, queryDefaults, notifyDefaults } from './util.js'
 import { writable } from 'simple-store-svelte'
+import equal from 'fast-deep-equal/es6'
 import Debug from 'debug'
 const debug = Debug('ui:cache')
 
@@ -271,7 +272,7 @@ function createDebouncers(userID, cacheMap, delay = 2000) {
                 let cachedValues = cacheMap.get(cache.key)
                 for (const [key, keyValue] of Object.entries(value)) {
                     const cachedValue = cachedValues[key]
-                    if (!deepEqual(keyValue, cachedValue)) {
+                    if (!equal(keyValue, cachedValue)) {
                         changed.push(key)
                         const newValue = structuredClone(keyValue)
                         cachedValues[key] = newValue
