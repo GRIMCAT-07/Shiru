@@ -156,7 +156,7 @@ LocalNotifications.registerActionTypes({
   ]
 })
 
-let id = 0
+let NOTIFICATION_FG_ID = 9001
 IPC.on('notification', opts => {
   /** @type {import('@capacitor/local-notifications').LocalNotificationSchema} */
   const notification = {
@@ -164,7 +164,7 @@ IPC.on('notification', opts => {
     largeIcon: opts.icon || opts.iconXL,
     sound: 'ic_notification.wav',
     iconColor: '#2F4F4F',
-    id: id++,
+    id: NOTIFICATION_FG_ID++,
     title: opts.title,
     body: opts.message,
     actionTypeId: opts.button.length > 1 ? opts.button[0].text?.includes('Start') ? 'start_watching' : (opts.button[0].text?.includes('Continue') ? 'continue_watching' : (opts.button[0].text?.includes('Update') ? 'update_app' : 'watch_now')) : 'view_anime',

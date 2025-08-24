@@ -1,6 +1,6 @@
 import { App } from '@capacitor/app'
 import { NodeJS } from 'capacitor-nodejs'
-import { BatteryOptimization } from '@capawesome-team/capacitor-android-battery-optimization'
+import { ForegroundService, Importance, ServiceType } from '@capawesome-team/capacitor-android-foreground-service'
 import { cache, caches } from '@/modules/cache.js'
 import Updater from './updater.js'
 import EventEmitter from 'events'
@@ -8,8 +8,16 @@ import EventEmitter from 'events'
 const ready = NodeJS.whenReady()
 
 const main = new EventEmitter()
+const STREAMING_FG_ID = 1001
 
 export default main
+
+ForegroundService.createNotificationChannel({
+  id: 'external-playback',
+  name: 'External Playback',
+  description: 'Keeps Video Streaming To An External Player Active',
+  importance: Importance.Min
+})
 
 main.on('portRequest', async () => {
   globalThis.port = {
@@ -27,12 +35,24 @@ main.on('portRequest', async () => {
   NodeJS.addListener('webtorrent-heartbeat', () => {
     if (stethoscope) {
       stethoscope = false
-      NodeJS.send({eventName: 'main-heartbeat', args: [{ ...cache.getEntry(caches.GENERAL, 'settings'), userID: cache.cacheID }]})
+      NodeJS.send({ eventName: 'main-heartbeat', args: [{ ...cache.getEntry(caches.GENERAL, 'settings'), userID: cache.cacheID }] })
       NodeJS.addListener('torrentRequest', () => {
-        NodeJS.send({eventName: 'torrentPort', args: []})
+        NodeJS.send({ eventName: 'torrentPort', args: [] })
         main.emit('port')
       })
     }
+  })
+
+  NodeJS.addListener('external-open', () => {
+    ForegroundService.startForegroundService({
+      id: STREAMING_FG_ID,
+      title: 'External Playback',
+      body: 'Delivering Content To Your External Player',
+      smallIcon: 'ic_filled',
+      notificationChannelId: 'external-playback',
+      serviceType: ServiceType.MediaPlayback,
+      silent: true
+    })
   })
 })
 main.on('webtorrent-reload', () => NodeJS.send({eventName: 'webtorrent-reload', args: []}))
@@ -44,8 +64,11 @@ globalThis.version = {
   arch
 }
 
-App.addListener('appStateChange', async (state) => {
-  if (state.isActive) NodeJS.send({eventName: 'external-close', args: []})
+App.addListener('appStateChange', (state) => {
+  if (state.isActive) {
+    ForegroundService.stopForegroundService()
+    NodeJS.send({ eventName: 'external-close', args: [] })
+  }
 })
 
 main.once('version', async () => {
@@ -59,23 +82,6 @@ main.on('quit-and-install', () => {
   if (autoUpdater.updateAvailable) autoUpdater.install(true)
 })
 
-let batteryPromptListener
-main.on('battery-opt-ignore', async () => {
-  if (!(await BatteryOptimization.isBatteryOptimizationEnabled())?.enabled) return
-  if (batteryPromptListener) {
-    batteryPromptListener.remove()
-    batteryPromptListener = null
-  }
-  await BatteryOptimization.requestIgnoreBatteryOptimization()
-  batteryPromptListener = App.addListener('appStateChange', async (state) => {
-    if (state.isActive) {
-      batteryPromptListener.remove()
-      batteryPromptListener = null
-      if ((await BatteryOptimization.isBatteryOptimizationEnabled())?.enabled) main.emit('battery-opt-enabled')
-    }
-  })
-})
-
 let accessPromptListener
 main.on('request-file-access', () => { // Request "All Files" Access when switching away from the /tmp/webtorrent folder.
   if (window.NativeBridge?.hasAllFilesAccess()) return
@@ -84,7 +90,7 @@ main.on('request-file-access', () => { // Request "All Files" Access when switch
     accessPromptListener = null
   }
   window.NativeBridge?.requestAllFilesAccess()
-  accessPromptListener = App.addListener('appStateChange', async (state) => {
+  accessPromptListener = App.addListener('appStateChange', (state) => {
     if (state.isActive) {
       accessPromptListener.remove()
       accessPromptListener = null

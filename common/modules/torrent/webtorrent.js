@@ -520,6 +520,7 @@ export default class TorrentClient extends WebTorrent {
             }
             if (SUPPORTS.isAndroid) {
               this.dispatch('open', `intent://localhost:${this.server.address().port}${encodeStreamURL(found.streamURL)}#Intent;type=video/any;scheme=http;end;`)
+              this.ipc.send('external-open')
               this.ipc.once('external-close', () => {
                 if (this.destroyed) return
                 const seconds = (Date.now() - startTime) / 1000

@@ -29,16 +29,8 @@
   if (SUPPORTS.angle) settings.value.angle = await IPC.invoke('get:angle')
   if (SUPPORTS.isAndroid) {
     setTimeout(() => {
-      if (settings.value.enableExternal) IPC.emit('battery-opt-ignore')
       if (settings.value.torrentPathNew && settings.value.torrentPathNew !== '/tmp') IPC.emit('request-file-access')
     }, 2500)
-    IPC.on('battery-opt-enabled', () => {
-      toast.warning('Battery Optimization Detected', {
-        description: 'To stream reliably to an external player, please disable Battery Optimization for this app in your device settings. Dismiss this toast to disable battery optimization.',
-        duration: Infinity,
-        onDismiss: () => IPC.emit('battery-opt-ignore')
-      })
-    })
     IPC.on('no-file-access', () => {
       toast.warning('Missing File Access', {
         description: 'To reliably use a different torrent download location, please enable All Files Access for this app in your device settings. Dismiss this toast to enable all file access.',
