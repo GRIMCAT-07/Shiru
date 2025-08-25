@@ -1,10 +1,20 @@
-import { debounce, generalDefaults, historyDefaults, queryDefaults, notifyDefaults } from './util.js'
+import { generalDefaults, historyDefaults, queryDefaults, notifyDefaults } from './util.js'
 import { writable } from 'simple-store-svelte'
 import equal from 'fast-deep-equal/es6'
+import rfdc from 'rfdc'
 import Debug from 'debug'
 const debug = Debug('ui:cache')
+const deepClone = rfdc({ proto: false, circles: false, ownProps: true })
 
+let currentDB = null
 const version = 1
+
+/**
+ * Map of user IDs to their corresponding batch writer instances.
+ *
+ * @type {Map<string, object>}
+ */
+const batchWriters = new Map()
 
 /**
  * A collection of cache configurations used in the application.
@@ -14,66 +24,676 @@ const version = 1
  * @type {Object<string, {key: string, database?: boolean}>}
  */
 export const caches = Object.freeze({
-    GENERAL: { key: 'general', database: true},
-    QUERIES: { key: 'queries', database: true },
-    MAPPINGS: { key: 'mappings', database: true },
-    USER_LISTS: { key: 'user_lists', database: true },
-    MEDIA_CACHE: { key: 'medias', database: true },
-    HISTORY: { key: 'history', database: true},
-    NOTIFICATIONS: { key: 'notifications', database: true},
-    COMPOUND: { key: 'compound'},
-    EXTENSIONS: { key: 'extensions'},
-    EPISODES: { key: 'episodes'},
-    FOLLOWING: { key: 'following'},
-    RECOMMENDATIONS: { key: 'recommendations' },
-    SEARCH_IDS: { key: 'searchIDS'},
-    SEARCH: { key: 'search'},
-    RSS: { key: 'rss'}
+  GENERAL: { key: 'general', database: true },
+  QUERIES: { key: 'queries', database: true },
+  MAPPINGS: { key: 'mappings', database: true },
+  USER_LISTS: { key: 'user_lists', database: true },
+  MEDIA_CACHE: { key: 'medias', database: true },
+  HISTORY: { key: 'history', database: true },
+  NOTIFICATIONS: { key: 'notifications', database: true },
+  COMPOUND: { key: 'compound' },
+  EXTENSIONS: { key: 'extensions' },
+  EPISODES: { key: 'episodes' },
+  FOLLOWING: { key: 'following' },
+  RECOMMENDATIONS: { key: 'recommendations' },
+  SEARCH_IDS: { key: 'searchIDS' },
+  SEARCH: { key: 'search' },
+  RSS: { key: 'rss' }
 })
 
 /**
- * Maps the given status between AniList and MyAnimeList formats.
+ * Opens the IndexedDB database.
+ * @param {string} dbName - The name of the database to open.
+ * @returns {Promise<IDBDatabase>} - A promise that resolves to the database instance.
+ */
+function open(dbName) {
+  if (currentDB) return currentDB
+  currentDB = new Promise((resolve, reject) => {
+    const request = indexedDB.open(String(dbName), version)
+    request.onerror = (event) => { currentDB = null; reject(event.target.error) }
+    request.onsuccess = (event) => resolve(event.target.result)
+    request.onupgradeneeded = event => {
+      const _database = event.target.result
+      for (const { key, database } of Object.values(caches)) {
+        if (database && !_database.objectStoreNames.contains(key)) {
+          _database.createObjectStore(key, { keyPath: 'key' })
+        }
+      }
+    }
+  })
+  return currentDB
+}
+
+/**
+ * Loads all values from a specified cache (object store).
+ * @param {string} userID - The unique ID of the user (database name).
+ * @param {keyof typeof caches} cache - The name of the cache (object store).
+ * @returns {Promise<Array>} - A promise that resolves to an array of all stored values.
+ */
+async function loadAll(userID, cache) {
+  const database = await open(userID)
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(cache.key, 'readonly')
+    const objectStore = transaction.objectStore(cache.key)
+    const request = objectStore.getAll()
+    request.onerror = (event) => reject(event.target.error)
+    request.onsuccess = (event) => {
+      resolve(event.target.result.reduce((acc, item) => {
+        acc[item.key] = item.value
+        return acc
+      }, {}))
+    }
+  })
+}
+
+/**
+ * Retrieves a specific value from a cache using a key.
+ * @param {string} userID - The unique ID of the user (database name).
+ * @param {keyof typeof caches} cache - The name of the cache (object store).
+ * @param {string} key - The key to retrieve the associated value for.
+ * @returns {Promise<*>} - A promise that resolves to the value associated with the key, or null if not found.
+ */
+async function get(userID, cache, key) {
+  const database = await open(userID)
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(cache.key, 'readonly')
+    const objectStore = transaction.objectStore(cache.key)
+    const request = objectStore.get(key)
+    request.onerror = (error) => reject(error.target.error)
+    request.onsuccess = (error) => resolve(error.target.result ? error.target.result.value : null)
+  })
+}
+
+/**
+ * Stores or updates a value in a specified cache.
+ * @param {string} userID - The unique ID of the user (database name).
+ * @param {keyof typeof caches} cache - The name of the cache (object store).
+ * @param {string} key - The key to associate with the value.
+ * @param {*} value - The value to store.
+ * @returns {Promise<void>} - A promise that resolves when the operation is complete.
+ */
+async function set(userID, cache, key, value) {
+  const database = await open(userID)
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(cache.key, 'readwrite')
+    const objectStore = transaction.objectStore(cache.key)
+    const request = objectStore.put({ key, value })
+    request.onerror = (event) => reject(event.target.error)
+    request.onsuccess = () => resolve()
+  })
+}
+
+/**
+ * Deletes specific keys from a specified cache.
+ * @param {string} userID - The unique ID of the user (database name).
+ * @param {keyof typeof caches} cache - The name of the cache (object store).
+ * @param {string[]} keys - An array of keys to delete.
+ * @returns {Promise<void>} - A promise that resolves when all specified keys are deleted.
+ */
+async function remove(userID, cache, keys) {
+  if (!keys || keys.length === 0) return
+  const database = await open(userID)
+  const transaction = database.transaction(cache.key, 'readwrite')
+  const objectStore = transaction.objectStore(cache.key)
+  keys.forEach(k => objectStore.delete(k))
+  return waitForTransaction(transaction)
+}
+
+/**
+ * Clears all data from a specified cache.
+ * @param {string} userID - The unique ID of the user (database name).
+ * @param {keyof typeof caches} cache - The name of the cache (object store).
+ * @returns {Promise<void>} - A promise that resolves when the cache is cleared.
+ */
+async function reset(userID, cache) {
+  const database = await open(userID)
+  const transaction = database.transaction(cache.key, 'readwrite')
+  transaction.objectStore(cache.key).clear()
+  return waitForTransaction(transaction)
+}
+
+/**
+ * Deletes the entire database and all caches for a user.
+ * @param {string} userID - The unique ID of the user (database name).
+ * @returns {Promise<void>} - A promise that resolves when the database is deleted.
+ */
+async function purge(userID) {
+  if (currentDB) {
+    try { (await currentDB).close() } catch {}
+    currentDB = null
+  }
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.deleteDatabase(String(userID))
+    request.onerror = (event) => reject(event.target.error)
+    request.onsuccess = () => resolve()
+  })
+}
+
+/**
+ * Writes multiple entries into the specified IndexedDB cache in a single transaction.
  *
- * This function converts a media status from MyAnimeList format (e.g., 'watching', 'completed') to its equivalent in the AniList format (e.g., 'CURRENT', 'COMPLETED'),
- * and vice versa. It helps ensure compatibility between the two systems when syncing media list data.
- * The status mapping is bidirectional, allowing both MyAnimeList to AniList and AniList to MyAnimeList conversions.
+ * This function only updates IndexedDB. It does NOT update the in-memory cache.
+ * Callers are responsible for keeping memory and disk in sync if needed.
  *
- * @param {string} status - The status to be mapped. Can be in either AniList or MyAnimeList format.
- * @returns {string} The mapped status in the corresponding format.
+ * @param {string} userID - The unique ID of the user (database name).
+ * @param {keyof typeof caches} cache - The name of the cache (object store).
+ * @param {Array<[string, any]>} entries - An array of [key, value] pairs to insert/update.
+ * @returns {Promise<void>} A promise that resolves when the transaction completes.
+ */
+async function putMany(userID, cache, entries) {
+  if (!entries.length) return
+  const database = await open(userID)
+  const transaction = database.transaction(cache.key, 'readwrite')
+  const objectStore = transaction.objectStore(cache.key)
+  for (const [key, value] of entries) objectStore.put({ key, value })
+  return waitForTransaction(transaction)
+}
+
+/**
+ * Retrieves (or creates) a batch writer for the given user.
  *
- * @example
- * mapStatus('watching') // returns 'CURRENT'
- * mapStatus('CURRENT') // returns 'watching'
+ * @param {string} userID - The unique ID of the user (database name).
+ * @returns {object} The batch writer instance associated with the user.
+ */
+function getBatchWriter(userID) {
+  if (!batchWriters.has(userID)) batchWriters.set(userID, createBatchWriter(userID))
+  return batchWriters.get(userID)
+}
+
+/**
+ * Wraps an IndexedDB transaction in a Promise.
+ * Resolves when the transaction completes successfully and rejects if the transaction aborts or errors.
+ *
+ * @param {IDBTransaction} transaction - The IndexedDB transaction to monitor.
+ * @returns {Promise<void>} A promise that resolves on success, rejects on failure.
+ */
+function waitForTransaction(transaction) {
+  return new Promise((resolve, reject) => {
+    transaction.oncomplete = () => resolve()
+    transaction.onabort = transaction.onerror = (error) => reject(error?.target?.error || new Error('IndexedDB transaction failed'))
+  })
+}
+
+/**
+ * Creates a batch writer for a given user that buffers cache writes and flushes them to IndexedDB after a delay.
+ *
+ * This groups multiple writes into a single IndexedDB transaction and retries failed writes by re-enqueuing them.
+ *
+ * @param {string} userID - The unique ID of the user (database name).
+ * @param {number} [firstFlushDelay=10000] - Delay in ms before the first flush before flushing writes to IndexedDB.
+ * @param {number} [subsequentFlushDelay=1500] - Delay in ms for subsequent flushes before flushing writes to IndexedDB.
+ * @param {number} [resetDelay=5000] - Delay in ms after which retry counts are reset.
+ * @returns {Object} Batch writer with methods {@link enqueue}, {@link flushNow}, and {@link pendingCount}.
+ */
+function createBatchWriter(userID, firstFlushDelay = 10_000, subsequentFlushDelay = 1_500, resetDelay = 5_000) {
+  const pending = new Map()
+  const retryMap = new Map()
+  let flushTimer = null
+  let batchAt = null
+  let initialFlush = true
+
+  /**
+   * Clears retry counts, allowing failed writes to retry again.
+   */
+  function resetRetries() {
+    retryMap.clear()
+  }
+  setInterval(resetRetries, resetDelay).unref?.()
+
+  /**
+   * Flushes all queued writes to IndexedDB in a single transaction.
+   * If an error occurs, re-enqueues the writes for retry.
+   */
+  async function flush() {
+    if (flushTimer) {
+      clearTimeout(flushTimer)
+      flushTimer = null
+    }
+    batchAt = null
+    initialFlush = false
+    if (pending.size === 0) return
+    const snapshot = Array.from(pending.entries())
+    pending.clear()
+    try {
+      const database = await open(userID)
+      const transaction = database.transaction(snapshot.map(([cacheKey]) => cacheKey), 'readwrite')
+      for (const [cacheKey, kvMap] of snapshot) {
+        const store = transaction.objectStore(cacheKey)
+        for (const [key, value] of kvMap.entries()) store.put({ key, value })
+      }
+      await waitForTransaction(transaction)
+      debug(`Batched ${snapshot.reduce((n, [, m]) => n + m.size, 0)} total write(s) across ${snapshot.length} cache(s) — ${snapshot.map(([cacheKey, m]) => `${cacheKey}: ${m.size} write(s)`).join(', ')}`)
+    } catch (error) {
+      debug(`Failed to write batch to cache, data will be enqueued again...`, error)
+      for (const [cacheKey, kvMap] of snapshot) {
+        for (const [k, v] of kvMap) {
+          const mapKey = `${cacheKey}:${k}`
+          const attempts = retryMap.get(mapKey) || 0
+          if (attempts < 3) {
+            retryMap.set(mapKey, attempts + 1)
+            getBatchWriter(userID).enqueue({ key: cacheKey }, k, v)
+          } else debug(`Max retries reached for ${mapKey}, dropping value`)
+        }
+      }
+    }
+  }
+
+  return {
+    /**
+     * Enqueues a cache entry for a specific cache and key.
+     * Starts the flush timer if this is the first entry in the batch.
+     *
+     * @param {keyof typeof caches} cache - The name of the cache (object store).
+     * @param {string|number} key - The key to store in the cache.
+     * @param {*} value - The value to store.
+     */
+    enqueue(cache, key, value) {
+      const cacheKey = cache.key
+      if (!pending.has(cacheKey)) pending.set(cacheKey, new Map())
+      pending.get(cacheKey).set(String(key), value)
+      if (!batchAt) {
+        batchAt = Date.now()
+        flushTimer = setTimeout(() => {
+          flush().finally(() => {
+            flushTimer = null
+            batchAt = null
+          })
+        }, initialFlush ? firstFlushDelay : subsequentFlushDelay)
+        flushTimer?.unref?.()
+      }
+    },
+    /**
+     * Immediately flushes all queued cache entries to IndexedDB.
+     */
+    async flushNow() {
+      await flush()
+    },
+    /**
+     * Returns the total number of queued cache entries across all caches.
+     * @returns {number} Total pending cache entries.
+     */
+    pendingCount() {
+      return [...pending.values()].reduce((n, m) => n + m.size, 0)
+    }
+  }
+}
+
+/** @type {import('simple-store-svelte').Writable<Record<number, import('./al.d.ts').Media>>} */
+export let mediaCache
+
+class Cache {
+  /** @type {string} */
+  cacheID = (JSON.parse(localStorage.getItem('ALviewer')) || JSON.parse(localStorage.getItem('MALviewer')))?.viewer?.data?.Viewer?.id || 'default'
+  /** @type {import('svelte/store').Writable<GeneralDefaults>} */
+  general
+  /** @type {import('svelte/store').Writable<QueryDefaults>} */
+  queries
+  /** @type {import('simple-store-svelte').Writable<any>} */
+  user_lists
+  /** @type {import('simple-store-svelte').Writable<any>} */
+  mappings
+  /** @type {import('svelte/store').Writable<NotifyDefaults>} */
+  notifications
+  /** @type {import('svelte/store').Writable<any>} */
+  history
+  /** @type {Map<string, any>} */
+  #pending = new Map()
+
+  isReady
+  subscribers = []
+
+  /**
+   * @type {Promise<void>}
+   * A promise that resolves when the cache has been fully initialized.
+   * Use this to ensure all required data is loaded and ready for use.
+   */
+  constructor() {
+    this.isReady = this.#initialize()
+  }
+
+  /**
+   * Initializes the cache by loading necessary data into memory.
+   * @returns {Promise<void>}
+   */
+  async #initialize() {
+    debug(`Loading caches with id: ${this.cacheID}...`)
+    const cacheTypes = [
+      { key: caches.MEDIA_CACHE, writable: (data) => mediaCache = writable(deepClone(data)) },
+      { key: caches.GENERAL, writable: (data) => this.general = writable({ ...generalDefaults, ...deepClone(data) }) },
+      { key: caches.QUERIES, writable: (data) => this.queries = writable({ ...queryDefaults, ...deepClone(data) }) },
+      { key: caches.MAPPINGS, writable: (data) => this.mappings = writable(deepClone(data)) },
+      { key: caches.USER_LISTS, writable: (data) => this.user_lists = writable(deepClone(data)) },
+      { key: caches.NOTIFICATIONS, writable: (data) => this.notifications = writable({ ...notifyDefaults, ...deepClone(data) }) },
+      { key: caches.HISTORY, writable: (data) => this.history = writable({ ...historyDefaults, ...deepClone(data) }) }
+    ]
+
+    /**
+     * In-memory representation of all cache object stores.
+     * Each entry maps a cache key to an object containing its stored key-value pairs.
+     * This map is lazy-loaded on first access and kept in memory for fast lookups.
+     *
+     * @type {Map<string, Object>} - cacheKey -> { key: value }
+     */
+    const cacheMap = new Map(await Promise.all(cacheTypes.map(async ({ key }) => [key.key, await loadAll(this.cacheID, key)])))
+    cacheTypes.forEach(({ key, writable }) => writable(cacheMap.get(key.key)))
+
+    this.subscribers = cacheTypes.map(({ key }) => {
+      const batchWriter = getBatchWriter(this.cacheID)
+      return (key.key === caches.MEDIA_CACHE.key ? mediaCache : this[key.key]).subscribe(value => {
+        const inMem = cacheMap.get(key.key) || {}
+        for (const [subKey, subValue] of Object.entries(value || {})) {
+          const prevSubValue = inMem[subKey]
+          if (prevSubValue !== subValue && !equal(prevSubValue, subValue)) {
+            batchWriter.enqueue(key, subKey, subValue)
+            inMem[subKey] = deepClone(subValue)
+          }
+        }
+        for (const subKey of Object.keys(inMem)) {
+          if (!(subKey in (value || {}))) {
+            delete inMem[subKey]
+            remove(this.cacheID, key, [subKey]).catch(error => debug(`Failed to remove ${subKey} from ${key}`, error))
+          }
+        }
+        cacheMap.set(key.key, inMem)
+        return () => {
+          cacheMap.delete(key.key)
+          debug('Unsubscribed from cache:', key.key)
+        }
+      })
+    })
+
+    debug('Caches have successfully been loaded!')
+  }
+
+  /**
+   * Releases all resources held by this cache and marks it as inactive.
+   *
+   * Unsubscribes listeners, clears pending operations and lookup maps,
+   * nulls stored data to enable garbage collection, and logs its destruction.
+   * After calling, this instance should not be used.
+   */
+  destroy() {
+    this.subscribers.forEach((unsubscribe) => unsubscribe())
+    this.#pending.clear()
+    mediaCache = null
+    this.general = null
+    this.queries = null
+    this.mappings = null
+    this.user_lists = null
+    this.notifications = null
+    this.history = null
+    this.isCurrent = false
+    debug(`Cache with ID ${this.cacheID} has been destroyed.`)
+  }
+
+  /**
+   * Updates the cache for a specific key.
+   * @param {keyof typeof caches} cache - The name of the cache (object store).
+   * @param {number|string} key The key for the specific cache entry (e.g., media ID).
+   * @param {Object} data The cache object to store.
+   * @warn Do not use this outside of {@link Cache}, use {@link cacheEntry} instead.
+   */
+  #update(cache, key, data) {
+    if (cache === caches.USER_LISTS || cache === caches.MAPPINGS) {
+      (cache === caches.USER_LISTS ? this.user_lists : this.mappings).update((query) => {
+        query[key] = typeof data === 'function' ? data(query[key]) : data
+        return query
+      })
+    } else {
+      this.queries.update((query) => {
+        if (!query[cache.key]) query[cache.key] = {}
+        const current = query[cache.key][key]
+        query[cache.key][key] = typeof data === 'function' ? data(current) : data
+        return query
+      })
+    }
+  }
+
+  /**
+   * Transfers all cached data from the current cache to a new cache ID and then purges the old cache.
+   * Only keeps necessary info like settings, notifications, watch history, and previous magnet links excluding caches like queries and user lists as they can't be used.
+   * @param {string} newCacheID - The ID of the new cache to which data should be transferred.
+   * @returns {Promise<void>} Resolves when the data has been successfully transferred and the old cache purged.
+   */
+  async abandon(newCacheID){
+    await purge(this.cacheID)
+    this.cacheID = newCacheID
+    for (const value of [[caches.GENERAL, this.general.value], [caches.NOTIFICATIONS, this.notifications.value], [caches.HISTORY, this.history.value]]) {
+      for (const [key, keyValue] of Object.entries(value[1])) {
+        await putMany(newCacheID, value[0], [[key, keyValue]])
+      }
+    }
+  }
+
+  /**
+   * Resets all settings completely clearing the general cache.
+   * See {@link generalDefaults} for all values that will be reset.
+   */
+  async resetSettings() {
+    await reset(this.cacheID, caches.GENERAL)
+    location.reload()
+  }
+
+  /**
+   * Resets all watch history and magnet links completely clearing the history cache.
+   * See {@link historyDefaults} for all values that will be reset.
+   */
+  async resetHistory() {
+    await reset(this.cacheID, caches.HISTORY)
+    this.history.value = { ...historyDefaults }
+  }
+
+  /**
+   * Resets all caches completely clearing the caches, excluding notifications.
+   * To clear notifications see: {@link resetNotifications}.
+   *
+   * See {@link queryDefaults} for all values that will be reset.
+   */
+  async resetCaches() {
+    await reset(this.cacheID, caches.QUERIES)
+    await reset(this.cacheID, caches.MAPPINGS)
+    await reset(this.cacheID, caches.USER_LISTS)
+    await reset(this.cacheID, caches.MEDIA_CACHE)
+    location.reload()
+  }
+
+  /**
+   * Resets all notifications completely clearing the notifications cache.
+   * See {@link notifyDefaults} for all values that will be reset.
+   */
+  resetNotifications() {
+    this.notifications.value = { ...notifyDefaults }
+    window.dispatchEvent(new Event('notification-reset'))
+  }
+
+  /**
+   * Immediately retrieves a cache entry directly from storage skipping the batch caching queue.
+   * @param {keyof typeof caches} cache - The name of the cache (object store).
+   * @param {string} key - The category to retrieve (e.g., 'lastAni').
+   * @returns {Promise<any>} The cached data for the specified key, or `undefined` if it does not exist.
+   */
+  read(cache, key) {
+    return get(this.cacheID, cache, key)
+  }
+
+  /**
+   * Immediately writes a cache entry directly to storage skipping the batch caching queue, data will eventually be saved to the memory cache.
+   * @param {keyof typeof caches} cache - The name of the cache (object store).
+   * @param {string} key - The category to update (e.g., 'lastAni').
+   * @param {Object} data The cache object to store.
+   * @returns {Promise<void>} Resolves when the data has been successfully updated.
+   */
+  write(cache, key, data) {
+    this.setEntry(cache, key, data)
+    return set(this.cacheID, cache, key, data)
+  }
+
+  /**
+   * Retrieves the cache entry for a specific key.
+   * @param {keyof typeof caches} cache - The name of the cache (object store).
+   * @param {string} key - The category to retrieve (e.g., 'lastAni').
+   * @returns {any} The cached data for the specified key, or `undefined` if it does not exist.
+   */
+  getEntry(cache, key) {
+    return (cache === caches.GENERAL ? this.general : cache === caches.NOTIFICATIONS ? this.notifications : this.history).value[key]
+  }
+
+  /**
+   * Updates the cache for a specific key.
+   * @param {keyof typeof caches} cache - The name of the cache (object store).
+   * @param {string} key The category to update (e.g., 'lastAni').
+   * @param {Object} data The cache object to store.
+   */
+  setEntry(cache, key, data) {
+    (cache === caches.GENERAL ? this.general : cache === caches.NOTIFICATIONS ? this.notifications : this.history).update((query) => {
+      const current = query[key]
+      query[key] = typeof data === 'function' ? data(current) : data
+      return query
+    })
+  }
+
+  /**
+   * Updates the media cache with the provided media entries.
+   *
+   * @param {Array<Object>} medias - An array of media objects to be cached. Each media object should have a unique identifier (`id`).
+   * @param {Object} [fillLists] - An object containing user list data to attach to each media entry (e.g., `{ data: { MediaList: [...] } }`)
+   * @returns {Promise<void>} Resolves when the media cache has been successfully updated.
+   */
+  async updateMedia(medias, fillLists) {
+    if (!medias || !medias.length) return
+    const filledMedias = fillLists ? fillEntries(medias, fillLists) : medias /* attaches any alternative authorization userList information to the anilist media for tracking. */
+    const mediaMap = new Map(filledMedias.map(m => [m.id, m]))
+    mediaCache.update(current => {
+      for (const [id, media] of mediaMap.entries()) {
+        if (media) current[id] = media
+      }
+      return current
+    })
+  }
+
+  /**
+   * Retrieves a cached entry by its key, optionally ignoring the expiration time.
+   *
+   * @param {keyof typeof caches} cache - The name of the cache (object store).
+   * @param {string} key - The unique key identifying the cached entry.
+   * @param {boolean} [ignoreExpiry=false] - If true, the entry will be returned even if it has expired, defaults to `false`; meaning expired entries will not be returned.
+   * @returns {Promise<Object|null>} The cached entry if found and valid; otherwise, `null`.
+   */
+  cachedEntry(cache, key, ignoreExpiry) {
+    if (this.#pending.has(`${cache.key}:${key}`) && !ignoreExpiry) {
+      debug(`Found pending query ${cache.key} for ${key}`)
+      return this.#pending.get(`${cache.key}:${key}`)
+    } else if (cache !== caches.MAPPINGS) {
+      const cachedEntry = cache === caches.USER_LISTS ? this.user_lists.value[key] : (this.queries.value[cache.key] || {})[key]
+      if (cachedEntry && cachedEntry.data && ((Date.now() < cachedEntry.expiry) || ignoreExpiry)) {
+        debug(`Found cached ${cache.key} for ${key}`)
+        const data = deepClone(cachedEntry.data)
+        if (cache !== caches.RECOMMENDATIONS || this.general.value.settings.queryComplexity === 'Complex') { /* Remap media id's to their respective media in the cache */
+          if (data.data?.Page?.media) data.data.Page.media = data.data.Page.media.map(mediaId => mediaCache.value[mediaId])
+          if (data.data?.Media) data.data.Media = mediaCache.value[data.data.Media]
+          if (data.data?.MediaListCollection && !key?.includes('token')) data.data.MediaListCollection.lists = (data.data.MediaListCollection.lists || []).map(list => ({ ...list, entries: list.entries.map(entry => ({ ...entry, media: mediaCache.value[entry.media] })) }))
+        }
+        return Promise.resolve(data)
+      }
+      return null
+    } else {
+      const cachedEntry = this.mappings.value[key]
+      if (cachedEntry && cachedEntry.data && ((Date.now() < cachedEntry.expiry) || ignoreExpiry)) {
+        return Promise.resolve(deepClone(cachedEntry.data))
+      }
+      return null
+    }
+  }
+
+  /**
+   * Caches an entry with the specified key, variables, data, and expiry time.
+   * Only one instance of the function will be run, subsequent identical calls will return the initial call.
+   *
+   * @param {keyof typeof caches} cache - The name of the cache (object store).
+   * @param {string} key - The unique key to identify the cached entry.
+   * @param {Object} [vars] - The variables associated with the cached data if applicable, this can include filters, query parameters, or context-specific data.
+   * @param {Object} data - The data to be cached, this is the primary content to store for the key. Preferably this should be a promise as it will be handled before caching.
+   * @param {number} expiry - The expiration timestamp for the cache entry in milliseconds since the epoch, once the current time exceeds this value the entry is considered expired.
+   * @returns {Promise<Object>} A promise that resolves when the caching operation is complete.
+   *
+   */
+  async cacheEntry(cache, key, vars, data, expiry) {
+    if (this.#pending.has(`${cache.key}:${key}`)) {
+      debug(`Found pending query ${cache.key} for ${key} during cache update...`)
+      return this.#pending.get(`${cache.key}:${key}`)
+    }
+    const { fillLists, ...variables } = vars || {}
+    const promiseData = (async () => {
+      let res
+      try {
+        res = await data
+      } catch (error) {
+        debug(`Detected an error in the promised data, returning cached data if available.`, error)
+        return this.cachedEntry(cache, key, true)
+      }
+      const cacheRes = deepClone(res)
+      if (!variables?.mappings && (!res || ((res.errors?.length > 0) && !res.errors?.[0]?.title?.match(/record not found/i)))) return this.cachedEntry(cache, key, true) || res
+      if (cache !== caches.RECOMMENDATIONS || this.general.value.settings.queryComplexity === 'Complex') {
+        if (res?.data?.Page?.media) {
+          cacheRes.data.Page.media = cacheRes.data.Page.media.map(media => media.id)
+          await this.updateMedia(res.data.Page.media, await fillLists)
+        } else if (res?.data?.Media) {
+          cacheRes.data.Media = cacheRes.data.Media.id
+          await this.updateMedia([res.data.Media], await fillLists)
+        } else if (res?.data?.MediaListCollection && !variables.token) {
+          const lists = res.data.MediaListCollection.lists || []
+          cacheRes.data.MediaListCollection = { ...res.data.MediaListCollection, lists: lists.map(list => ({ ...list, entries: list.entries.map(entry => ({ ...entry, media: entry.media.id })) })) }
+          await this.updateMedia(lists.flatMap(list => list.entries.map(entry => entry.media)))
+        }
+      }
+      this.#update(cache, key, { data: cacheRes, expiry, cachedAt: Date.now() })
+      return res
+    })()
+    this.#pending.set(`${cache.key}:${key}`, promiseData)
+    promiseData.finally(() => this.#pending.delete(`${cache.key}:${key}`))
+    return promiseData
+  }
+}
+
+export let cache = new Cache()
+
+/**
+ * Ensures that the cache system has finished initializing before use.
+ * THIS MUST BE CALLED BEFORE ACCESSING {@link cache}.
+ *
+ * @returns {Promise<void>} A promise that resolves once the cache is fully initialized and ready to use.
+ */
+export function cacheReady() {
+  return cache.isReady
+}
+
+/**
+ * Mapping from MyAnimeList status values to AniList status values.
+ * Keys are MAL statuses, values are AniList equivalents.
+ */
+const MAL_TO_ANILIST = {
+  watching: 'CURRENT',
+  rewatching: 'REPEATING', /* rewatching is determined by is_rewatching boolean (no individual list) */
+  plan_to_watch: 'PLANNING',
+  completed: 'COMPLETED',
+  dropped: 'DROPPED',
+  on_hold: 'PAUSED'
+}
+
+/**
+ * Mapping from AniList status values to MyAnimeList status values.
+ * Generated automatically from {@link MAL_TO_ANILIST}, with 'REPEATING' mapped to 'watching'.
+ */
+const ANILIST_TO_MAL = Object.fromEntries(Object.entries(MAL_TO_ANILIST).map(([mal, ani]) => [ani, mal === 'rewatching' ? 'watching' : mal]))
+
+/**
+ * Maps anime status between MyAnimeList and AniList (bidirectional).
+ *
+ * @param {string} status - The status to map.
+ * @returns {string|undefined} The mapped status, or undefined if not recognized.
  */
 export function mapStatus(status) {
-    switch(status) {
-        // MyAnimeList to AniList
-        case 'watching':
-            return 'CURRENT'
-        case 'rewatching':
-            return 'REPEATING' // rewatching is determined by is_rewatching boolean (no individual list)
-        case 'plan_to_watch':
-            return 'PLANNING'
-        case 'completed':
-            return 'COMPLETED'
-        case 'dropped':
-            return 'DROPPED'
-        case 'on_hold':
-            return 'PAUSED'
-        // AniList to MyAnimeList
-        case 'CURRENT':
-            return 'watching'
-        case 'PLANNING':
-            return 'plan_to_watch'
-        case 'COMPLETED':
-            return 'completed'
-        case 'DROPPED':
-            return 'dropped'
-        case 'PAUSED':
-            return 'on_hold'
-        case 'REPEATING':
-            return 'watching' // repeating is determined by is_rewatching boolean (no individual list)
-    }
+  return MAL_TO_ANILIST[status] ?? ANILIST_TO_MAL[status]
 }
 
 /**
@@ -89,527 +709,27 @@ export function mapStatus(status) {
  * @returns {Array<Object>} The updated array of AniList media objects with attached user list data.
  */
 function fillEntries(medias, userLists) {
-    debug(`Filling MyAnimeList entry data for ${JSON.stringify(medias.map(media => media.id))}`)
-    return medias.map(media => {
-        const malEntry = userLists.data?.MediaList?.find(({ node }) => node.id === media.idMal)
-        if (malEntry) {
-            const start_date = malEntry.node.my_list_status.start_date ? new Date(malEntry.node.my_list_status.start_date) : undefined
-            const finish_date = malEntry.node.my_list_status.finish_date ? new Date(malEntry.node.my_list_status.finish_date) : undefined
-            const startedAt = start_date ? {
-                year: start_date.getFullYear(),
-                month: start_date.getMonth() + 1,
-                day: start_date.getDate()
-            } : undefined
-            const completedAt = finish_date ? {
-                year: finish_date.getFullYear(),
-                month: finish_date.getMonth() + 1,
-                day: finish_date.getDate()
-            } : undefined
-            media.mediaListEntry = {
-                id: media.id,
-                progress: malEntry.node.my_list_status.num_episodes_watched,
-                repeat: malEntry.node.my_list_status.number_times_rewatched,
-                status: mapStatus(malEntry.node.my_list_status?.is_rewatching ? 'rewatching' : malEntry.node.my_list_status?.status),
-                customLists: [],
-                score: malEntry.node.my_list_status.score,
-                startedAt,
-                completedAt
-            }
-        }
-        return media
-    })
-}
+  debug(`Filling MyAnimeList entry data for ${medias?.length} media(s)`)
+  const malEntries = userLists?.data?.MediaList || []
+  const malMap = new Map(malEntries.map(({ node }) => [node.id, node.my_list_status]))
+  return medias.map(media => {
+    const status = malMap.get(media.idMal)
+    if (!status) return media
 
-/**
- * Opens the IndexedDB database.
- * @param {string} dbName - The name of the database to open.
- * @returns {Promise<IDBDatabase>} - A promise that resolves to the database instance.
- */
-function open(dbName) {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open(String(dbName), version)
-        request.onerror = (event) => reject(event.target.error)
-        request.onsuccess = (event) => resolve(event.target.result)
-        request.onupgradeneeded = (event) => {
-            Object.entries(caches).forEach(([_, cache]) => {
-                if (cache.database && !(event.target.result).objectStoreNames.contains(cache.key)) (event.target.result).createObjectStore(cache.key, { keyPath: 'key' })
-            })
-        }
-    })
-}
-
-/**
- * Loads all values from a specified cache (object store).
- * @param {string} userID - The unique ID of the user (database name).
- * @param {keyof typeof caches} cache - The name of the cache (object store).
- * @returns {Promise<Array>} - A promise that resolves to an array of all stored values.
- */
-async function loadAll(userID, cache) {
-    const database = await open(userID)
-    return new Promise((resolve, reject) => {
-        const transaction = database.transaction(cache.key, 'readonly')
-        const objectStore = transaction.objectStore(cache.key)
-        const request = objectStore.getAll()
-        request.onerror = (event) => reject(event.target.error)
-        request.onsuccess = (event) => {
-            resolve(event.target.result.reduce((acc, item) => {
-                acc[item.key] = item.value
-                return acc
-            }, {}))
-        }
-    })
-}
-
-/**
- * Retrieves a specific value from a cache using a key.
- * @param {string} userID - The unique ID of the user (database name).
- * @param {keyof typeof caches} cache - The name of the cache (object store).
- * @param {string} key - The key to retrieve the associated value for.
- * @returns {Promise<*>} - A promise that resolves to the value associated with the key, or null if not found.
- */
-async function get(userID, cache, key) {
-    const database = await open(userID)
-    return new Promise((resolve, reject) => {
-        const transaction = database.transaction(cache.key, 'readonly')
-        const objectStore = transaction.objectStore(cache.key)
-        const request = objectStore.get(key)
-        request.onerror = (event) => reject(event.target.error)
-        request.onsuccess = (event) => resolve(event.target.result ? event.target.result.value : null)
-    })
-}
-
-/**
- * Stores or updates a value in a specified cache.
- * @param {string} userID - The unique ID of the user (database name).
- * @param {keyof typeof caches} cache - The name of the cache (object store).
- * @param {string} key - The key to associate with the value.
- * @param {*} value - The value to store.
- * @returns {Promise<void>} - A promise that resolves when the operation is complete.
- */
-async function set(userID, cache, key, value) {
-    const database = await open(userID)
-    return new Promise((resolve, reject) => {
-        const transaction = database.transaction(cache.key, 'readwrite')
-        const objectStore = transaction.objectStore(cache.key)
-        const request = objectStore.put({ key, value })
-        request.onerror = (event) => reject(event.target.error)
-        request.onsuccess = () => resolve()
-    })
-}
-
-/**
- * Deletes specific keys from a specified cache.
- * @param {string} userID - The unique ID of the user (database name).
- * @param {keyof typeof caches} cache - The name of the cache (object store).
- * @param {string[]} keys - An array of keys to delete.
- * @returns {Promise<void>} - A promise that resolves when all specified keys are deleted.
- */
-async function remove(userID, cache, keys) {
-    const database = await open(userID)
-    return new Promise((resolve, reject) => {
-        const transaction = database.transaction(cache.key, 'readwrite')
-        const objectStore = transaction.objectStore(cache.key)
-        Promise.all(
-            keys.map((key) =>
-                new Promise((res, rej) => {
-                    const request = objectStore.delete(key)
-                    request.onerror = (event) => rej(event.target.error)
-                    request.onsuccess = () => res()
-                })
-            )
-        ).then(() => resolve()).catch((error) => reject(error))
-    })
-}
-
-/**
- * Clears all data from a specified cache.
- * @param {string} userID - The unique ID of the user (database name).
- * @param {keyof typeof caches} cache - The name of the cache (object store).
- * @returns {Promise<void>} - A promise that resolves when the cache is cleared.
- */
-async function reset(userID, cache) {
-    const database = await open(userID)
-    return new Promise((resolve, reject) => {
-        const transaction = database.transaction(cache.key, 'readwrite')
-        const objectStore = transaction.objectStore(cache.key)
-        const request = objectStore.clear()
-        request.onerror = (event) => reject(event.target.error)
-        request.onsuccess = () => resolve()
-    })
-}
-
-/**
- * Deletes the entire database and all caches for a user.
- * @param {string} userID - The unique ID of the user (database name).
- * @returns {Promise<void>} - A promise that resolves when the database is deleted.
- */
-async function purge(userID) {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.deleteDatabase(String(userID))
-        request.onerror = (event) => reject(event.target.error)
-        request.onsuccess = () => resolve()
-    })
-}
-
-/**
- * Generates a set of debounced functions for cache updating.
- * Each debounced function compares the new values with the previous ones
- * and saves them if there are any differences. The number of debounced
- * functions is based on the length of the provided `caches`.
- *
- * @param {string} userID - The unique ID of the user (database name).
- * @param {Map} cacheMap - The preloaded data to be used as a comparison before saving to the cache.
- * @param {number} [delay=4500] - The debounce delay in milliseconds. Default is 4500ms.
- * @returns {Object} An object containing debounced functions for each cache, accessible via the number of caches created like `[1]`, `[2]`, etc.
- */
-function createDebouncers(userID, cacheMap, delay = 2000) {
-    const debouncers = {}
-    for (let i = 1; i <= Object.values(caches).filter(cache => cache.database).length; i++) {
-        debouncers[`${i}`] = debounce(async (cache, value) => {
-            if (Object.keys(value).length !== 0) {
-                const changed = []
-                debug(`Detected a potential change for the ${cache.key} cache, attempting to save...`)
-                let cachedValues = cacheMap.get(cache.key)
-                for (const [key, keyValue] of Object.entries(value)) {
-                    const cachedValue = cachedValues[key]
-                    if (!equal(keyValue, cachedValue)) {
-                        changed.push(key)
-                        const newValue = structuredClone(keyValue)
-                        cachedValues[key] = newValue
-                        set(userID, cache, key, newValue)
-                    }
-                }
-                if (changed?.length > 0) debug(`Found differences in ${cache.key} for ${JSON.stringify(changed)} and saved!`)
-            }
-        }, delay)
+    const startDate = status.start_date ? new Date(status.start_date) : undefined
+    const finishDate = status.finish_date ? new Date(status.finish_date) : undefined
+    const startedAt = startDate ? { year: startDate.getFullYear(), month: startDate.getMonth() + 1, day: startDate.getDate() } : undefined
+    const completedAt = finishDate ? { year: finishDate.getFullYear(), month: finishDate.getMonth() + 1, day: finishDate.getDate() } : undefined
+    media.mediaListEntry = {
+      id: media.id,
+      progress: status.num_episodes_watched,
+      repeat: status.number_times_rewatched,
+      status: mapStatus(status.is_rewatching ? 'rewatching' : status.status),
+      customLists: [],
+      score: status.score,
+      startedAt,
+      completedAt
     }
-    return debouncers
-}
-
-/** @type {import('simple-store-svelte').Writable<Record<number, import('./al.d.ts').Media>>} */
-export let mediaCache
-
-class Cache {
-    /** @type {string} */
-    cacheID = (JSON.parse(localStorage.getItem('ALviewer')) || JSON.parse(localStorage.getItem('MALviewer')))?.viewer?.data?.Viewer?.id || 'default'
-    /** @type {import('svelte/store').Writable<GeneralDefaults>} */
-    general
-    /** @type {import('svelte/store').Writable<QueryDefaults>} */
-    queries
-    /** @type {import('simple-store-svelte').Writable<any>} */
-    user_lists
-    /** @type {import('simple-store-svelte').Writable<any>} */
-    mappings
-    /** @type {import('svelte/store').Writable<NotifyDefaults>} */
-    notifications
-    /** @type {import('svelte/store').Writable<any>} */
-    history
-    /** @type {Map<string, any>} */
-    #pending = new Map()
-
-    isReady
-    subscribers = []
-    isCurrent = false
-
-    /**
-     * @type {Promise<void>}
-     * A promise that resolves when the cache has been fully initialized.
-     * Use this to ensure all required data is loaded and ready for use.
-     */
-    constructor(subscribe) {
-        this.isReady = this.#initialize(subscribe)
-    }
-
-    /**
-     * Initializes the cache by loading necessary data into memory.
-     * @returns {Promise<void>}
-     */
-    async #initialize(subscribe = true) {
-        debug(`Loading caches with id: ${this.cacheID}...`)
-        const cacheTypes = [
-            { key: caches.MEDIA_CACHE, writable: (data) => mediaCache = writable(structuredClone(data)) },
-            { key: caches.GENERAL, writable: (data) => this.general = writable({ ...generalDefaults, ...structuredClone(data) }) },
-            { key: caches.QUERIES, writable: (data) => this.queries = writable({ ...queryDefaults, ...structuredClone(data) }) },
-            { key: caches.MAPPINGS, writable: (data) => this.mappings = writable(structuredClone(data)) },
-            { key: caches.USER_LISTS, writable: (data) => this.user_lists = writable(structuredClone(data)) },
-            { key: caches.NOTIFICATIONS, writable: (data) => this.notifications = writable({ ...notifyDefaults, ...structuredClone(data) }) },
-            { key: caches.HISTORY, writable: (data) => this.history = writable({ ...historyDefaults, ...structuredClone(data) }) }
-        ]
-        const cacheMap = new Map(await Promise.all(cacheTypes.map(async ({ key }) => [key.key, await loadAll(this.cacheID, key)])))
-        cacheTypes.forEach(({ key, writable }) => writable(cacheMap.get(key.key)))
-        if (subscribe) {
-            const debouncers = createDebouncers(this.cacheID, cacheMap)
-            this.subscribers = cacheTypes.map(({ key }, index) => (key.key === caches.MEDIA_CACHE.key ? mediaCache : this[key.key]).subscribe(value => debouncers[index + 1](key, value)))
-        }
-        this.isCurrent = true
-        debug('Caches have successfully been loaded!')
-    }
-
-    destroy() {
-        this.subscribers.forEach((unsubscribe) => unsubscribe())
-        this.#pending.clear()
-        mediaCache = null
-        this.general = null
-        this.queries = null
-        this.mappings = null
-        this.user_lists = null
-        this.notifications = null
-        this.history = null
-        this.#pending = new Map()
-        this.isCurrent = false
-        debug(`Cache with ID ${this.cacheID} has been destroyed.`)
-    }
-
-    /**
-     * Updates the cache for a specific key.
-     * @param {keyof typeof caches} cache - The name of the cache (object store).
-     * @param {number|string} key The key for the specific cache entry (e.g., media ID).
-     * @param {Object} data The cache object to store.
-     * @warn Do not use this outside of {@link Cache}, use {@link cacheEntry} instead.
-     */
-    #update(cache, key, data) {
-        if (cache === caches.USER_LISTS || cache === caches.MAPPINGS) {
-            (cache === caches.USER_LISTS ? this.user_lists : this.mappings).update((query) => {
-                query[key] = typeof data === 'function' ? data(current) : data
-                return query
-            })
-        } else {
-            this.queries.update((query) => {
-                if (!query[cache.key]) query[cache.key] = {}
-                const current = query[cache.key][key]
-                query[cache.key][key] = typeof data === 'function' ? data(current) : data
-                return query
-            })
-        }
-    }
-
-    /**
-     * Transfers all cached data from the current cache to a new cache ID and then purges the old cache.
-     * Only keeps necessary info like settings, notifications, watch history, and previous magnet links excluding caches like queries and user lists as they can't be used.
-     * @param {string} newCacheID - The ID of the new cache to which data should be transferred.
-     * @returns {Promise<void>} Resolves when the data has been successfully transferred and the old cache purged.
-     */
-    async abandon(newCacheID){
-        for (const value of [[caches.GENERAL, this.general.value], [caches.NOTIFICATIONS, this.notifications.value], [caches.HISTORY, this.history.value]]) {
-            for (const [key, keyValue] of Object.entries(value[1])) {
-                await set(newCacheID, value[0], key, keyValue)
-            }
-        }
-        purge(this.cacheID)
-    }
-
-    /**
-     * Resets all settings completely clearing the general cache.
-     * See {@link generalDefaults} for all values that will be reset.
-     */
-    async resetSettings() {
-        await reset(this.cacheID, caches.GENERAL)
-        location.reload()
-    }
-
-    /**
-     * Resets all watch history and magnet links completely clearing the history cache.
-     * See {@link historyDefaults} for all values that will be reset.
-     */
-    async resetHistory() {
-        await reset(this.cacheID, caches.HISTORY)
-        this.history.value = { ...historyDefaults }
-    }
-
-    /**
-     * Resets all caches completely clearing the caches, excluding notifications.
-     * To clear notifications see: {@link resetNotifications}.
-     *
-     * See {@link queryDefaults} for all values that will be reset.
-     */
-    async resetCaches() {
-        await reset(this.cacheID, caches.QUERIES)
-        await reset(this.cacheID, caches.MAPPINGS)
-        await reset(this.cacheID, caches.USER_LISTS)
-        await reset(this.cacheID, caches.MEDIA_CACHE)
-        location.reload()
-    }
-
-    /**
-     * Resets all notifications completely clearing the notifications cache.
-     * See {@link notifyDefaults} for all values that will be reset.
-     */
-    resetNotifications() {
-        this.notifications.value = { ...notifyDefaults }
-        window.dispatchEvent(new Event('notification-reset'))
-    }
-
-
-    /**
-     * Retrieves a cache entry directly from storage.
-     * @param {keyof typeof caches} cache - The name of the cache (object store).
-     * @param {string} key - The category to retrieve (e.g., 'lastAni').
-     * @returns {Promise<any>} The cached data for the specified key, or `undefined` if it does not exist.
-     */
-    read(cache, key) {
-        return get(this.cacheID, cache, key)
-    }
-
-    /**
-     * Writes a cache entry directly to storage.
-     * @param {keyof typeof caches} cache - The name of the cache (object store).
-     * @param {string} key - The category to update (e.g., 'lastAni').
-     * @param {Object} data The cache object to store.
-     * @returns {Promise<void>} Resolves when the data has been successfully updated.
-     */
-    write(cache, key, data) {
-        this.setEntry(cache, key, data)
-        return set(this.cacheID, cache, key, data)
-    }
-
-    /**
-     * Retrieves the cache entry for a specific key.
-     * @param {keyof typeof caches} cache - The name of the cache (object store).
-     * @param {string} key - The category to retrieve (e.g., 'lastAni').
-     * @returns {any} The cached data for the specified key, or `undefined` if it does not exist.
-     */
-    getEntry(cache, key) {
-        return (cache === caches.GENERAL ? this.general : cache === caches.NOTIFICATIONS ? this.notifications : this.history).value[key]
-    }
-
-    /**
-     * Updates the cache for a specific key.
-     * @param {keyof typeof caches} cache - The name of the cache (object store).
-     * @param {string} key The category to update (e.g., 'lastAni').
-     * @param {Object} data The cache object to store.
-     */
-    setEntry(cache, key, data) {
-        (cache === caches.GENERAL ? this.general : cache === caches.NOTIFICATIONS ? this.notifications : this.history).update((query) => {
-            const current = query[key]
-            query[key] = typeof data === 'function' ? data(current) : data
-            return query
-        })
-    }
-
-    /**
-     * Updates the media cache with the provided media entries.
-     *
-     * @param {Array<Object>} medias - An array of media objects to be cached. Each media object should have a unique identifier (`id`).
-     * @param {Object} [fillLists] - An object containing user list data to attach to each media entry (e.g., `{ data: { MediaList: [...] } }`)
-     * @returns {Promise<void>} Resolves when the media cache has been successfully updated.
-     */
-    async updateMedia(medias, fillLists) {
-        if (!medias) return
-        const filledMedias = fillLists ? fillEntries(medias, fillLists) : medias // attaches any alternative authorization userList information to the anilist media for tracking.
-        const updatedMedias = filledMedias.reduce((acc, media) => {
-            if (media) acc[media.id] = media
-            return acc
-        }, {})
-        mediaCache.update((currentCache) => {
-            return { ...currentCache, ...updatedMedias }
-        })
-    }
-
-    /**
-     * Retrieves a cached entry by its key, optionally ignoring the expiration time.
-     *
-     * @param {keyof typeof caches} cache - The name of the cache (object store).
-     * @param {string} key - The unique key identifying the cached entry.
-     * @param {boolean} [ignoreExpiry=false] - If true, the entry will be returned even if it has expired, defaults to `false`; meaning expired entries will not be returned.
-     * @returns {Promise<Object|null>} The cached entry if found and valid; otherwise, `null`.
-     */
-    cachedEntry(cache, key, ignoreExpiry) {
-        if (this.#pending.has(`${cache.key}:${key}`) && !ignoreExpiry) {
-            debug(`Found pending query ${cache.key} for ${key}`)
-            return this.#pending.get(`${cache.key}:${key}`)
-        } else if (cache !== caches.MAPPINGS) {
-            const cachedEntry = cache === caches.USER_LISTS ? this.user_lists.value[key] : this.queries.value[cache.key][key]
-            if (cachedEntry && cachedEntry.data && ((Date.now() < cachedEntry.expiry) || ignoreExpiry)) {
-                debug(`Found cached ${cache.key} for ${key}`)
-                const data = structuredClone(cachedEntry.data)
-                if (cache !== caches.RECOMMENDATIONS || this.general.value.settings.queryComplexity === 'Complex') { // remap media ids to the medias in the cache.
-                    if (data.data?.Page?.media) data.data.Page.media = data.data.Page.media.map(mediaId => mediaCache.value[mediaId])
-                    if (data.data?.Media) data.data.Media = mediaCache.value[data.data.Media]
-                    if (data.data?.MediaListCollection && !key?.includes('token')) data.data.MediaListCollection.lists = (data.data.MediaListCollection.lists || []).map(list => ({ ...list, entries: list.entries.map(entry => ({ ...entry, media: mediaCache.value[entry.media] })) }))
-                }
-                return Promise.resolve(data)
-            }
-            return null
-        } else { // its mappings...
-            const cachedEntry = this.mappings.value[key]
-            if (cachedEntry && cachedEntry.data && ((Date.now() < cachedEntry.expiry) || ignoreExpiry)) {
-                const data = structuredClone(cachedEntry.data)
-                return Promise.resolve(data)
-            }
-            return null
-        }
-    }
-
-    /**
-     * Caches an entry with the specified key, variables, data, and expiry time.
-     * Only one instance of the function will be run, subsequent identical calls will return the initial call.
-     *
-     * @param {keyof typeof caches} cache - The name of the cache (object store).
-     * @param {string} key - The unique key to identify the cached entry.
-     * @param {Object} [vars] - The variables associated with the cached data if applicable, this can include filters, query parameters, or context-specific data.
-     * @param {Object} data - The data to be cached, this is the primary content to store for the key. Preferably this should be a promise as it will be handled before caching.
-     * @param {number} expiry - The expiration timestamp for the cache entry in milliseconds since the epoch, once the current time exceeds this value the entry is considered expired.
-     * @returns {Promise<Object>} A promise that resolves when the caching operation is complete.
-     *
-     */
-    async cacheEntry(cache, key, vars, data, expiry) {
-        if (this.#pending.has(`${cache.key}:${key}`)) {
-            debug(`Found pending query ${cache.key} for ${key} during cache update...`)
-            return this.#pending.get(`${cache.key}:${key}`)
-        }
-        const { fillLists, ...variables } = vars
-        const promiseData = (async () => {
-            let res
-            try {
-                res = await data
-            } catch (error) {
-                debug(`Detected an error in the promised data, returning cached data if available.`, error)
-                return this.cachedEntry(cache, key, true)
-            }
-            const cacheRes = structuredClone(res)
-            if (!variables?.mappings && (!res || ((res.errors?.length > 0) && !res.errors?.[0]?.title?.match(/record not found/i)))) return this.cachedEntry(cache, key, true) || res // best to return something rather than nothing...
-            if (cache !== caches.RECOMMENDATIONS || this.general.value.settings.queryComplexity === 'Complex') {
-                if (res?.data?.Page?.media) {
-                    cacheRes.data.Page.media = cacheRes.data.Page.media.map(media => media.id)
-                    await this.updateMedia(res.data.Page.media, await fillLists)
-                } else if (res?.data?.Media) {
-                    cacheRes.data.Media = cacheRes.data.Media.id
-                    await this.updateMedia([res.data.Media], await fillLists)
-                } else if (res?.data?.MediaListCollection && !variables.token) {
-                    const lists = res.data.MediaListCollection.lists || []
-                    cacheRes.data.MediaListCollection = { ...res.data.MediaListCollection, lists: lists.map(list => ({ ...list, entries: list.entries.map(entry => ({ ...entry, media: entry.media.id })) })) }
-                    await this.updateMedia(lists.flatMap(list => list.entries.map(entry => entry.media)))
-                }
-            }
-            this.#update(cache, key, { data: cacheRes, expiry, cachedAt: Date.now() })
-            return res
-        })()
-        this.#pending.set(`${cache.key}:${key}`, promiseData)
-        setTimeout(() => {
-            this.#pending.delete(`${cache.key}:${key}`)
-        }, 500)
-        return promiseData
-    }
-}
-
-export let cache
-
-/**
- * Initializes or reinitializes the cache instance. If an existing cache is currently active (`isCurrent` is true),
- * the function destroys the existing cache and creates a new one. Otherwise, it initializes a new cache instance.
- * THIS MUST BE CALLED BEFORE ACCESSING {@link cache}.
- *
- * @function setCache
- * @param {function} subscribe - If the caches should automatically be saved to local storage after a short debounce period.
- * @returns {Promise<void>} - A promise that resolves when the cache is ready (`isReady`).
- */
-export function setCache(subscribe) {
-    if (cache?.isCurrent) {
-        debug('A reload has been detected, attempting to re-initialize the cache!')
-        cache.destroy()
-        cache = new Cache(subscribe)
-    } else {
-        cache = new Cache(subscribe)
-    }
-    return cache.isReady
+    return media
+  })
 }
