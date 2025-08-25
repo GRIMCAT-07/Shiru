@@ -260,82 +260,84 @@ export default class Helper {
 
   static getPaginatedMediaList(page, perPage, variables, mediaList) {
     debug('Getting custom paged media list')
-    const ids = this.isAniAuth() ? mediaList.filter(({ media }) => {
-        if ((!variables.hideSubs || malDubs.dubLists.value.dubbed.includes(media.idMal)) &&
-          matchKeys(media, variables.search, ['title.userPreferred', 'title.english', 'title.romaji', 'title.native']) &&
-          (!variables.genre || variables.genre.map(genre => genre.trim().toLowerCase()).every(genre => media.genres.map(genre => genre.trim().toLowerCase()).includes(genre))) &&
-          (!variables.tag || variables.tag.map(tag => tag.trim().toLowerCase()).every(tag => media.tags.map(tag => tag.name.trim().toLowerCase()).includes(tag))) &&
-          (!variables.season || variables.season === media.season) &&
-          (!variables.year || variables.year === media.seasonYear) &&
-          (!variables.format || (Array.isArray(variables.format) && variables.format.includes(media.format)) || variables.format === media.format) &&
-          (!variables.format_not || (Array.isArray(variables.format_not) && !variables.format_not.includes(media.format)) || variables.format_not !== media.format) &&
-          (!variables.status || (typeof variables.status === 'string' && variables.status === media.status) || (Array.isArray(variables.status) && variables.status.includes(media.status))) &&
-          (!variables.status_not || (typeof variables.status_not === 'string' && variables.status_not !== media.status) || (Array.isArray(variables.status_not) && !variables.status_not.includes(media.status))) &&
-          (!variables.continueWatching || (media.status === 'FINISHED' || media.mediaListEntry?.progress < media.nextAiringEpisode?.episode - 1))) {
-          return true
-        }
-      }).sort((a, b) => {
-        if (this.isUserSort(variables)) {
-          switch (variables.sort) {
-            case 'STARTED_ON_DESC':
-              return ((b.media?.mediaListEntry?.startedAt?.year || 0) * 10000 + (b.media?.mediaListEntry?.startedAt?.month || 0) * 100 + (b.media?.mediaListEntry?.startedAt?.day || 0))
-                  - ((a.media?.mediaListEntry?.startedAt?.year || 0) * 10000 + (a.media?.mediaListEntry?.startedAt?.month || 0) * 100 + (a.media?.mediaListEntry?.startedAt?.day || 0))
-            case 'FINISHED_ON_DESC':
-              return ((b.media?.mediaListEntry?.completedAt?.year || 0) * 10000 + (b.media?.mediaListEntry?.completedAt?.month || 0) * 100 + (b.media?.mediaListEntry?.completedAt?.day || 0))
-                  - ((a.media?.mediaListEntry?.completedAt?.year || 0) * 10000 + (a.media?.mediaListEntry?.completedAt?.month || 0) * 100 + (a.media?.mediaListEntry?.completedAt?.day || 0))
-            case 'PROGRESS_DESC':
-              return (b.media?.mediaListEntry?.progress || 0) - (a.media?.mediaListEntry?.progress || 0)
-            case 'USER_SCORE_DESC': // doesn't exist, AniList uses SCORE_DESC for both MediaSort and MediaListSort.
-              return (b.media?.mediaListEntry?.score || 0) - (a.media?.mediaListEntry?.score || 0)
-            case 'UPDATED_TIME_DESC':
-              return (b.media?.mediaListEntry?.updatedAt || 0) - (a.media?.mediaListEntry?.updatedAt || 0)
+    return (variables.hideSubs ? malDubs.dubLists.value : Promise.resolve()).then(dubLists => {
+      const ids = this.isAniAuth() ? mediaList.filter(({ media }) => {
+          if ((!variables.hideSubs || dubLists.dubbed.includes(media.idMal)) &&
+            matchKeys(media, variables.search, ['title.userPreferred', 'title.english', 'title.romaji', 'title.native']) &&
+            (!variables.genre || variables.genre.map(genre => genre.trim().toLowerCase()).every(genre => media.genres.map(genre => genre.trim().toLowerCase()).includes(genre))) &&
+            (!variables.tag || variables.tag.map(tag => tag.trim().toLowerCase()).every(tag => media.tags.map(tag => tag.name.trim().toLowerCase()).includes(tag))) &&
+            (!variables.season || variables.season === media.season) &&
+            (!variables.year || variables.year === media.seasonYear) &&
+            (!variables.format || (Array.isArray(variables.format) && variables.format.includes(media.format)) || variables.format === media.format) &&
+            (!variables.format_not || (Array.isArray(variables.format_not) && !variables.format_not.includes(media.format)) || variables.format_not !== media.format) &&
+            (!variables.status || (typeof variables.status === 'string' && variables.status === media.status) || (Array.isArray(variables.status) && variables.status.includes(media.status))) &&
+            (!variables.status_not || (typeof variables.status_not === 'string' && variables.status_not !== media.status) || (Array.isArray(variables.status_not) && !variables.status_not.includes(media.status))) &&
+            (!variables.continueWatching || (media.status === 'FINISHED' || media.mediaListEntry?.progress < media.nextAiringEpisode?.episode - 1))) {
+            return true
           }
-        }
-        return 0
-      }) // no need to handle sorting for this, we implemented sorting (above) for Anilist because Watching and Rewatching are separate lists. This is not the case for MyAnimeList, it uses "is_rewatching" boolean as an indicator instead.
-        .map(({ media }) => (this.isUserSort(variables) ? media : media.id)) : mediaList.filter(({ node }) => {
-        if ((!variables.hideSubs || malDubs.dubLists.value.dubbed.includes(node.id)) &&
-          matchKeys(node, variables.search, ['title', 'alternative_titles.en', 'alternative_titles.ja']) &&
-          (!variables.season || variables.season.toLowerCase() === node.start_season?.season.toLowerCase()) &&
-          (!variables.year || variables.year === node.start_season?.year) &&
-          (!variables.format || (Array.isArray(variables.format) ? (variables.format.includes(node.media_type.toUpperCase()) || (variables.format.includes('TV_SHORT') && (node.media_type.toUpperCase() === 'TV') && (node.average_episode_duration < 1200))) && (!variables.format.includes('TV') || variables.format.includes('TV_SHORT') || (node.average_episode_duration >= 1200)) : ((variables.format === node.media_type.toUpperCase()) || ((variables.format === 'TV_SHORT') && (node.media_type.toUpperCase() === 'TV') && (node.average_episode_duration < 1200))) && ((variables.format !== 'TV') || (variables.format === 'TV_SHORT') || (node.average_episode_duration >= 1200)))) &&
-          (!variables.format_not || (Array.isArray(variables.format_not) ? !((variables.format_not.includes(node.media_type.toUpperCase()) || (variables.format_not.includes('TV_SHORT') && (node.media_type.toUpperCase() === 'TV') && (node.average_episode_duration < 1200))) && (!variables.format_not.includes('TV') || variables.format_not.includes('TV_SHORT') || (node.average_episode_duration >= 1200))) : !(((variables.format_not === node.media_type.toUpperCase()) || ((variables.format_not === 'TV_SHORT') && (node.media_type.toUpperCase() === 'TV') && (node.average_episode_duration < 1200))) && ((variables.format_not !== 'TV') || (variables.format_not === 'TV_SHORT') || (node.average_episode_duration >= 1200))))) &&
-          (!variables.status || (typeof variables.status === 'string' && variables.status === this.airingMap(node.status)) || (Array.isArray(variables.status) && variables.status.includes(this.airingMap(node.status)))) &&
-          (!variables.status_not || (typeof variables.status_not === 'string' && variables.status_not !== this.airingMap(node.status)) || (Array.isArray(variables.status_not) && !variables.status_not.includes(this.airingMap(node.status))))) {
-          // api does not provide airing episode or tags, additionally genres are inaccurate and tags do not exist.
-          return true
-        }
-      }).map(({ node }) => node.id)
-    if (!ids.length) return {}
-    if (this.isUserSort(variables)) {
-      debug(`Handling page media list with user specific sorting ${variables.sort}`)
-      const updatedVariables = { ...variables }
-      delete updatedVariables.sort // delete user sort as you can't sort by user specific sorting on AniList when logged into MyAnimeList.
-      if (!this.isAniAuth()) delete updatedVariables.format // MyAnimeList series format can be different from Anilist, we don't need to include this since we just filtered what is needed above.
-      const startIndex = (perPage * (page - 1))
-      const endIndex = startIndex + perPage
-      const paginatedIds = ids.slice(startIndex, endIndex)
-      const hasNextPage = ids.length > endIndex
-      const idIndexMap = paginatedIds.reduce((map, id, index) => { map[id] = index; return map }, {})
-      return this.isAniAuth() ? {
-        data: {
-          Page: {
-            pageInfo: {
-              hasNextPage: hasNextPage
-            },
-            media: paginatedIds
+        }).sort((a, b) => {
+          if (this.isUserSort(variables)) {
+            switch (variables.sort) {
+              case 'STARTED_ON_DESC':
+                return ((b.media?.mediaListEntry?.startedAt?.year || 0) * 10000 + (b.media?.mediaListEntry?.startedAt?.month || 0) * 100 + (b.media?.mediaListEntry?.startedAt?.day || 0))
+                    - ((a.media?.mediaListEntry?.startedAt?.year || 0) * 10000 + (a.media?.mediaListEntry?.startedAt?.month || 0) * 100 + (a.media?.mediaListEntry?.startedAt?.day || 0))
+              case 'FINISHED_ON_DESC':
+                return ((b.media?.mediaListEntry?.completedAt?.year || 0) * 10000 + (b.media?.mediaListEntry?.completedAt?.month || 0) * 100 + (b.media?.mediaListEntry?.completedAt?.day || 0))
+                    - ((a.media?.mediaListEntry?.completedAt?.year || 0) * 10000 + (a.media?.mediaListEntry?.completedAt?.month || 0) * 100 + (a.media?.mediaListEntry?.completedAt?.day || 0))
+              case 'PROGRESS_DESC':
+                return (b.media?.mediaListEntry?.progress || 0) - (a.media?.mediaListEntry?.progress || 0)
+              case 'USER_SCORE_DESC': // doesn't exist, AniList uses SCORE_DESC for both MediaSort and MediaListSort.
+                return (b.media?.mediaListEntry?.score || 0) - (a.media?.mediaListEntry?.score || 0)
+              case 'UPDATED_TIME_DESC':
+                return (b.media?.mediaListEntry?.updatedAt || 0) - (a.media?.mediaListEntry?.updatedAt || 0)
+            }
           }
-        }
-      } : anilistClient.searchIDS({ page: 1, perPage, idMal: paginatedIds, ...this.sanitiseObject(updatedVariables) }).then(res => {
-        res.data.Page.pageInfo.hasNextPage = hasNextPage
-        res.data.Page.media = res.data.Page.media.sort((a, b) => { return idIndexMap[a.idMal] - idIndexMap[b.idMal] })
-        return res
-      })
-    } else {
-      debug(`Handling page media list with non-specific sorting ${variables.sort}`)
-      return anilistClient.searchIDS({ page, perPage, ...({[this.isAniAuth() ? 'id' : 'idMal']: ids}), ...this.sanitiseObject(variables) }).then(res => {
-        return res
-      })
-    }
+          return 0
+        }) // no need to handle sorting for this, we implemented sorting (above) for Anilist because Watching and Rewatching are separate lists. This is not the case for MyAnimeList, it uses "is_rewatching" boolean as an indicator instead.
+          .map(({ media }) => (this.isUserSort(variables) ? media : media.id)) : mediaList.filter(({ node }) => {
+          if ((!variables.hideSubs || dubLists.dubbed.includes(node.id)) &&
+            matchKeys(node, variables.search, ['title', 'alternative_titles.en', 'alternative_titles.ja']) &&
+            (!variables.season || variables.season.toLowerCase() === node.start_season?.season.toLowerCase()) &&
+            (!variables.year || variables.year === node.start_season?.year) &&
+            (!variables.format || (Array.isArray(variables.format) ? (variables.format.includes(node.media_type.toUpperCase()) || (variables.format.includes('TV_SHORT') && (node.media_type.toUpperCase() === 'TV') && (node.average_episode_duration < 1200))) && (!variables.format.includes('TV') || variables.format.includes('TV_SHORT') || (node.average_episode_duration >= 1200)) : ((variables.format === node.media_type.toUpperCase()) || ((variables.format === 'TV_SHORT') && (node.media_type.toUpperCase() === 'TV') && (node.average_episode_duration < 1200))) && ((variables.format !== 'TV') || (variables.format === 'TV_SHORT') || (node.average_episode_duration >= 1200)))) &&
+            (!variables.format_not || (Array.isArray(variables.format_not) ? !((variables.format_not.includes(node.media_type.toUpperCase()) || (variables.format_not.includes('TV_SHORT') && (node.media_type.toUpperCase() === 'TV') && (node.average_episode_duration < 1200))) && (!variables.format_not.includes('TV') || variables.format_not.includes('TV_SHORT') || (node.average_episode_duration >= 1200))) : !(((variables.format_not === node.media_type.toUpperCase()) || ((variables.format_not === 'TV_SHORT') && (node.media_type.toUpperCase() === 'TV') && (node.average_episode_duration < 1200))) && ((variables.format_not !== 'TV') || (variables.format_not === 'TV_SHORT') || (node.average_episode_duration >= 1200))))) &&
+            (!variables.status || (typeof variables.status === 'string' && variables.status === this.airingMap(node.status)) || (Array.isArray(variables.status) && variables.status.includes(this.airingMap(node.status)))) &&
+            (!variables.status_not || (typeof variables.status_not === 'string' && variables.status_not !== this.airingMap(node.status)) || (Array.isArray(variables.status_not) && !variables.status_not.includes(this.airingMap(node.status))))) {
+            // api does not provide airing episode or tags, additionally genres are inaccurate and tags do not exist.
+            return true
+          }
+        }).map(({ node }) => node.id)
+      if (!ids.length) return {}
+      if (this.isUserSort(variables)) {
+        debug(`Handling page media list with user specific sorting ${variables.sort}`)
+        const updatedVariables = { ...variables }
+        delete updatedVariables.sort // delete user sort as you can't sort by user specific sorting on AniList when logged into MyAnimeList.
+        if (!this.isAniAuth()) delete updatedVariables.format // MyAnimeList series format can be different from Anilist, we don't need to include this since we just filtered what is needed above.
+        const startIndex = (perPage * (page - 1))
+        const endIndex = startIndex + perPage
+        const paginatedIds = ids.slice(startIndex, endIndex)
+        const hasNextPage = ids.length > endIndex
+        const idIndexMap = paginatedIds.reduce((map, id, index) => { map[id] = index; return map }, {})
+        return this.isAniAuth() ? {
+          data: {
+            Page: {
+              pageInfo: {
+                hasNextPage: hasNextPage
+              },
+              media: paginatedIds
+            }
+          }
+        } : anilistClient.searchIDS({ page: 1, perPage, idMal: paginatedIds, ...this.sanitiseObject(updatedVariables) }).then(res => {
+          res.data.Page.pageInfo.hasNextPage = hasNextPage
+          res.data.Page.media = res.data.Page.media.sort((a, b) => { return idIndexMap[a.idMal] - idIndexMap[b.idMal] })
+          return res
+        })
+      } else {
+        debug(`Handling page media list with non-specific sorting ${variables.sort}`)
+        return anilistClient.searchIDS({ page, perPage, ...({[this.isAniAuth() ? 'id' : 'idMal']: ids}), ...this.sanitiseObject(variables) }).then(res => {
+          return res
+        })
+      }
+    })
   }
 }

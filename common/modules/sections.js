@@ -51,14 +51,16 @@ export default class SectionsManager {
 
   static createFallbackLoad (variables, type) {
     return (page = 1, perPage = 50, search = variables) => {
-      const hideSubs = search.hideSubs ? { idMal: malDubs.dubLists.value.dubbed } : {}
-      const res = (search.hideMyAnime && Helper.isAuthorized()) ? Helper.userLists(search).then(res => {
-        if (!res?.data && res?.errors) throw res.errors[0]
-        // anilist queries do not support mix and match, you have to use the same id includes as excludes, id_not_in cannot be used with idMal_in.
-        const hideMyAnime = Helper.isAniAuth() ? { [Object.keys(hideSubs).length > 0 ? 'idMal_not' : 'id_not']: Array.from(new Set(res.data.MediaListCollection.lists.filter(({ status }) => search.hideStatus.includes(status)).flatMap(list => list.entries.map(({ media }) => (Object.keys(hideSubs).length > 0 ? media.idMal : media.id))))) }
-              : {idMal_not: res.data.MediaList.filter(({ node }) => search.hideStatus.includes(Helper.statusMap(node.my_list_status.status))).map(({ node }) => node.id)}
-        return anilistClient.search({ page, perPage, ...hideSubs, ...hideMyAnime, ...SectionsManager.sanitiseObject(search) })
-      }) : anilistClient.search({ page, perPage, ...hideSubs, ...SectionsManager.sanitiseObject(search) })
+      const res = (search.hideSubs ? malDubs.dubLists.value : Promise.resolve()).then(dubLists => {
+        const hideSubs = search.hideSubs ? { idMal: dubLists?.dubbed } : {}
+        return (search.hideMyAnime && Helper.isAuthorized()) ? Helper.userLists(search).then(_res => {
+          if (!_res?.data && _res?.errors) throw _res.errors[0]
+          // anilist queries do not support mix and match, you have to use the same id includes as excludes, id_not_in cannot be used with idMal_in.
+          const hideMyAnime = Helper.isAniAuth() ? { [Object.keys(hideSubs).length > 0 ? 'idMal_not' : 'id_not']: Array.from(new Set(_res.data.MediaListCollection.lists.filter(({ status }) => search.hideStatus.includes(status)).flatMap(list => list.entries.map(({ media }) => (Object.keys(hideSubs).length > 0 ? media.idMal : media.id))))) }
+                : {idMal_not: _res.data.MediaList.filter(({ node }) => search.hideStatus.includes(Helper.statusMap(node.my_list_status.status))).map(({ node }) => node.id)}
+          return anilistClient.search({ page, perPage, ...hideSubs, ...hideMyAnime, ...SectionsManager.sanitiseObject(search) })
+        }) : anilistClient.search({ page, perPage, ...hideSubs, ...SectionsManager.sanitiseObject(search) })
+      })
       return SectionsManager.wrapResponse(res, perPage, type)
     }
   }
