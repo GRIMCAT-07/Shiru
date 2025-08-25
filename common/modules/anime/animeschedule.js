@@ -245,7 +245,7 @@ class AnimeSchedule {
         let res = (await this[`${type.toLowerCase()}AiredLists`].value) || []
         const section = settings.value.homeSections.find(s => s[0] === `${type}${type === `Hentai` ? `` : `bed`} Releases`)
         if (section && section[2].length > 0) res = res.filter(episode => section[2].includes(episode.format) && (section[2].includes('TV_SHORT') || !episode.duration || (episode.duration >= 12)))
-        const filteredRes = await Promise.all(res.map(async episode => !settings.value.preferDubs || !(await malDubs.isDubMedia(episode)) || (type === 'Dub' ? !(await isSubbedProgress(mediaCache.value[episode.id])) : (await isSubbedProgress(mediaCache.value[episode.id])))))
+        const filteredRes = await Promise.all(res.map(async episode => !settings.value.preferDubs || !(await malDubs.isDubMedia(episode)) || !mediaCache.value[episode.id] || (type === 'Dub' ? !(await isSubbedProgress(mediaCache.value[episode.id])) : (await isSubbedProgress(mediaCache.value[episode.id])))))
         res = res.filter((_, index) => filteredRes[index])
         const cachedAiredLists = this[`${type.toLowerCase()}AiredListsCache`].value[`${page}-${perPage}`]
         const paginatedLists = res.slice((page - 1) * perPage, page * perPage) || []

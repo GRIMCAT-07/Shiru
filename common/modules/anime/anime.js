@@ -792,6 +792,7 @@ export function nextAiring(nodes, variables) {
 export async function isSubbedProgress(media) {
   if (!media) return true
   if (media.status === 'NOT_YET_RELEASED') return false
+  await Helper.getClient().userLists.value
   const progress = (media.mediaListEntry?.progress ?? media.my_list_status?.num_episodes_watched ?? 0)
   if (progress === 0) return false
   const dubbedEpisodes = (await animeSchedule.dubAiringLists.value)?.find(entry => entry?.media?.media?.id === media.id || entry?.media?.media?.idMal === media.idMal)?.media?.media?.airingSchedule?.nodes
