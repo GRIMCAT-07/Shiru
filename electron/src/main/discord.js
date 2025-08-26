@@ -42,40 +42,38 @@ export default class Discord {
     ipcMain.on('discord-rpc', (event, data) => {
       if (this.enableRPC !== data) {
         this.enableRPC = data
-        if (data !== 'disabled' && !this.discord?.user) {
-          this.loginRPC()
-        } else {
-          this.logoutRPC()
+        if (data !== 'disabled') {
+          if (!this.discord?.user) this.loginRPC()
+          else this.debouncedDiscordRPC(this.enableRPC === 'full' ? this.cachedPresence : undefined)
+        } else if (this.discord?.user) {
+          this.debouncedDiscordRPC(undefined, true)
         }
       }
     })
 
-    ipcMain.on('discord-hidden', () => this.debouncedDiscordRPC(undefined, true))
+    ipcMain.on('discord-clear', () => this.debouncedDiscordRPC(undefined, true))
 
     this.discord.on('ready', async () => {
-      this.setDiscordRPC(this.cachedPresence || this.defaultStatus)
+      this.setDiscordRPC(this.enableRPC === 'full' ? this.cachedPresence : undefined)
       this.discord.subscribe('ACTIVITY_JOIN_REQUEST')
       this.discord.subscribe('ACTIVITY_JOIN')
       this.discord.subscribe('ACTIVITY_SPECTATE')
     })
 
-    this.discord.on('ACTIVITY_JOIN', ({ secret }) => window.webContents.send('w2glink', secret))
+    this.discord.on('disconnected', () => { if (this.enableRPC !== 'disabled') this.loginRPC() })
 
-    this.debouncedDiscordRPC = debounce((status, logout) => logout ? this.logoutRPC() : this.setDiscordRPC(status), 4500)
+    this.discord.on('ACTIVITY_JOIN', ({ secret }) => window.webContents.send('w2glink', secret))
+    this.debouncedDiscordRPC = debounce((status, clearActivity) => this.setDiscordRPC(status, clearActivity), 4500)
   }
 
   loginRPC () {
-    this.discord.login().catch(() => setTimeout(() => this.loginRPC(), 5000).unref())
+    this.discord.login().catch(() => setTimeout(() => this.loginRPC(), 5_000).unref?.())
   }
 
-  logoutRPC () {
-    if (this.discord?.user) {
-      setTimeout(() => this.discord.user.clearActivity(process.pid), 500).unref()
-    }
-  }
-
-  setDiscordRPC (data = this.defaultStatus) {
-    if (this.discord.user && data && this.enableRPC !== 'disabled') {
+  setDiscordRPC (data = this.defaultStatus, clearActivity = false) {
+    if (clearActivity) {
+      if (this.discord?.user) this.discord.user.clearActivity(process.pid)
+    } else if (this.discord.user && data && this.enableRPC !== 'disabled') {
       data.pid = process.pid
       this.discord.request('SET_ACTIVITY', data)
     }

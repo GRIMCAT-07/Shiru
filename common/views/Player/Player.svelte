@@ -1335,7 +1335,7 @@
   function setDiscordRPC (np = media, browsing) {
     if ((!np || Object.keys(np).length === 0) && !browsing) return
     if (hidden) {
-      IPC.emit('discord-hidden')
+      IPC.emit('discord-clear')
       return
     }
     let activity
