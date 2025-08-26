@@ -306,7 +306,7 @@
                   <div class='font-size-12 overflow-hidden line-4' class:summary={unreleased} class:font-weight-bold={unreleased}>
                     {summary || ''}
                   </div>
-                  <div class='font-size-12 mt-auto' class:pt-10={dubAiring} class:pt-15={!dubAiring} class:mb-5={dubAiring} class:mb-10={!dubAiring}>
+                  <div class='font-size-12 mt-auto' class:pt-10-5={dubAiring} class:pt-15-5={!dubAiring} class:mb-5={dubAiring} class:mb-10={!dubAiring}>
                     {#if dubAiring}
                       <div class='d-flex flex-row date-row'>
                         <div class='mr-5 py-5 px-10 text-dark text-nowrap rounded-top rounded-left font-weight-bold' class:lg-label={image} class:bg-danger={dubAiring.delayed} class:bg-dubbed={!dubAiring.delayed}>
@@ -342,6 +342,12 @@
 </div>
 
 <style>
+  .pt-10-5 {
+    padding-top: 1.05rem !important;
+  }
+  .pt-15-5 {
+    padding-top: 1.55rem !important;
+  }
   .unreleased {
     filter: blur(.06rem) grayscale(50%);
   }
