@@ -1,10 +1,8 @@
 <p align="center">
 	<a href="https://github.com/RockinChaos/Shiru">
-		<img src="./docs/assets/logo_filled.svg" width="200" alt="Shiru">
+		<img src="./docs/assets/logo_filled.svg" width="400" alt="Shiru">
 	</a>
 </p>
-<h1 align="center"><b>Shiru</b></h1>
-
 <h4 align="center"><b>BitTorrent streaming software with no paws in the way—watch anime in real-time, no waiting for downloads!</b></h4>
 <p align="center">
   <i>🐾 The ultimate torrent-based anime player — lightweight, powerful, and paws-itively fast 🐾</i>

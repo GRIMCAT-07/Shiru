@@ -9,7 +9,7 @@ export default class Discord {
       details: 'Streaming anime instantly',
       state: 'Enjoying an anime episode...',
       assets: {
-        large_image: 'en_logo',
+        large_image: 'icon',
         large_text: 'https://github.com/RockinChaos/Shiru',
         small_image: 'sail',
         small_text: 'Watching anime on Shiru'

@@ -17,13 +17,13 @@ import Debug from './debugger.js'
 
 export default class App {
   logo = process.platform === 'win32'
-      ? join(__dirname, '/logo_filled.ico')  // Windows
-      : join(__dirname, '/logo_filled.png')  // macOS & Linux
+      ? join(__dirname, '/icon_filled.ico')  // Windows
+      : join(__dirname, '/icon_filled.png')  // macOS & Linux
   trayLogo = process.platform === 'win32'
-      ? join(__dirname, '/logo_filled.ico')  // Windows
+      ? join(__dirname, '/icon_filled.ico')  // Windows
       : process.platform === 'darwin'
-      ? join(__dirname, '/tray_logo_filled.png') // macOS
-      : join(__dirname, '/logo_filled.png')  // Linux
+      ? join(__dirname, '/tray_icon_filled.png') // macOS
+      : join(__dirname, '/icon_filled.png')  // Linux
 
   torrentLoad = null
   webtorrentWindow = this.makeWebTorrentWindow()
@@ -155,7 +155,7 @@ export default class App {
     this.mainWindow.webContents.on('render-process-gone', async (e, { reason }) => {
       if (reason === 'crashed') {
         if (++crashcount > 10) {
-          await dialog.showMessageBox({ message: 'Crashed too many times.', title: 'Shiru', detail: 'App crashed too many times. For a fix visit https://github.com/RockinChaos/Shiru/wiki/faq/', icon: '/renderer/public/logo_filled.png' })
+          await dialog.showMessageBox({ message: 'Crashed too many times.', title: 'Shiru', detail: 'App crashed too many times. For a fix visit https://github.com/RockinChaos/Shiru/wiki/faq/', icon: '/renderer/public/icon_filled.png' })
           shell.openExternal('https://github.com/RockinChaos/Shiru/wiki/faq/')
         } else {
           app.relaunch()
@@ -337,7 +337,7 @@ export default class App {
       this.tray.setImage(baseIcon)
       this.mainWindow.setOverlayIcon(null, '')
     } else {
-      const badgePath = join(__dirname, `/logo_filled_notify_${this.notificationCount < 10 ? this.notificationCount : `filled`}.png`)
+      const badgePath = join(__dirname, `/icon_filled_notify_${this.notificationCount < 10 ? this.notificationCount : `filled`}.png`)
       this.mainWindow.setOverlayIcon(badgePath, `${this.notificationCount} Unread Notifications`)
 
       const baseSize = baseIcon.getSize()

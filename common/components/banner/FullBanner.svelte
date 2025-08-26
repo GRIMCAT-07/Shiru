@@ -59,7 +59,7 @@
 {/key}
 <div class='gradient-bottom z--1 h-full position-absolute top-0 w-full' />
 <div class='gradient-left z--1 h-full position-absolute top-0 w-800' />
-<img src='./logo_filled.png' class='position-absolute z--1 m-10 p-0 {SUPPORTS.isAndroid || window.version?.platform === `darwin` ? `right-0 mr-20 ${!SUPPORTS.isAndroid ? `d-md-none` : ``}` : `left-0 ml-20 d-md-none`}' style='width: 6rem; height: 6rem' alt='ico' />
+<img src='./icon_filled.png' class='position-absolute z--1 m-10 p-0 {SUPPORTS.isAndroid || window.version?.platform === `darwin` ? `right-0 mr-20 ${!SUPPORTS.isAndroid ? `d-md-none` : ``}` : `left-0 ml-20 d-md-none`}' style='width: 6rem; height: 6rem' alt='ico' />
 <div class='pl-20 pb-20 justify-content-end d-flex flex-column h-full banner mw-full grab' use:drag={swipeMedia}>
   <div class='text-white font-weight-bold font-scale-40'>
     <span class='default-cursor title overflow-hidden d-inline-block pr-5'>{anilistClient.title(currentStatic)}</span>

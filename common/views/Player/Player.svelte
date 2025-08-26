@@ -1388,7 +1388,7 @@
         details: 'Streaming anime instantly',
         state: 'Exploring the anime library...',
         assets: {
-          large_image: 'en_logo',
+          large_image: 'icon',
           large_text: 'https://github.com/RockinChaos/Shiru',
           small_image: 'searching',
           small_text: 'Browsing anime on Shiru',
