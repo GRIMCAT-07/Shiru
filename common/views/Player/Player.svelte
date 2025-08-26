@@ -92,7 +92,8 @@
   let playbackRate = 1
   let externalPlayerReady = false
   $: cache.setEntry(caches.GENERAL, 'volume', String(volume || 0))
-  $: safeduration = (isFinite(duration) ? duration : currentTime) || 0
+  $: externalPlayback = settings.value.enableExternal && (SUPPORTS.isAndroid || settings.value.playerPath)
+  $: safeduration = externalPlayback ? ((current?.media?.media?.duration || (current?.media?.media?.format && durationMap[current?.media?.media?.format]) || 24) * 60) : (isFinite(duration) ? duration : currentTime)
   $: {
     if (hidden) setDiscordRPC(media, video?.currentTime)
     else setDiscordRPC(media, (paused && (page !== 'player')))
@@ -236,9 +237,9 @@
   }
   $: loadDeband($settings.playerDeband, video)
 
-  let watchedListener
-
+  let externalReadyListener
   async function handleCurrent (file) {
+    externalPlayerReady = false
     if (file) {
       if (thumbnailData.video?.src) URL.revokeObjectURL(video?.src)
       Object.assign(thumbnailData, {
@@ -257,21 +258,26 @@
         subs = null
       }
       current = file
-      if (!settings.value.enableExternal) {
+      if (!externalPlayback) {
         src = file.url
         subs = new Subtitles(video, files, current, handleHeaders)
         video.load()
         await loadAnimeProgress()
-      } else if (current.media?.media?.duration || durationMap[current.media?.media?.format]) {
-        const duration = current.media?.media?.duration || durationMap[current.media?.media?.format]
-        WPC.clear('externalWatched', watchedListener)
-        watchedListener = (detail) => {
-          externalPlayerReady = true
-          checkCompletionByTime(detail, duration * 60)
-        }
-        WPC.listen('externalWatched', watchedListener)
       }
       emit('current', current)
+      if (externalPlayback) {
+        showBuffering()
+        WPC.clear('externalReady', externalReadyListener)
+        externalReadyListener = () => {
+          hideBuffering()
+          externalPlayerReady = true
+          setTimeout(() => {
+            if (settings.value.playerAutoplay && externalPlayerReady) autoPlay()
+            else if (externalPlayerReady) promptFiller()
+          }, 1_500)
+        }
+        WPC.listen('externalReady', externalReadyListener)
+      }
       WPC.send('current', { current: file, external: settings.value.enableExternal })
     }
   }
@@ -340,6 +346,7 @@
   $: pagePause(page, playPage, overlay)
   let pagePaused = 0
   function pagePause(page, _playPage, overlay) {
+    if (externalPlayback) return
     if (buffer === 0 && pagePaused) {
       pagePaused = 1
       return
@@ -368,21 +375,37 @@
     }
     if (!pagePaused) pagePaused = 1
   }
-  async function autoPlay () {
+  async function promptFiller () {
     emit('duration', { current, duration })
     const fillerEpisode = await episodesList.getSingleEpisode(media?.media?.idMal, media?.episode)
     filler = fillerEpisode?.filler && 'Filler'
     recap = fillerEpisode?.recap && 'Recap'
     resolvePrompt = current?.failed || current?.media?.failed || current?.parseObject?.failed
     skipPrompt = filler || recap
-    if ((((page === 'player') && (!overlay || overlay.length === 0)) || pip) && !resolvePrompt && !skipPrompt) {
-      video.play()
-      resetImmerse()
-      setTimeout(() => subs?.renderer?.resize(), 200) // stupid fix because video metadata doesn't update for multiple frames
-    } else video.pause()
   }
+  async function autoPlay () {
+    await promptFiller()
+    if ((((page === 'player') && (!overlay || overlay.length === 0)) || pip) && !resolvePrompt && !skipPrompt) {
+      if (externalPlayback) playPause()
+      else {
+        video.play()
+        resetImmerse()
+        setTimeout(() => subs?.renderer?.resize(), 200) // stupid fix because video metadata doesn't update for multiple frames
+      }
+    } else if (!externalPlayback) video.pause()
+  }
+
+  let watchedListener
   function playPause () {
-    paused = !paused
+    if (externalPlayback) {
+      const duration = current.media?.media?.duration || durationMap[current.media?.media?.format]
+      if (duration) {
+        WPC.clear('externalWatched', watchedListener)
+        watchedListener = (detail) => checkCompletionByTime(detail, duration * 60)
+        WPC.listen('externalWatched', watchedListener)
+      }
+      WPC.send('externalPlay', { current })
+    } else paused = !paused
     resetImmerse()
     setTimeout(() => subs?.renderer?.resize(), 200) // stupid fix because video metadata doesn't update for multiple frames
   }
@@ -456,7 +479,7 @@
     muted = !muted
   }
   function toggleFullscreen () {
-    document.fullscreenElement ? document.exitFullscreen() : document.querySelector('.content-wrapper').requestFullscreen()
+    if (!externalPlayback) document.fullscreenElement ? document.exitFullscreen() : document.querySelector('.content-wrapper').requestFullscreen()
   }
   function skip () {
     const current = findChapter(currentTime)
@@ -480,6 +503,7 @@
     video.currentTime = targetTime
   }
   function seek (time) {
+    if (externalPlayback) return
     currentTime = currentTime + time
     targetTime = currentTime
     video.currentTime = targetTime
@@ -516,7 +540,7 @@
   //   }
   // }
   async function screenshot () {
-    if ('clipboard' in navigator) {
+    if ('clipboard' in navigator && video.readyState) {
       const canvas = document.createElement('canvas')
       const context = canvas.getContext('2d')
       canvas.width = video.videoWidth
@@ -774,21 +798,21 @@
       desc: 'Volume Down'
     },
     BracketLeft: {
-      fn: () => !viewAnime && (playbackRate = video.defaultPlaybackRate -= 0.1),
+      fn: () => !viewAnime && !externalPlayback && (playbackRate = video.defaultPlaybackRate -= 0.1),
       id: 'history',
       icon: RotateCcw,
       type: 'icon',
       desc: 'Decrease Playback Rate'
     },
     BracketRight: {
-      fn: () => !viewAnime && (playbackRate = video.defaultPlaybackRate += 0.1),
+      fn: () => !viewAnime && !externalPlayback && (playbackRate = video.defaultPlaybackRate += 0.1),
       id: 'update',
       icon: RotateCw,
       type: 'icon',
       desc: 'Increase Playback Rate'
     },
     Backslash: {
-      fn: () => !viewAnime && (playbackRate = video.defaultPlaybackRate = 1),
+      fn: () => !viewAnime && !externalPlayback && (playbackRate = video.defaultPlaybackRate = 1),
       icon: RefreshCcw,
       id: 'schedule',
       type: 'icon',
@@ -1258,6 +1282,7 @@
       const _media = media.episodeRange ? structuredClone(media) : media
       if (media.episodeRange) _media.episode = media.episodeRange.last
       Helper.updateEntry(_media)
+      if (externalPlayback) tryPlayNext()
     }
   }
   const torrent = {}
@@ -1414,7 +1439,7 @@
   class:miniplayer
   class:pip
   class:immersed={immersed}
-  class:buffering={src && buffering}
+  class:buffering={(src || externalPlayback) && buffering}
   class:fitWidth
   bind:this={container}
   role='none'
@@ -1645,7 +1670,7 @@
           <SkipForward size='2rem' fill='white' />
         </span>
       {/if}
-      <div class='d-flex w-auto volume'>
+      <div class='d-none w-auto volume' class:d-flex={!externalPlayback}>
         <span class='icon ctrl m-5' title='Mute [M]' data-name='toggleMute' use:click={toggleMute}>
           {#if muted}
             <VolumeX size='2rem' fill='white' />
@@ -1671,11 +1696,11 @@
       <input type='file' class='d-none' id='search-subtitle' accept='.srt,.vtt,.ass,.ssa,.sub,.txt' on:input|preventDefault|stopPropagation={handleFile} bind:this={fileInput}/>
       <div class='dropdown dropleft with-arrow' use:click={() => {showOptions.set(!$showOptions)}}>
         <span class='icon ctrl d-flex align-items-center h-full' title='More'><EllipsisVertical size='2.5rem' strokeWidth={2.5} /></span>
-        <div class='position-absolute hm-40 text-capitalize text-nowrap bg-dark rounded dr-arrow' style='margin-top: -17.5rem !important; margin-left: -11.4rem !important; transition: opacity 0.1s ease-in;' class:hidden={!$showOptions}>
-          <div role='button' aria-label='Add External Subtitles' class='pointer d-flex align-items-center justify-content-center font-size-16 bd-highlight py-5 px-10 rounded-top option' title='Add External Subtitles' use:click={() => { fileInput.click(); showOptions.set(false); }}>
+        <div class='position-absolute hm-40 text-capitalize text-nowrap bg-dark rounded dr-arrow' style='margin-top: {(externalPlayback ? -10.3 : -17.5)}rem !important; margin-left: {(externalPlayback ? -9.6 : -11.4)}rem !important; transition: opacity 0.1s ease-in;' class:hidden={!$showOptions}>
+          <div role='button' aria-label='Add External Subtitles' class='pointer d-none align-items-center justify-content-center font-size-16 bd-highlight py-5 px-10 rounded-top option' class:d-flex={!externalPlayback} title='Add External Subtitles' use:click={() => { fileInput.click(); showOptions.set(false); }}>
             <FilePlus2 size='2rem' strokeWidth={2.5} /> <div class='ml-10'>Add Subtitles</div>
           </div>
-          <div class='dropdown dropleft with-arrow pointer bg-dark option font-size-16 bd-highlight'>
+          <div class='dropdown dropleft with-arrow pointer bg-dark option font-size-16 bd-highlight' class:d-none={externalPlayback}>
             <div role='button' class='d-flex align-items-center justify-content-center py-5 px-10' aria-label='Change the Source of the Video Chapters' title='Change the Source of the Video Chapters' use:click={toggleDropdown}><Milestone size='2rem' strokeWidth={2.5}  /><span class='ml-10'>Chapter Source</span></div>
             <div class='dropdown-menu dropdown-menu-right text-capitalize text-nowrap rounded'>
               <div class='custom-radio overflow-hidden pt-5 pl-5'>
@@ -1686,7 +1711,7 @@
               </div>
             </div>
           </div>
-          <div role='button' aria-label='Modify Existing Files or Change to a New File' class='pointer d-flex align-items-center justify-content-center font-size-16 bd-highlight py-5 px-10 rounded-bottom option' title='Modify Existing Files or Change to a New File' use:click={() => { resolvePrompt = false; $managerView = !$managerView; showOptions.set(false); }}>
+          <div role='button' aria-label='Modify Existing Files or Change to a New File' class='pointer d-flex align-items-center justify-content-center font-size-16 bd-highlight py-5 px-10 rounded-bottom option' class:rounded-top={externalPlayback} title='Modify Existing Files or Change to a New File' use:click={() => { resolvePrompt = false; $managerView = !$managerView; showOptions.set(false); }}>
             <SquarePen size='2rem' strokeWidth={2.5} /> <div class='ml-10'>File Manager</div>
           </div>
         </div>
@@ -1774,7 +1799,7 @@
       <!--  </span>-->
       <!--{/if}-->
       {#if 'pictureInPictureEnabled' in document}
-        <span class='icon ctrl mr-5 d-flex align-items-center' title='Popout Window [P]' data-name='togglePopout' use:click={togglePopout}>
+        <span class='icon ctrl mr-5 d-none align-items-center' class:d-flex={!externalPlayback} title='Popout Window [P]' data-name='togglePopout' use:click={togglePopout}>
           {#if pip}
             <PictureInPicture size='2.5rem' strokeWidth={2.5} />
           {:else}
@@ -1782,7 +1807,7 @@
           {/if}
         </span>
       {/if}
-      <span class='icon ctrl mr-5 d-flex align-items-center' title='Fullscreen [F]' data-name='toggleFullscreen' use:click={toggleFullscreen}>
+      <span class='icon ctrl mr-5 d-none align-items-center' class:d-flex={!externalPlayback} title='Fullscreen [F]' data-name='toggleFullscreen' use:click={toggleFullscreen}>
         {#if isFullscreen}
           <Minimize size='2.5rem' strokeWidth={2.5} />
         {:else}

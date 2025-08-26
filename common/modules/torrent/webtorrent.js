@@ -505,33 +505,40 @@ export default class TorrentClient extends WebTorrent {
           }
           torrent.current = true
           this.bumpTorrent(torrent)
-          if (data.data.external) {
-            const startTime = Date.now()
-            if (this.player) {
-              this.playerProcess = spawn(this.player, ['' + new URL('http://localhost:' + this.server.address().port + encodeStreamURL(found.streamURL))])
-              this.playerProcess.stdout.on('data', () => {})
-              this.playerProcess.once('close', () => {
-                if (this.destroyed) return
-                this.playerProcess = null
-                const seconds = (Date.now() - startTime) / 1000
-                this.dispatch('externalWatched', seconds)
-              })
-              return
-            }
-            if (SUPPORTS.isAndroid) {
-              this.dispatch('open', `intent://localhost:${this.server.address().port}${encodeStreamURL(found.streamURL)}#Intent;type=video/any;scheme=http;end;`)
-              this.ipc.send('external-open')
-              this.ipc.once('external-close', () => {
-                if (this.destroyed) return
-                const seconds = (Date.now() - startTime) / 1000
-                this.dispatch('externalWatched', seconds)
-              })
-              return
-            }
-          }
-          this.parser = new Parser(this, found)
-          this.findSubtitleFiles(found)
-          this.findFontFiles(found)
+          if (!(data.data.external && (SUPPORTS.isAndroid || this.player))) {
+            this.parser = new Parser(this, found)
+            this.findSubtitleFiles(found)
+            this.findFontFiles(found)
+          } else this.dispatch('externalReady')
+        }
+        break
+      } case 'externalPlay': {
+        const startTime = Date.now()
+        const found = this.torrents.find(_torrent => _torrent.current)?.files?.find(file => file.path === data.data.current.path)
+        if (!found) return
+        this.ipc.removeAllListeners('external-close')
+        if (this.playerProcess) {
+          this.playerProcess.removeAllListeners('close')
+          this.playerProcess.kill()
+          this.playerProcess = null
+        }
+        if (this.player) {
+          this.playerProcess = spawn(this.player, ['' + new URL('http://localhost:' + this.server.address().port + encodeStreamURL(found.streamURL))])
+          this.playerProcess.stdout.on('data', () => {})
+          this.playerProcess.once('close', () => {
+            if (this.destroyed) return
+            this.playerProcess = null
+            const seconds = (Date.now() - startTime) / 1000
+            this.dispatch('externalWatched', seconds)
+          })
+        } else if (SUPPORTS.isAndroid) {
+          this.dispatch('open', `intent://localhost:${this.server.address().port}${encodeStreamURL(found.streamURL)}#Intent;type=video/any;scheme=http;end;`)
+          this.ipc.send('external-open')
+          this.ipc.once('external-close', () => {
+            if (this.destroyed) return
+            const seconds = (Date.now() - startTime) / 1000
+            this.dispatch('externalWatched', seconds)
+          })
         }
         break
       } case 'torrent': {
