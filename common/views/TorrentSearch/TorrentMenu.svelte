@@ -213,7 +213,6 @@
   function play (result) {
     $currentMedia = search
     $currentMedia.accuracy = result.accuracy
-    if (!isNaN(result.seeders) && result.seeders < 10) toast('Availability Warning', { description: 'This release is poorly seeded and likely will have playback issues such as buffering!' })
     const existingMagnets = cache.getEntry(caches.HISTORY, 'lastMagnet') || {}
     cache.setEntry(caches.HISTORY, 'lastMagnet', { ...existingMagnets, [search?.media?.id]: !result.parseObject?.episode_number || Array.isArray(result.parseObject.episode_number) ? { [`batch`]: result } : { ...(existingMagnets[search?.media?.id] || {}), [`${search.episode}`]: result } })
     add(result.link, { media: search?.media, episode: search?.episode }, result.hash)

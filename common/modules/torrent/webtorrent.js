@@ -261,7 +261,8 @@ export default class TorrentClient extends WebTorrent {
     this.bumpTorrent(torrent)
     setTimeout(() => {
       if (!this.destroyed && !torrent.destroyed && torrent.current && !torrent.progress && !torrent.ready && torrent.numPeers === 0 && this.networking !== 'offline') this.dispatchError('No peers found for torrent, try using a different torrent.')
-    }, 30000).unref?.()
+      else if (!this.destroyed && !torrent.destroyed && torrent.current && torrent.progress < .95 && !isNaN(torrent.seeders) && torrent.seeders < 5 && !isNaN(torrent.numPeers) && torrent.numPeers < 25 && this.networking !== 'offline') this.dispatch('info', 'Availability Warning! This release is poorly seeded and likely will have playback issues such as buffering!')
+    }, 30_000).unref?.()
     torrent.once('metadata', () => {
       if (!rescan && torrent.staging && torrent.progress < 1 && !cache?.infoHash) this.dispatch('info', 'Torrent queued for background download. Check the management page for progress...')
     })
