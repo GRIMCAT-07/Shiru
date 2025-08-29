@@ -42,7 +42,7 @@ class AnimeSchedule {
         setTimeout(() => {
             this.findNewNotifications()
             this.findNewDelayedEpisodes()
-        }, 3_000)
+        }, 3_000).unref?.()
 
         /**
          * Schedule the next manifest and feed update check.

@@ -56,7 +56,7 @@
   window.addEventListener('notification-reset', () => { notifications.set([]); incomingNotifications.length = 0 })
 
   const incomingNotifications = []
-  const debounceNotification = debounce(processNotifications, 10_000)
+  const debounceNotification = debounce(processNotifications, 15_000)
   function queueNotification(detail, systemNotify = false) {
     incomingNotifications.push({ detail, systemNotify })
     debounceNotification()

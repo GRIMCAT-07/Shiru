@@ -1,4 +1,4 @@
-import { codes, DOMPARSER, getRandomInt, countdown } from '@/modules/util.js'
+import { codes, DOMPARSER, getRandomInt, countdown, sleep } from '@/modules/util.js'
 import { printError } from '@/modules/networking.js'
 import { anilistClient } from '@/modules/anilist.js'
 import _anitomyscript from 'anitomyscript'
@@ -12,6 +12,7 @@ import { settings } from '@/modules/settings.js'
 import { cache, caches } from '@/modules/cache.js'
 import { status } from '@/modules/networking.js'
 import Helper from '@/modules/helper.js'
+import Bottleneck from 'bottleneck'
 import { Drama, BookHeart, MountainSnow, Laugh, Adult, Droplets, FlaskConical, Ghost, Skull, HeartPulse, Volleyball, Car, Brain, Footprints, Guitar, Bot, Sparkles, WandSparkles, Activity } from 'lucide-svelte'
 import Debug from 'debug'
 const debug = Debug('ui:anime')
@@ -803,7 +804,7 @@ export async function isSubbedProgress(media) {
 }
 
 const concurrentRequests = new Map()
-export async function getKitsuMappings(anilistID) {
+export async function getKitsuMappings(anilistID) { // TODO: Likely need to make this the primary mappings over ani mappings as there appears to be zero rate limit or concurrency limit when testing.
   if (!anilistID) return
   const cachedEntry = cache.cachedEntry(caches.MAPPINGS, `kitsu-${anilistID}`, status.value === 'offline')
   if (cachedEntry) return cachedEntry
@@ -851,13 +852,34 @@ export async function getKitsuMappings(anilistID) {
   return requestPromise
 }
 
+let aniRateLimitPromise = null
+const aniLimiter = new Bottleneck({
+  reservoir: 200,
+  reservoirRefreshAmount: 200,
+  reservoirRefreshInterval: 30_000,
+  maxConcurrent: 15,
+  minTime: 80
+})
+aniLimiter.on('failed', async (error) => {
+  if (status.value === 'offline') throw new Error('Failed making request to api.ani.zip, network is offline... not retrying')
+  if (error.status === 500) return 1
+  if (!error.statusText) {
+    if (!aniRateLimitPromise) aniRateLimitPromise = sleep(10 * 1000).then(() => { aniRateLimitPromise = null })
+    return 10 * 1000
+  }
+  const time = (Number((error.headers.get('retry-after') || 10)) + 1) * 1000
+  if (!aniRateLimitPromise) aniRateLimitPromise = sleep(time).then(() => { aniRateLimitPromise = null })
+  return time
+})
+
 export async function getAniMappings(anilistID) {
   if (!anilistID) return
   const cachedEntry = cache.cachedEntry(caches.MAPPINGS, `ani-${anilistID}`, status.value === 'offline')
   if (cachedEntry) return cachedEntry
   else if (status.value === 'offline') return
   if (concurrentRequests.has(`ani-${anilistID}`)) return concurrentRequests.get(`ani-${anilistID}`)
-  const requestPromise = (async () => {
+  const requestPromise = aniLimiter.wrap(async () => {
+    await aniRateLimitPromise
     try {
       let res = {}
       try {
