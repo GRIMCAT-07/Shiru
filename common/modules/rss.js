@@ -10,7 +10,6 @@ import { hasNextPage } from '@/modules/sections.js'
 import { malDubs } from '@/modules/anime/animedubs.js'
 import { episodesList } from '@/modules/episodes.js'
 import { getId } from '@/modules/anime/animehash.js'
-import IPC from '@/modules/ipc.js'
 import Debug from 'debug'
 const debug = Debug('ui:rss')
 

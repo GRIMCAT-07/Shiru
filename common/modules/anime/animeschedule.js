@@ -6,10 +6,10 @@ import { settings } from '@/modules/settings.js'
 import { cache, caches, mediaCache } from '@/modules/cache.js'
 import { getEpisodeMetadataForMedia, isSubbedProgress } from '@/modules/anime/anime.js'
 import { hasNextPage } from '@/modules/sections.js'
-import { getRandomInt } from '@/modules/util.js'
 import { printError } from '@/modules/networking.js'
 import Helper from '@/modules/helper.js'
-import IPC from '@/modules/ipc.js'
+import equal from 'fast-deep-equal/es6'
+import WPC from '@/modules/wpc.js'
 import Debug from 'debug'
 const debug = Debug('ui:animeschedule')
 
@@ -18,6 +18,8 @@ const debug = Debug('ui:animeschedule')
  * Handles periodic fetching of the dub airing schedule which is based on timetables from animeschedule.net tokenized api access and the sub/hentai schedule from AniChart.
  */
 class AnimeSchedule {
+    jitter = 27_000 + Math.random() * (60_000 - 27_000)
+    lastUpdated = writable()
     subAiring = writable([])
     dubAiring = writable([])
     subAiringLists = writable(Promise.resolve([]))
@@ -30,41 +32,74 @@ class AnimeSchedule {
     hentaiAiredListsCache = writable({})
 
     constructor() {
-        this.subAiringLists.value = this.feedChanged('sub', true)
-        this.dubAiringLists.value = this.feedChanged('dub', true)
+        this.lastUpdated.value = cache.cachedEntry(caches.RSS, 'anischedule-manifest', true)?.then(value => value || {}) || {}
+        this.subAiringLists.value = this.feedFromManifest('sub', true)
+        this.dubAiringLists.value = this.feedFromManifest('dub', true)
+        this.subAiredLists.value = this.feedFromManifest('sub')
+        this.dubAiredLists.value = this.feedFromManifest('dub')
+        this.hentaiAiredLists.value = this.feedFromManifest('hentai')
+
         setTimeout(() => {
             this.findNewNotifications()
             this.findNewDelayedEpisodes()
-        }, 3000)
+        }, 3_000)
 
-        //  update airingLists every 30 mins
-        setInterval(async () => {
-            debug(`Updating dub airing schedule`)
+        /**
+         * Schedule the next manifest and feed update check.
+         *
+         * Calculates the next 5-minute mark and sets a timeout to run {@link checkManifestAndFeeds}
+         * shortly after, using a small jitter. This ensures checks run regularly without all requests hitting at the exact same time across all users of the app.
+         */
+        const scheduleNextCheck = () => {
+            const now = new Date()
+            const nextFiveMinute = new Date(now.getTime())
+            nextFiveMinute.setSeconds(0, 0)
+            nextFiveMinute.setMinutes(Math.floor(now.getMinutes() / 5) * 5 + 5)
+            setTimeout(checkManifestAndFeeds, (nextFiveMinute.getTime() - now.getTime()) + this.jitter).unref?.()
+        }
+
+        /**
+         * Check update manifest for schedule/feed changes.
+         * TTL for GitHub raw cache is usually 300s (5 minutes), so have to set a threshold above it with some jitter.
+         */
+        const checkManifestAndFeeds = async () => {
             try {
-                const subFeed = await this.feedChanged('sub', true)
-                if (subFeed) this.subAiringLists.value = Promise.resolve(subFeed)
+                debug(`Checking for changes to manifest`)
+                const manifest = await this.manifestChanged()
+                if (!manifest.changed) return
+                debug(`Manifest changes detected, updating feeds that have changed.`)
+                const feedTypes = [
+                    { key: 'subbed', route: 'sub', title: 'Subbed Releases' },
+                    { key: 'dubbed', route: 'dub', title: 'Dubbed Releases' },
+                    { key: 'hentai', route: 'hentai', title: 'Hentai Releases' }
+                ]
+                for (const feed of feedTypes.filter(feed => feed.key !== 'hentai')) {
+                    if (manifest.force || manifest.previousManifest?.[feed.key]?.schedule !== manifest.currentManifest?.[feed.key]?.schedule) {
+                        try {
+                            const newFeed = await this.feedChanged(feed.route, true)
+                            const airingLists = this[`${feed.route}AiringLists`]
+                            if (newFeed && !equal(await airingLists.value, newFeed)) airingLists.value = Promise.resolve(newFeed)
+                        } catch (error) {
+                            debug(`Failed to update ${feed.key} schedule at the scheduled interval, this is likely a temporary connection issue.`, error)
+                        }
+                    }
+                }
+                if (manifest.force || feedTypes.filter(feed => feed.key !== 'hentai').some(feed => manifest.previousManifest?.[feed.key]?.schedule !== manifest.currentManifest?.[feed.key]?.schedule)) {
+                    this.findNewNotifications()
+                    this.findNewDelayedEpisodes()
+                }
+                const updateFeeds = feedTypes.filter(feed => manifest.force || manifest.previousManifest?.[feed.key]?.episodes !== manifest.currentManifest?.[feed.key]?.episodes).map(feed => feed.title)
+                if (updateFeeds.length) WPC.send('feedChanged', updateFeeds)
             } catch (error) {
-                debug('Failed to update Sub schedule at the scheduled interval, this is likely a temporary connection issue:', JSON.stringify(error))
+                debug(`Failed to check update manifest for changes, will try again later...`, error)
+            } finally {
+                scheduleNextCheck()
             }
-            try {
-                const dubFeed = await this.feedChanged('dub', true)
-                if (dubFeed) this.dubAiringLists.value = Promise.resolve(dubFeed)
-            } catch (error) {
-                debug('Failed to update Dub schedule at the scheduled interval, this is likely a temporary connection issue:', JSON.stringify(error))
-            }
-            this.findNewNotifications()
-            this.findNewDelayedEpisodes()
-        }, 1000 * 60 * 30)
+        }
 
-        // check notifications every 5 mins
-        setInterval(() => this.findNewNotifications(), 1000 * 60 * 5)
-
-        this.dubAiringLists.subscribe(async value  => {
-            this.dubAiring.value = await value
-        })
-        this.subAiringLists.subscribe(async value  => {
-            this.subAiring.value = await value
-        })
+        scheduleNextCheck()
+        this.dubAiringLists.subscribe(async value  => this.dubAiring.value = await value)
+        this.subAiringLists.subscribe(async value  => this.subAiring.value = await value)
     }
 
     async findNewDelayedEpisodes() { // currently only dubs are handled as they typically get delayed...
@@ -176,9 +211,7 @@ class AnimeSchedule {
     async getFeed(feed) {
         let res = {}
         try {
-            res = await fetch(`https://raw.githubusercontent.com/RockinChaos/AniSchedule/master/raw/${feed}.json?timestamp=${new Date().getTime()}`, {
-                method: 'GET'
-            })
+            res = await fetch(`https://raw.githubusercontent.com/RockinChaos/AniSchedule/master/raw/${feed}.json?timestamp=${new Date().getTime()}`, { method: 'GET' })
         } catch (e) {
             if (!res || res.status !== 404) throw e
         }
@@ -203,7 +236,49 @@ class AnimeSchedule {
         return json
     }
 
-    async feedChanged(type, schedule = false) {
+    async feedFromManifest(type, schedule = false) {
+      const manifest = await this.manifestChanged()
+      const feed = `${type.toLowerCase()}${!schedule ? '-episode-feed' : '-schedule'}`
+      const cachedSchedule = await cache.cachedEntry(caches.RSS, `${feed}`, true)
+      if (!cachedSchedule || manifest.force || (manifest.changed && (manifest.previousManifest?.[type === 'sub' ? 'subbed' : type === 'dub' ? 'dubbed' : 'hentai']?.[schedule ? 'schedule' : 'episodes'] !== manifest.currentManifest?.[type === 'sub' ? 'subbed' : type === 'dub' ? 'dubbed' : 'hentai']?.[schedule ? 'schedule' : 'episodes']))) {
+        return this.feedChanged(type, schedule, false)
+      }
+      return cachedSchedule
+    }
+
+    manifestCache = null
+    manifestChanged() {
+        const now = Date.now()
+        if (this.manifestCache && this.manifestCache.expiry > now) return this.manifestCache.promise
+        const promise = (async () => {
+          const previousManifest = structuredClone(await this.lastUpdated.value)
+          let lastUpdated
+            try {
+                lastUpdated = await this.getFeed('last-updated')
+            } catch (e) {
+                if (previousManifest) {
+                    debug(`Failed to request last updated manifest, this is likely due to an outage... falling back to cached data.`)
+                    return { changed: false }
+                } else {
+                    debug(`Failed to request last updated manifest, this is likely due to an outage and no cached data was found... allowing attempts to fetch direct from source.`)
+                    return { changed: true, force: true }
+                }
+            }
+            if (!equal(previousManifest, lastUpdated)) {
+                const res = await cache.cacheEntry(caches.RSS, 'anischedule-manifest', { mappings: true }, lastUpdated, Date.now() + 315_000)
+                this.lastUpdated.value = Promise.resolve(res)
+                return { changed: true, previousManifest, currentManifest: res  }
+            }
+            return { changed: false }
+        })().catch((error) => {
+            this.manifestCache.promise = { changed: true, force: true }
+            debug(`Failed to request last updated manifest, this is likely due to an outage and no cached data was found... allowing attempts to fetch direct from source.`, error)
+        })
+        this.manifestCache = { promise, expiry: now + 60_000 }
+        return promise
+    }
+
+  async feedChanged(type, schedule = false, updateStore = true) {
         const feed = `${type.toLowerCase()}${!schedule ? '-episode-feed' : '-schedule'}`
         let content
         try {
@@ -216,10 +291,10 @@ class AnimeSchedule {
             }
             else throw e
         }
-        const res = !schedule ? await this[`${type.toLowerCase()}AiredLists`].value : null
+        const res = !schedule && updateStore ? await this[`${type.toLowerCase()}AiredLists`].value : null
         if (JSON.stringify(content) !== JSON.stringify(res)) {
-            if (!schedule) this[`${type.toLowerCase()}AiredLists`].value = content
-            cache.cacheEntry(caches.RSS, `${feed}`, { mappings: true }, content, Date.now() + getRandomInt(10, 15) * 60 * 1000)
+            if (!schedule && updateStore) this[`${type.toLowerCase()}AiredLists`].value = content
+            cache.cacheEntry(caches.RSS, `${feed}`, { mappings: true }, content, Date.now() + 315_000)
             return content
         }
         return null
@@ -240,7 +315,6 @@ class AnimeSchedule {
 
     async _getMediaForRSS(page, perPage, type) {
         debug(`Getting media for schedule feed (${type}) page ${page} perPage ${perPage}`)
-        if (!this[`${type.toLowerCase()}AiredLists`].value) await this.feedChanged(type)
         const currentTime = Math.floor(Date.now() / 1000)
         let res = (await this[`${type.toLowerCase()}AiredLists`].value) || []
         const section = settings.value.homeSections.find(s => s[0] === `${type}${type === `Hentai` ? `` : `bed`} Releases`)
@@ -360,8 +434,8 @@ class AnimeSchedule {
             }
             try {
                 res.episodeData = (await getEpisodeMetadataForMedia(res.media))?.[res.episode]
-            } catch (e) {
-                debug(`Warn: failed fetching episode metadata for ${res.media.title?.userPreferred} episode ${res.episode}: ${e.stack} on feed (${type})`)
+            } catch (error) {
+                debug(`Warn: failed fetching episode metadata for ${res.media.title?.userPreferred} episode ${res.episode}: ${error.stack} on feed (${type})`, error)
             }
             res.onclick = () => {
                 window.dispatchEvent(new CustomEvent('play-anime', {

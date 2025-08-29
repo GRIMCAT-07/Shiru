@@ -9,6 +9,8 @@
   import Helper from '@/modules/helper.js'
   import WPC from '@/modules/wpc.js'
   import { writable } from 'simple-store-svelte'
+  import Debug from 'debug'
+  const debug = Debug('ui:home')
 
   const bannerData = writable(getTitles())
   // Refresh banner every 15 minutes
@@ -46,7 +48,8 @@
   if (Helper.isMalAuth()) refreshSections(animeSchedule.subAiredLists, continueWatching) // When authorized with Anilist, this is already automatically handled.
   refreshSections(animeSchedule.dubAiredLists, continueWatching)
   function refreshSections(list, sections, schedule = false) {
-    uniqueStore(list).subscribe(async (value) => {
+    uniqueStore(list).subscribe(async (_value) => {
+      const value = await _value
       if (!value) return
       for (const section of manager.sections) {
         // remove preview value, to force UI to re-request data, which updates it once in viewport
@@ -58,10 +61,24 @@
     })
   }
 
+  // update AniSchedule "Releases" feeds when a change is detected for the specified feed(s).
+  WPC.listen('feedChanged', (updateFeeds) => {
+    for (const section of manager.sections) {
+      try {
+        if (section.isSchedule && updateFeeds.includes(section.title)) {
+          animeSchedule.feedChanged(section.title.includes('Subbed') ? 'Sub' : section.title.includes('Dubbed') ? 'Dub' : 'Hentai').then((changed) => {
+            if (changed) section.preview.value = section.load(1, 50, section.variables)
+          })
+        }
+      } catch (error) {
+        debug(`Failed to update ${section.title} feed, this is likely a temporary connection issue:`, error)
+      }
+    }
+  })
+
   // force update RSS feed when the user adjusts a series in the FileManager.
   window.addEventListener('fileEdit', async () => {
     for (const section of manager.sections) {
-      // remove preview value, to force UI to re-request data, which updates it once in viewport
       if (section.isRSS && !section.isSchedule) {
         const url = settings.value.rssFeedsNew.find(([feedTitle]) => feedTitle === section.title)?.[1]
         if (url) {

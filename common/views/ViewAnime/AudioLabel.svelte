@@ -25,7 +25,7 @@
     let isPartial = writable(false)
 
     $: dubEpisodes = null
-    animeSchedule.dubAiredLists.subscribe(value => getDubEpisodes(value))
+    animeSchedule.dubAiredLists.subscribe(async (value) => getDubEpisodes(await value))
     function getDubEpisodes(dubAiredLists) {
         if (!banner && !viewAnime) {
             const dubAiring = animeSchedule.dubAiring.value?.find(entry => entry.unaired && entry.media?.media?.id === media.id)
@@ -42,7 +42,7 @@
             const episodeOrMedia = !episode || await malDubs.isDubMedia(data?.parseObject)
             isDubbed.set(episodeOrMedia && dubLists.dubbed.includes(media.idMal))
             isPartial.set(episodeOrMedia && dubLists.incomplete.includes(media.idMal))
-            getDubEpisodes(animeSchedule.dubAiredLists.value)
+            getDubEpisodes(await animeSchedule.dubAiredLists.value)
         }
     }
 

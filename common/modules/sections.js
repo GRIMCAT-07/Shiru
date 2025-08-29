@@ -109,7 +109,7 @@ function createSections () {
   const createSection = (section, variables = {}, staticSort) => ({ ...section, ...(section.sort && staticSort ? { sort: 'N/A' } : {}), variables: { ...variables, sort: settings.value.homeSections.find(([t]) => !staticSort && t === section.title)?.[1] ?? section.sort, ...(Array.isArray(sectionFormat(section.title)) && sectionFormat(section.title).length > 0 ? { format : sectionFormat(section.title) } : {}) } })
 
   return [
-  // RSS feeds
+    // RSS feeds
     ...settings.value.rssFeedsNew.filter(([title, url]) => url).map(([title, url]) => {
       const section = {
         title,
@@ -135,9 +135,9 @@ function createSections () {
       return section
     }),
     // official episode releases section
-      ...['Dubbed Releases', 'Subbed Releases', ...(settings.value.adult === 'hentai' ? ['Hentai Releases'] : [])].map((title) => {
+    ...['Dubbed Releases', 'Subbed Releases', ...(settings.value.adult === 'hentai' ? ['Hentai Releases'] : [])].map((title) => {
       const type = title.includes('Subbed') ? 'Sub' : title.includes('Dubbed') ? 'Dub' : 'Hentai'
-      const section = {
+      return {
         title,
         sort: 'N/A',
         format: !title.includes('Hentai') ? ['TV', 'MOVIE', 'OVA', 'ONA'] : ['OVA'],
@@ -147,19 +147,6 @@ function createSections () {
         load: (page = 1, perPage = 50) => animeSchedule.getMediaForRSS(page, perPage, type),
         preview: writable(animeSchedule.getMediaForRSS(1, 50, type)),
       }
-
-      // update every 30 seconds
-      section.interval = setInterval(async () => {
-        try {
-          if (await animeSchedule.feedChanged(type)) {
-            section.preview.set(animeSchedule.getMediaForRSS(1, 50, type))
-          }
-        } catch (error) {
-          debug(`Failed to update ${title} feed at the scheduled interval, this is likely a temporary connection issue: ${JSON.stringify(error)}`)
-        }
-      }, 30000)
-
-      return section
     }),
     // user specific sections
     createSection({ title: 'Sequels You Missed', sort: 'POPULARITY_DESC', format: [], hide: !Helper.isAuthorized() || Helper.isMalAuth(),
