@@ -44,6 +44,18 @@
       "@capacitor/android": "patches/@capacitor__android.patch",
       "lucide-svelte@0.455.0": "patches/lucide-svelte@0.455.0.patch",
       "rfdc": "patches/rfdc.patch"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "@paymoapp/electron-shutdown-handler",
+      "bufferutil",
+      "electron",
+      "fs-native-extensions",
+      "fsctl",
+      "node-datachannel",
+      "sharp",
+      "utf-8-validate",
+      "utp-native",
+      "wrtc"
+    ]
   }
 }

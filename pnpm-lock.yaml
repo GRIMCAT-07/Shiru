@@ -6,16 +6,16 @@ settings:
 
 patchedDependencies:
   '@capacitor/android':
-    hash: o2gyek6kxyozbikiuqke2wm3zi
+    hash: c94a4679400f9edbaab7f82e73b25787c1dd44e9f170b0f61f4166cff5699d22
     path: patches/@capacitor__android.patch
   '@capacitor/local-notifications':
-    hash: mt4j7xcmtdpmadktuymv52y4qa
+    hash: 92e9cb4b54ea8684b0027c29ec61d24c886b142730b548ae3199be718f58a638
     path: patches/@capacitor__local-notifications.patch
   lucide-svelte@0.455.0:
-    hash: nmqn6zk23eqmlncurdnodqcoxi
+    hash: 4cedb03efc70011ca4c3a32052994c933f83328326c2e44d162a1548202f8c13
     path: patches/lucide-svelte@0.455.0.patch
   rfdc:
-    hash: 5md2jop5zky7x4nawfd2ynwvz4
+    hash: c9f93965feee0cc9f6da8f3451b078a567c0bb98da4f0c2f8b552e51a055789b
     path: patches/rfdc.patch
 
 importers:
@@ -82,7 +82,7 @@ importers:
     dependencies:
       '@capacitor/android':
         specifier: ^6.1.2
-        version: 6.1.2(patch_hash=o2gyek6kxyozbikiuqke2wm3zi)(@capacitor/core@6.1.2)
+        version: 6.1.2(patch_hash=c94a4679400f9edbaab7f82e73b25787c1dd44e9f170b0f61f4166cff5699d22)(@capacitor/core@6.1.2)
       '@capacitor/app':
         specifier: ^6.0.1
         version: 6.0.1(@capacitor/core@6.1.2)
@@ -106,7 +106,7 @@ importers:
         version: 6.0.3(@capacitor/core@6.1.2)
       '@capacitor/local-notifications':
         specifier: ^6.1.0
-        version: 6.1.0(patch_hash=mt4j7xcmtdpmadktuymv52y4qa)(@capacitor/core@6.1.2)
+        version: 6.1.0(patch_hash=92e9cb4b54ea8684b0027c29ec61d24c886b142730b548ae3199be718f58a638)(@capacitor/core@6.1.2)
       '@capacitor/status-bar':
         specifier: ^6.0.1
         version: 6.0.1(@capacitor/core@6.1.2)
@@ -200,7 +200,7 @@ importers:
         version: 1.1.6
       lucide-svelte:
         specifier: ^0.455.0
-        version: 0.455.0(patch_hash=nmqn6zk23eqmlncurdnodqcoxi)(svelte@4.2.12)
+        version: 0.455.0(patch_hash=4cedb03efc70011ca4c3a32052994c933f83328326c2e44d162a1548202f8c13)(svelte@4.2.12)
       p2pt:
         specifier: github:ThaUnknown/p2pt#modernise
         version: https://codeload.github.com/ThaUnknown/p2pt/tar.gz/9ad7a56ed6ee43f5664ebad33b803702ee349316
@@ -212,7 +212,7 @@ importers:
         version: 1.2.3
       rfdc:
         specifier: ^1.4.1
-        version: 1.4.1(patch_hash=5md2jop5zky7x4nawfd2ynwvz4)
+        version: 1.4.1(patch_hash=c9f93965feee0cc9f6da8f3451b078a567c0bb98da4f0c2f8b552e51a055789b)
       simple-font-select:
         specifier: ^1.0.1
         version: 1.0.1
@@ -5644,7 +5644,7 @@ snapshots:
     dependencies:
       regenerator-runtime: 0.14.1
 
-  '@capacitor/android@6.1.2(patch_hash=o2gyek6kxyozbikiuqke2wm3zi)(@capacitor/core@6.1.2)':
+  '@capacitor/android@6.1.2(patch_hash=c94a4679400f9edbaab7f82e73b25787c1dd44e9f170b0f61f4166cff5699d22)(@capacitor/core@6.1.2)':
     dependencies:
       '@capacitor/core': 6.1.2
 
@@ -5743,7 +5743,7 @@ snapshots:
     dependencies:
       '@capacitor/core': 6.1.2
 
-  '@capacitor/local-notifications@6.1.0(patch_hash=mt4j7xcmtdpmadktuymv52y4qa)(@capacitor/core@6.1.2)':
+  '@capacitor/local-notifications@6.1.0(patch_hash=92e9cb4b54ea8684b0027c29ec61d24c886b142730b548ae3199be718f58a638)(@capacitor/core@6.1.2)':
     dependencies:
       '@capacitor/core': 6.1.2
 
@@ -9579,7 +9579,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  lucide-svelte@0.455.0(patch_hash=nmqn6zk23eqmlncurdnodqcoxi)(svelte@4.2.12):
+  lucide-svelte@0.455.0(patch_hash=4cedb03efc70011ca4c3a32052994c933f83328326c2e44d162a1548202f8c13)(svelte@4.2.12):
     dependencies:
       svelte: 4.2.12
 
@@ -10517,7 +10517,7 @@ snapshots:
 
   reusify@1.0.4: {}
 
-  rfdc@1.4.1(patch_hash=5md2jop5zky7x4nawfd2ynwvz4): {}
+  rfdc@1.4.1(patch_hash=c9f93965feee0cc9f6da8f3451b078a567c0bb98da4f0c2f8b552e51a055789b): {}
 
   rimraf@3.0.2:
     dependencies:
