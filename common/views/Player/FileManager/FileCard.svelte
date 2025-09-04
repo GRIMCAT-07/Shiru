@@ -16,7 +16,6 @@
     export let file
     export let files
     export let playing = false
-    export let noselect = false
     export let fileEdit
     export let playFile
 
@@ -89,7 +88,7 @@
     }
 </script>
 
-<div class='file-item shadow-lg position-relative d-flex align-items-center mx-20 my-5 p-5 scale {$$restProps.class}' class:playing={playing && !noselect} class:pointer={!playing} role='button' tabindex='0' title={file?.name} use:blurExit={ () => { if (prompt) setTimeout(() => { prompt = false }) }} use:hoverExit={() => { if (prompt) setTimeout(() => { prompt = false }) }} use:click={() => { if (!behind || prompt) { prompt = false; if (!playing) { playFile(file) } } else if (!playing) { prompt = true } } } class:not-reactive={!$reactive || playing} class:behind={(behind && !notWatching)} class:current={!behind && !notWatching} class:not-watching={notWatching} class:watched={watched}>
+<div class='file-item shadow-lg position-relative d-flex align-items-center mx-20 my-5 p-5 scale {$$restProps.class}' class:playing={playing} class:pointer={!playing} role='button' tabindex='0' title={file?.name} use:blurExit={ () => { if (prompt) setTimeout(() => { prompt = false }) }} use:hoverExit={() => { if (prompt) setTimeout(() => { prompt = false }) }} use:click={() => { if (!behind || prompt) { prompt = false; if (!playing) { playFile(file) } } else if (!playing) { prompt = true } } } class:not-reactive={!$reactive || playing} class:behind={(behind && !notWatching)} class:current={!behind && !notWatching} class:not-watching={notWatching} class:watched={watched}>
     <div class='position-absolute top-0 left-0 w-full h-full'>
         <img src={file?.media?.media?.bannerImage || ''} alt='bannerImage' class='hero-img img-cover w-full h-full' />
         <div class='position-absolute top-0 left-0 w-full h-full rounded-5' style='background: var(--notification-card-gradient)' />

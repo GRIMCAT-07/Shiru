@@ -65,7 +65,7 @@
     <div><div class='shadow-overlay' class:d-none={files?.length < 2}/></div>
     <div bind:this={container} class='overflow-y-auto mt-10'>
         {#each filterResults(files?.filter((file) => file !== playing), searchText) as file, index}
-            <FileCard {playFile} bind:file bind:files playing={file === playing} noselect={true} bind:fileEdit class='{index === 0 ? `mt-10` : ``}'/>
+            <FileCard {playFile} bind:file bind:files bind:fileEdit class='{index === 0 ? `mt-10` : ``}'/>
         {/each}
     </div>
 </SoftModal>

@@ -102,7 +102,9 @@
   window.addEventListener('fileEdit', () => {
     if (current) {
       debug('Detected a user update to the parsed file(s), now updating the media...')
+      const index = videos.indexOf(current)
       updateCurrent({ detail: current })
+      current = videos[index]
     }
   })
 

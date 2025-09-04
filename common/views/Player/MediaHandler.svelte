@@ -32,6 +32,12 @@
 
   let playFile
 
+  function updateCurrent (current) {
+    handleCurrent(current)
+    processed.set(processed.value)
+    processedFiles.set(processedFiles.value)
+  }
+
   function handleCurrent ({ detail }) {
     const nextMedia = detail?.media
     debug('Handling current media:', JSON.stringify(nextMedia?.parseObject))
@@ -430,7 +436,6 @@
 
   function sortFiles (result, newPlaying) {
       result = remapByTitle(result)
-      result.sort((a, b) => a.media?.episode - b.media?.episode)
       if (newPlaying?.media?.id) {
           result.sort((a, b) => {
               const seasonA = a.media?.parseObject?.anime_season
@@ -441,6 +446,8 @@
               return  seasonA - seasonB
           })
       } else result.sort((a, b) => Number(a.media?.parseObject?.episode_number ?? 1) - Number(b.media?.parseObject?.episode_number ?? 1)).sort((a, b) => Number(b.media?.parseObject?.anime_season ?? 1) - Number(a.media?.parseObject?.anime_season ?? 1))
+      result.sort((a, b) => a.media?.episode - b.media?.episode)
+      result.sort((a, b) => a.media?.media?.id - b.media?.media?.id)
       return result
   }
 
@@ -512,4 +519,4 @@
   export let playPage = false
 </script>
 
-<Player files={$processed} playableFiles={$processedFiles} {miniplayer} media={$nowPlaying} bind:playFile bind:page bind:overlay bind:playPage on:current={handleCurrent} updateCurrent={handleCurrent} on:duration={handleRanged} />
+<Player files={$processed} playableFiles={$processedFiles} {miniplayer} media={$nowPlaying} bind:playFile bind:page bind:overlay bind:playPage on:current={handleCurrent} {updateCurrent} on:duration={handleRanged} />
