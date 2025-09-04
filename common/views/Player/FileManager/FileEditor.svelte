@@ -20,8 +20,10 @@
         $search.search = title
         $search.fileEdit = (media) => {
             const mediaId = _file.media?.mediaId
+            const targetEpisode = _file.media.episode || _file.media.parseObject.episode_number
             for (const file of files) {
-                if ((_file === file || (!file.locked && !file.media?.locked)) && ((!mediaId && !file.media?.mediaId) || (mediaId === file.media?.mediaId))) {
+              const episode = file.media?.episode || file.media?.parseObject?.episode_number
+                if ((_file === file || (!file.locked && !file.media?.locked)) && ((!mediaId && !file.media?.mediaId) || (mediaId === file.media?.mediaId && (_file === file || ((!/^\d+$/.test(targetEpisode) || Number(targetEpisode) !== 0) && (!/^\d+$/.test(episode) || Number(episode) !== 0)))))) {
                     if (_file === file) file.locked = true
                     file.media.media = media
                     if (file.media.parseObject.anime_season) file.media.parseObject.anime_season = '1'
@@ -33,7 +35,7 @@
                         fileHash: file.fileHash,
                         mediaId: file.media.mediaId,
                         episodeRange: file.media.episodeRange,
-                        episode: file.media.episode || file.media.parseObject.episode_number,
+                        episode,
                         season: file.media.season || file.media.parseObject.anime_season,
                         parseObject: file.media.parseObject,
                         ...(file.locked ? { locked: true } : {}),

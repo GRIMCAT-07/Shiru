@@ -30,7 +30,8 @@
     let updateTimer = null
     $: episode = getEpisode()
     function getEpisode() {
-        return (file?.media?.episodeRange && `${file.media.episodeRange.first}~${file.media.episodeRange.last}`) || (file?.media?.episode && (Array.isArray(file.media.episode) ? `${file.media.episode?.[0]}~${file.media.episode?.[1]}` : `${file?.media?.episode}`))
+        const currentEpisode = (file?.media?.episodeRange && `${file.media.episodeRange.first}~${file.media.episodeRange.last}`) || (file?.media?.episode && (Array.isArray(file.media.episode) ? `${file.media.episode?.[0]}~${file.media.episode?.[1]}` : `${file?.media?.episode}`))
+        return /^\d+$/.test(currentEpisode) ? Number(currentEpisode) : currentEpisode
     }
     function updateEpisode(file, event) {
         clearTimeout(editTimer)
@@ -109,7 +110,7 @@
             {#if file?.failed || file?.media?.failed}<span class='badge text-dark bg-danger-dim ml-auto h-27 mr-5 d-flex align-items-center justify-content-center' title='Failed to resolve the playing media based on the file name.'>Failed</span>{/if}
             {#if file?.media?.media?.format === 'MOVIE'}
                 <span class='badge text-dark bg-episode h-27 mr-5 d-flex align-items-center justify-content-center' class:ml-auto={!(file?.failed || file?.media?.failed)}>Movie</span>
-            {:else if episode}
+            {:else if episode || episode === 0 || file?.media?.media.episodes > 1}
                 <span class='badge text-dark bg-episode mr-5 d-flex align-items-center justify-content-center' class:ml-auto={!(file?.failed || file?.media?.failed)} title={`Episode {episode}`}>
                     <span class='mr-5'>Episode</span>
                     <input
