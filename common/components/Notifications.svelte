@@ -17,7 +17,7 @@
   export const notifications = writable(cache.getEntry(caches.NOTIFICATIONS, 'notifications') || [])
   export const hasUnreadNotifications = derived(notifications, _notifications => _notifications?.filter(notification => notification.read !== true)?.length)
 
-  const { reactive, init } = createListener(['torrent-button', 'read-button', 'continue-button'])
+  const { reactive, init } = createListener(['torrent-button', 'read-button', 'continue-button', 'n-safe-area'])
   init(true)
 
   let debounceNotify = false
@@ -213,10 +213,11 @@
             <div class='d-flex'>
               <p class='notification-title overflow-hidden font-weight-bold my-0 mt-5 mr-10 font-scale-18 {SUPPORTS.isAndroid ? `line-clamp-1` : `line-clamp-2`}'>{notification.title}</p>
               <div class='ml-auto d-flex'>
+                <button type='button' tabindex='-1' class='position-absolute n-safe-area top-0 right-0 h-50 bg-transparent border-0 shadow-none not-reactive {notification.hash || resolvedHash ? `w-90` : `w-50`}' use:click={() => {}}/>
                 {#if notification.hash || resolvedHash}
-                  <TorrentButton class='btn btn-square mr-5' hash={[...(notification.hash && notification.hash !== resolvedHash ? [notification.hash] : []), ...(resolvedHash ? [resolvedHash] : [])]} torrentID={notification.magnet} search={{ media: { id: notification.id }, episode: notification.episode }}/>
+                  <TorrentButton class='btn btn-square mr-5 z-1' hash={[...(notification.hash && notification.hash !== resolvedHash ? [notification.hash] : []), ...(resolvedHash ? [resolvedHash] : [])]} torrentID={notification.magnet} search={{ media: { id: notification.id }, episode: notification.episode }}/>
                 {/if}
-                <button type='button' class='read-button btn btn-square d-flex align-items-center justify-content-center' class:not-allowed={watched} class:not-reactive={watched} use:click={() => { if (!watched) notification.prompt = false; delete notification.prompt; notification.read = !notification.read } }>
+                <button type='button' class='read-button btn btn-square d-flex align-items-center justify-content-center z-1' class:not-allowed={watched} class:not-reactive={watched} use:click={() => { if (!watched) notification.prompt = false; delete notification.prompt; notification.read = !notification.read } }>
                   {#if notification.read}
                     <MailOpen size='1.7rem' strokeWidth='3'/>
                   {:else}

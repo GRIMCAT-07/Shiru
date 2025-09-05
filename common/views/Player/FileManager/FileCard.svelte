@@ -9,7 +9,7 @@
     import Helper from '@/modules/helper.js'
     import Debug from 'debug'
     const debug = Debug('ui:file-editor')
-    const { reactive, init } = createListener(['verify-btn', 'edit-btn', 'cnt-button', 'episode-input'])
+    const { reactive, init } = createListener(['verify-btn', 'edit-btn', 'cnt-button', 'episode-input', 'f-safe-area'])
     init(true)
 </script>
 <script>
@@ -99,8 +99,9 @@
     <div class='file-content z-10 w-full'>
         <div class='d-flex'>
             <p class='file-title overflow-hidden font-weight-bold my-0 mt-10 mr-10 font-scale-18 {SUPPORTS.isAndroid ? `line-clamp-1` : `line-clamp-2`}'>{#if file?.media?.media}{anilistClient.title(file?.media.media)}{:else}{file?.media?.parseObject?.anime_title || file?.name || 'UNK'}{/if}</p>
-            <button type='button' class='ml-auto verify-btn btn btn-square d-none align-items-center justify-content-center mr-5 px-5' class:d-flex={!(file?.locked || file?.media?.locked || !episode?.length)} title='Confirm this series as being correct' use:click={() => { prompt = false; verifySeries() } }><SquareCheckBig color='var(--tertiary-color)' size='1.7rem' strokeWidth='3'/></button>
-            <button type='button' class='ml-auto edit-btn btn btn-square d-flex align-items-center justify-content-center px-5' class:ml-auto={file?.locked || file?.media?.locked || !episode?.length} title='Opens a prompt to select the correct series' use:click={() => { prompt = false; fileEdit(file, files, file?.media?.media ? anilistClient.title(file?.media.media) : file?.media?.parseObject?.anime_title || '') } }><SquarePen size='1.7rem' strokeWidth='3'/></button>
+            <button type='button' tabindex='-1' class='position-absolute f-safe-area top-0 right-0 h-50 bg-transparent border-0 shadow-none not-reactive pointer-events-none {file?.locked || file?.media?.locked || !episode?.length ? `w-50` : `w-90`}' use:click={() => {}}/>
+            <button type='button' class='ml-auto verify-btn btn btn-square d-none align-items-center justify-content-center mr-5 px-5 z-1' class:d-flex={!(file?.locked || file?.media?.locked || !episode?.length)} title='Confirm this series as being correct' use:click={() => { prompt = false; verifySeries() } }><SquareCheckBig color='var(--tertiary-color)' size='1.7rem' strokeWidth='3'/></button>
+            <button type='button' class='ml-auto edit-btn btn btn-square d-flex align-items-center justify-content-center px-5 z-1' class:ml-auto={file?.locked || file?.media?.locked || !episode?.length} title='Opens a prompt to select the correct series' use:click={() => { prompt = false; fileEdit(file, files, file?.media?.media ? anilistClient.title(file?.media.media) : file?.media?.parseObject?.anime_title || '') } }><SquarePen size='1.7rem' strokeWidth='3'/></button>
         </div>
         <p class='font-scale-12 my-5 mr-40 text-muted text-break-word overflow-hidden line-2'>{file?.name || 'UNK'}</p>
         <div class='d-flex align-items-center mt-5'>
@@ -112,6 +113,7 @@
             {:else if episode || episode === 0 || file?.media?.media.episodes > 1}
                 <span class='badge text-dark bg-episode mr-5 d-flex align-items-center justify-content-center' class:ml-auto={!(file?.failed || file?.media?.failed)} title={`Episode {episode}`}>
                     <span class='mr-5'>Episode</span>
+                    <button type='button' tabindex='-1' class='position-absolute f-safe-area bottom-0 right-0 h-40 bg-transparent border-0 shadow-none not-reactive pointer-events-none' style='margin-bottom: -.5rem; margin-right: -1rem; width: calc(5.5rem + {(String(episode).length <= 10 ? String(episode).length : 10) * .7}rem) !important' use:click={() => {}}/>
                     <input
                         type='text'
                         inputmode='text'
@@ -127,7 +129,7 @@
                             episode = targetValue?.length ? targetValue : getEpisode()
                             updateEpisode(file, event)
                         }}
-                        class='episode-input input form-control h-20 text-left text-dark text-truncate font-weight-semi-bold font-size-12 justify-content-center'
+                        class='episode-input input form-control h-20 text-left text-dark text-truncate font-weight-semi-bold font-size-12 justify-content-center z-1'
                         style='background-color: rgb(175,175,244) !important; width: calc(1.8rem + {(String(episode).length <= 10 ? String(episode).length : 10) * .7}rem) !important'
                         title='Episode Number(s)'/>
                 </span>
