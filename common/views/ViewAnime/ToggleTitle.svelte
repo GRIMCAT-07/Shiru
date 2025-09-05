@@ -12,7 +12,9 @@
     left: 50%;
     transform: translateX(-50%);
   }
-  .more:hover {
-    color: var(--dm-link-text-color-hover) !important;
+  @media (hover: hover) and (pointer: fine) {
+    .more:hover {
+      color: var(--dm-link-text-color-hover) !important;
+    }
   }
 </style>

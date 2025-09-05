@@ -57,11 +57,11 @@
 </button>
 <style>
     .highlight {
-        transition: transform 0.2s ease;
         border: .1rem solid transparent;
     }
-    .highlight:hover {
-        transform: scale(1.015);
-        border: .1rem solid var(--highlight-color);
+    @media (hover: hover) and (pointer: fine) {
+      .highlight:hover {
+          border: .1rem solid var(--highlight-color);
+      }
     }
 </style>

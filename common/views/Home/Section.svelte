@@ -132,8 +132,10 @@
       right: -35% !important;
     }
   }
-  .glow:hover {
-    color: var(--dm-link-text-color-hover) !important;
+  @media (hover: hover) and (pointer: fine) {
+    .glow:hover {
+      color: var(--dm-link-text-color-hover) !important;
+    }
   }
   .gallery:after {
     content: '';

@@ -117,14 +117,18 @@
     height: 28px;
     user-select: none;
   }
-  .window-controls .button:hover {
-    background: rgba(128, 128, 128, 0.2);
+  @media (hover: hover) and (pointer: fine) {
+    .window-controls .button:hover {
+      background: rgba(128, 128, 128, 0.2);
+    }
   }
   .window-controls .button:active {
     background: rgba(128, 128, 128, 0.4);
   }
-  .close-button:hover {
-    background: #e81123 !important;
+  @media (hover: hover) and (pointer: fine) {
+    .close-button:hover {
+      background: #e81123 !important;
+    }
   }
   .close-button:active {
     background: #f1707a !important;

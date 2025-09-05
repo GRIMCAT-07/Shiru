@@ -357,9 +357,11 @@ a[href]:active, button:not([disabled], .not-reactive):active:not([data-sonner-to
     color: var(--tertiary-color);
     cursor: pointer;
 }
-.custom-link:hover {
-    text-decoration: underline;
-    color: var(--tertiary-color-dim);
+@media (hover: hover) and (pointer: fine) {
+  .custom-link:hover {
+      text-decoration: underline;
+      color: var(--tertiary-color-dim);
+  }
 }
 
 .pointer {
@@ -598,8 +600,10 @@ img[src=''], img[src=' '] {
 .option {
   border: .1rem solid var(--dark-color-dim) !important;
 }
-.option:hover {
-  border: .1rem solid var(--highlight-color) !important;
+@media (hover: hover) and (pointer: fine) {
+  .option:hover {
+    border: .1rem solid var(--highlight-color) !important;
+  }
 }
 
 .pre-wrap {
@@ -702,20 +706,26 @@ img[src=''], img[src=' '] {
 .bd-highlight {
   border: .1rem solid transparent;
 }
-.bd-highlight:hover {
-  border: .1rem solid var(--highlight-color);
+@media (hover: hover) and (pointer: fine) {
+  .bd-highlight:hover {
+    border: .1rem solid var(--highlight-color);
+  }
 }
 
 .muted {
   color: var(--gray-color-light) !important
 }
-.muted:hover {
-  color: var(--highlight-color) !important
+@media (hover: hover) and (pointer: fine) {
+  .muted:hover {
+    color: var(--highlight-color) !important
+  }
 }
 
-button.bg-dark:not([disabled]):hover {
-  background: var(--dark-color-light) !important;
-}
-button.bg-dark-light:not([disabled]):hover {
-  background: var(--gray-color-light) !important;
+@media (hover: hover) and (pointer: fine) {
+  button.bg-dark:not([disabled]):hover {
+    background: var(--dark-color-light) !important;
+  }
+  button.bg-dark-light:not([disabled]):hover {
+    background: var(--gray-color-light) !important;
+  }
 }

@@ -60,7 +60,14 @@
     transition: background .8s cubic-bezier(0.25, 0.8, 0.25, 1), color .8s cubic-bezier(0.25, 0.8, 0.25, 1);
   }
 
-  .sidebar-link:hover > span > span:nth-child(1) {
+  @media (hover: hover) and (pointer: fine) {
+    .sidebar-link:hover > span > span:nth-child(1) {
+      background: #fff;
+      color: var(--dark-color);
+    }
+  }
+
+  .sidebar-link:active > span > span:nth-child(1) {
     background: #fff;
     color: var(--dark-color);
   }

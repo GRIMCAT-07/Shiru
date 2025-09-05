@@ -248,13 +248,15 @@
   .modal:global(.absolute-container) {
     left: -48% !important;
   }
-  .btn-delete:hover {
-    color: white !important;
-    background: darkred !important;
-  }
-  .btn-save:hover {
-    color: white !important;
-    background: darkgreen !important;
+  @media (hover: hover) and (pointer: fine) {
+    .btn-delete:hover {
+      color: white !important;
+      background: darkred !important;
+    }
+    .btn-save:hover {
+      color: white !important;
+      background: darkgreen !important;
+    }
   }
   .total-episodes {
     margin-top: 0.65rem;

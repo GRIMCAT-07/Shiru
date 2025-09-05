@@ -193,9 +193,11 @@
         box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1);
         z-index: 15;
     }
-    .custom-dropdown-item:hover {
+    @media (hover: hover) and (pointer: fine) {
+      .custom-dropdown-item:hover {
         background-color: #98c6fd;
         color: #000000;
+      }
     }
     .custom-dropdown-item-selected {
         background-color: #198ffd;

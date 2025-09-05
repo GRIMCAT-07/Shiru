@@ -38,9 +38,11 @@
     color: var(--dark-color);
   }
 
-  .navbar-link:hover > span {
-    background: #fff;
-    color: var(--dark-color);
+  @media (hover: hover) and (pointer: fine) {
+    .navbar-link:hover > span {
+      background: #fff;
+      color: var(--dark-color);
+    }
   }
 
   .navbar-link:focus-visible > span {

@@ -136,7 +136,9 @@
   .btn-close {
     background-color: var(--dark-color-light);
   }
-  .btn-close:hover {
-    background-color: var(--gray-color-light) !important;
+  @media (hover: hover) and (pointer: fine) {
+    .btn-close:hover {
+      background-color: var(--gray-color-light) !important;
+    }
   }
 </style>

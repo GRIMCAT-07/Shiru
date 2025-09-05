@@ -218,7 +218,9 @@
       opacity: 1;
     }
   }
-  button:hover, .badge-wrapper.pointer:hover .progress-badge {
-    background: var(--gray-color-light) !important;
+  @media (hover: hover) and (pointer: fine) {
+    button:hover, .badge-wrapper.pointer:hover .progress-badge {
+      background: var(--gray-color-light) !important;
+    }
   }
 </style>

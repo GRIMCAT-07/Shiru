@@ -161,14 +161,16 @@
 </SoftModal>
 
 <style>
-  .p-button:hover {
-    background: #393838 !important;
-  }
-  .pa-button:hover {
-    background: #6c363c !important;
-  }
-  .authenticate:hover {
-    background: #4e272c !important;
+  @media (hover: hover) and (pointer: fine) {
+    .p-button:hover {
+      background: #393838 !important;
+    }
+    .pa-button:hover {
+      background: #6c363c !important;
+    }
+    .authenticate:hover {
+      background: #4e272c !important;
+    }
   }
   .authenticate {
     background: #2e171a !important;
@@ -191,8 +193,10 @@
     margin-right: 15rem;
     margin-bottom: 3rem;
   }
-  .box:hover:not(.info) {
-    background: #272727;
+  @media (hover: hover) and (pointer: fine) {
+    .box:hover:not(.info) {
+      background: #272727;
+    }
   }
   .box {
     background: #0e0e0e;
@@ -213,10 +217,12 @@
   .myanimelist {
     background-color: #2C51A2 !important;
   }
-  .anilist:hover {
-    background-color: #46536c !important;
-  }
-  .myanimelist:hover {
-    background-color: #2861d6 !important;
+  @media (hover: hover) and (pointer: fine) {
+    .anilist:hover {
+      background-color: #46536c !important;
+    }
+    .myanimelist:hover {
+      background-color: #2861d6 !important;
+    }
   }
 </style>

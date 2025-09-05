@@ -32,9 +32,11 @@
     background: #fff;
     color: var(--dark-color);
   }
-  .tab-label:hover > span {
-    background: #fff;
-    color: var(--dark-color);
+  @media (hover: hover) and (pointer: fine) {
+    .tab-label:hover > span {
+      background: #fff;
+      color: var(--dark-color);
+    }
   }
   .tab-label:focus-visible > span {
     background: #fff;

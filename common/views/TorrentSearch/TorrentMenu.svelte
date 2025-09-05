@@ -426,8 +426,10 @@
   .control {
     border: .1rem solid transparent;
   }
-  .control:hover {
-    border: .1rem solid var(--highlight-color);
+  @media (hover: hover) and (pointer: fine) {
+    .control:hover {
+      border: .1rem solid var(--highlight-color);
+    }
   }
 
   .controls {
