@@ -268,14 +268,14 @@
       }
       emit('current', current)
       if (externalPlayback) {
+        externalPlaying = false
         showBuffering()
         WPC.clear('externalReady', externalReadyListener)
         externalReadyListener = () => {
           hideBuffering()
           externalPlayerReady = true
           setTimeout(() => {
-            if (settings.value.playerAutoplay && externalPlayerReady) autoPlay()
-            else if (externalPlayerReady) promptFiller()
+            if (externalPlayerReady && !externalPlaying) autoPlay()
           }, 1_500)
         }
         WPC.listen('externalReady', externalReadyListener)
@@ -398,6 +398,7 @@
   }
 
   let watchedListener
+  let externalPlaying = false
   function playPause () {
     if (externalPlayback) {
       const duration = current.media?.media?.duration || durationMap[current.media?.media?.format]
@@ -406,6 +407,7 @@
         watchedListener = (detail) => checkCompletionByTime(detail, duration * 60)
         WPC.listen('externalWatched', watchedListener)
       }
+      externalPlaying = true
       WPC.send('externalPlay', { current })
     } else paused = !paused
     resetImmerse()
