@@ -1,8 +1,8 @@
 <script context='module'>
   import { animeSchedule } from '@/modules/anime/animeschedule.js'
   import { malDubs } from '@/modules/anime/animedubs.js'
-  import { SUPPORTS } from '@/modules/support.js'
   import { settings } from '@/modules/settings.js'
+  import { SUPPORTS } from '@/modules/support.js'
   import { past } from '@/modules/util.js'
 
   async function dubbedEpisode(i, media) {
@@ -244,7 +244,7 @@
 <div bind:this={container} class='episode-list overflow-y-auto overflow-x-hidden {$$restProps.class}' on:scroll={handleScroll}>
   {#await (episodeLoad || mobileWait(() => episodeList?.length > 0 || !episodeList)?.then(() => episodeList))}
     {#each Array.from({ length: media?.status !== 'NOT_YET_RELEASED' ? Math.max(Math.min(episodeCount || 0, maxEpisodes), 1) : 1 }) as _}
-      <div class='w-full px-20 my-20 content-visibility-auto scale h-150'>
+      <div class='w-full px-20 my-20 content-visibility-auto scale h-150' class:h-165={SUPPORTS.isAndroid}>
         <EpisodeListSk />
       </div>
     {/each}
@@ -254,7 +254,7 @@
         {#if media?.status === 'FINISHED' || (episodeOrder ? (index === 0 || (currentEpisodes[index - 1]?.airdate && ((new Date(currentEpisodes[index - 1].airdate).getTime() <= new Date().getTime())) || (media?.status !== 'NOT_YET_RELEASED' && airdate && currentEpisodes[index - 1]?.airdate && (currentEpisodes[index - 1]?.airdate === airdate)))) : (index === currentEpisodes.length - 1 || (currentEpisodes[index + 1]?.airdate && (new Date(currentEpisodes[index + 1]?.airdate).getTime() <= new Date().getTime())) || (currentEpisodes[index + 1]?.airdate && currentEpisodes[index + 1]?.airdate === airdate)))}
           {#await Promise.all([title, filler, dubAiring])}
             {#each Array.from({length: Math.min(episodeCount || 0, maxEpisodes)}) as _, index}
-              <div class='w-full px-20 content-visibility-auto scale h-150' class:my-20={!mobileList || index !== 0}>
+              <div class='w-full px-20 content-visibility-auto scale h-150' class:h-165={SUPPORTS.isAndroid} class:my-20={!mobileList || index !== 0}>
                 <EpisodeListSk/>
               </div>
             {/each}
@@ -265,11 +265,12 @@
             {@const hasFiller = filler?.filler || filler?.recap}
             {@const progress = !watched && ($animeProgress?.[episode + (zeroEpisode ? 1 : 0)] ?? 0)}
             {@const resolvedTitle = episodeList.filter((ep) => ep.episode < episode).some((ep) => matchPhrase(ep.title, title, 0.1, true)) ? null : title}
-            <div class='w-full content-visibility-auto scale my-20' class:load-in={!loadScroll} class:opacity-half={completed} class:scale-target={target} class:px-20={!target} class:px-10={target} class:h-150={image || (summary && !unreleased)}>
-              <div class='rounded-2 w-full h-full overflow-hidden d-flex flex-xsm-column flex-row position-relative {unreleased ? `unreleased not-allowed` : `pointer`}' class:border={target || hasFiller} class:bg-black={completed} class:border-secondary={hasFiller} class:bg-dark={!completed} use:click={() => play(episode)}>
+            {@const largeCard = image || (summary && !unreleased)}
+            <div class='w-full content-visibility-auto scale my-20' class:load-in={!loadScroll} class:opacity-half={completed} class:scale-target={target} class:px-20={!target} class:px-10={target} class:h-150={!SUPPORTS.isAndroid && largeCard} class:h-165={SUPPORTS.isAndroid && largeCard}>
+              <div class='episode-card rounded-2 w-full h-full overflow-hidden d-flex flex-xsm-column flex-row position-relative {unreleased ? `unreleased not-allowed` : `pointer`}' class:smallCard={!largeCard} class:android={SUPPORTS.isAndroid}  class:border={target || hasFiller} class:bg-black={completed} class:border-secondary={hasFiller} class:bg-dark={!completed} use:click={() => play(episode)}>
                 <div class="unreleased-overlay position-absolute top-0 left-0 right-0 h-full pointer-events-none rounded-2" class:d-none={!unreleased}/>
                 {#if image}
-                  <div class='h-full d-flex'>
+                  <div class='d-flex'>
                     <img alt='thumbnail' src={image} class='img-cover h-full'/>
                     {#if dubAiring}
                       <div class='position-relative d-none sm-label'>
@@ -295,18 +296,18 @@
                     {/if}
                   </div>
                   {#if completed}
-                    <div class='progress mb-15' class:mt--10={SUPPORTS.isAndroid} style='height: .2rem; min-height: .2rem;'>
+                    <div class='progress mb-10'>
                       <div class='progress-bar w-full'/>
                     </div>
                   {:else if progress}
-                    <div class='progress mb-15' class:mt--10={SUPPORTS.isAndroid} style='height: .2rem; min-height: .2rem;'>
+                    <div class='progress mb-15'>
                       <div class='progress-bar' style='width: {progress}%'/>
                     </div>
                   {/if}
-                  <div class='font-size-12 overflow-hidden line-4' class:summary={unreleased} class:font-weight-bold={unreleased}>
-                    {summary || ''}
+                  <div class='font-size-12 overflow-hidden {(!completed && !progress) || !dubAiring ? `line-3 line-sm-4` : `line-2 line-sm-3`}' class:mb-10={unreleased && !largeCard} class:summary={unreleased} class:font-weight-bold={unreleased}>
+                    {summary?.replace(/source:\s*.+$/i, '') || ''}
                   </div>
-                  <div class='font-size-12 mt-auto' class:pt-10-5={dubAiring} class:pt-15-5={!dubAiring} class:mb-5={dubAiring} class:mb-10={!dubAiring}>
+                  <div class='font-size-12 mt-auto' class:mb-5={dubAiring} class:mb-10={!dubAiring}>
                     {#if dubAiring}
                       <div class='d-flex flex-row date-row'>
                         <div class='mr-5 py-5 px-10 text-dark text-nowrap rounded-top rounded-left font-weight-bold' class:lg-label={image} class:bg-danger={dubAiring.delayed} class:bg-dubbed={!dubAiring.delayed}>
@@ -342,11 +343,8 @@
 </div>
 
 <style>
-  .pt-10-5 {
-    padding-top: 1.05rem !important;
-  }
-  .pt-15-5 {
-    padding-top: 1.55rem !important;
+  .h-165 {
+    height: 16.5rem !important
   }
   .unreleased {
     filter: blur(.06rem) grayscale(50%);
@@ -381,6 +379,10 @@
   .border {
     --dm-border-color: white;
   }
+  .progress {
+    height: .2rem;
+    min-height: .2rem;
+  }
   @media (max-width: 310px), (min-width: 993px) and (max-width: 1300px) {
     .lg-label {
       display: none !important;
@@ -390,6 +392,18 @@
     }
   }
   @media (max-width: 525px) {
+    .line-sm-3 {
+      -webkit-line-clamp: 3 !important;
+    }
+    .line-sm-4 {
+      -webkit-line-clamp: 4 !important;
+    }
+    .episode-card:not(.smallCard) {
+      height: 32.6rem !important
+    }
+    .episode-card.android:not(.smallCard) {
+      height: 33.6rem !important
+    }
     .flex-xsm-column {
       flex-direction: column !important;
     }

@@ -1,6 +1,3 @@
-<script>
-  import { SUPPORTS } from '@/modules/support.js'
-</script>
 <div class='load-in rounded w-full h-full overflow-hidden d-flex flex-xsm-column flex-row pointer position-relative bg-dark'>
   <div class='h-full bg-dark-light'>
     <div class='skeloader bg-dark-light h-full w-266 overflow-hidden img-cover'/>
@@ -10,11 +7,10 @@
       <div class='skeloader episode-title w-full bg-dark-light h-25 rounded'/>
       <div class='skeloader ml-auto bg-dark-light w-30 h-25 rounded flex-shrink-0'/>
     </div>
-    <div class='skeloader bg-dark-light w-full h-10 overflow-hidden rounded' class:mt-10={SUPPORTS.isAndroid}/>
-    <div class='skeloader n-description bg-dark-light w-full h-10 overflow-hidden rounded' class:mb-10={SUPPORTS.isAndroid}/>
-    <div class='skeloader n-description bg-dark-light w-full h-10 overflow-hidden rounded' class:d-none={SUPPORTS.isAndroid}/>
+    <div class='skeloader bg-dark-light w-full h-10 overflow-hidden rounded'/>
     <div class='skeloader description bg-dark-light w-full h-10 overflow-hidden rounded'/>
-    <div class='skeloader description bg-dark-light w-full h-10 overflow-hidden rounded'/>
+    <div class='skeloader n-description bg-dark-light w-full h-10 overflow-hidden rounded'/>
+    <div class='skeloader n-description bg-dark-light w-full h-10 overflow-hidden rounded'/>
     <div class='skeloader bg-dark-light h-20 rounded mt-15 date'/>
   </div>
 </div>
