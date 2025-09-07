@@ -1598,7 +1598,7 @@
     <div aria-hidden='true' class='w-full h-full position-absolute toggle-fullscreen' on:dblclick={toggleFullscreen} on:click|self={() => { if (page === 'player' && ((overlay.length === 0) || overlay.includes('player'))) playPause(); page = 'player'; window.dispatchEvent(new Event('overlay-check')) }} />
     <div aria-hidden='true' class='w-full h-full position-absolute toggle-immerse d-none' on:dblclick={toggleFullscreen} on:click|self={toggleImmerse} />
     <div class='w-full h-full position-absolute mobile-focus-target d-none' use:click={() => { page = 'player'; window.dispatchEvent(new Event('overlay-check')) }} />
-    <span aria-hidden='true' class='icon ctrl align-items-center justify-content-end w-150 mw-full mr-auto' class:mb-50={!miniplayer} on:click={rewind}><Rewind size='3rem' /></span>
+    <span aria-hidden='true' class='icon ctrl align-items-center justify-content-end w-150 mw-full mr-auto' class:hidden={externalPlayback} class:mb-50={!miniplayer} on:click={rewind}><Rewind size='3rem' /></span>
     <!-- miniplayer buttons -->
     {#if miniplayer}
       <span class='position-absolute rounded-10 top-0 right-0 m-10 btn-shadow' class:ctrl={!SUPPORTS.isAndroid} class:mr-40={!SUPPORTS.isAndroid} class:mr-50={SUPPORTS.isAndroid} title='Minimize' data-name='playPause' use:click={() => (playPage = !playPage)}>
@@ -1610,7 +1610,7 @@
     {/if}
     <div class='d-flex align-items-center position-relative' class:mb-50={!miniplayer} style='width: 100%;' title='Play/Pause'>
       {#if hasLast}
-        <span class='icon ctrl position-absolute rounded-10' style='left: 20%' title='Last' data-name='playPause' use:click={playLast}>
+        <span class='icon ctrl position-absolute rounded-10' style={externalPlayback ? `left: 5%` : `left: 15%`} title='Last' data-name='playPause' use:click={playLast}>
           <SkipBack size='3rem' fill='white' />
         </span>
       {/if}
@@ -1626,12 +1626,12 @@
           {/if}
         </span>
       {#if hasNext}
-        <span class='icon ctrl position-absolute rounded-10' style='right: 20%' title='Next' data-name='playPause' use:click={playNext}>
+        <span class='icon ctrl position-absolute rounded-10' style={externalPlayback ? `right: 5%` : `right: 15%`} title='Next' data-name='playPause' use:click={playNext}>
           <SkipForward size='3rem' fill='white' />
         </span>
       {/if}
     </div>
-    <span aria-hidden='true' class='icon ctrl align-items-center w-150 mw-full ml-auto' class:mb-50={!miniplayer} on:click={forward}><FastForward size='3rem' /></span>
+    <span aria-hidden='true' class='icon ctrl align-items-center w-150 mw-full ml-auto' class:hidden={externalPlayback} class:mb-50={!miniplayer} on:click={forward}><FastForward size='3rem' /></span>
     <div class='position-absolute bufferingDisplay' class:bufferingPos={SUPPORTS.isAndroid && !miniplayer}/>
     {#if currentSkippable}
       <button class='skip btn text-dark position-absolute bottom-0 right-0 mr-20 mb-5 font-weight-bold z-30 d-flex align-items-center justify-content-center' use:click={skip}>
