@@ -84,7 +84,6 @@
     <option value='jpn'>Japanese</option>
     <option value='chi'>Chinese</option>
     <option value='por'>Portuguese</option>
-    <option value='spa'>Spanish</option>
     <option value='spa'>Spanish (Spain)</option>
     <option value='lat'>Spanish (Latin America)</option>
     <option value='ger'>German</option>
