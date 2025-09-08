@@ -44,12 +44,23 @@
   /**
    * @param {Result[]} results
    * @param {string} audioLang
+   * @param {string[]} torrentProvider
    */
-  function getBest(results, audioLang) {
-    const bestRequestedAudio = audioLang !== 'jpn' && results.find(result => getRequestedAudio(result.parseObject, audioLang) && result.seeders > 9)
-    const altRequestedAudio = audioLang !== 'jpn' && results.find(result => getRequestedAudio(result.parseObject, audioLang) && result.seeders > 1)
-    const bestGenericAudio = results.find(result => result.type === 'best' || result.type === 'alt' && result.seeders > 9)
-    return bestRequestedAudio || altRequestedAudio || bestGenericAudio || results[0]
+  function getBest(results, audioLang, torrentProvider = []) {
+    if (!results || !results.length) return null
+    const candidates = []
+    if (audioLang !== 'jpn') {
+      candidates.push(...results.filter(r => getRequestedAudio(r.parseObject, audioLang) && r.seeders > 9))
+      candidates.push(...results.filter(r => getRequestedAudio(r.parseObject, audioLang) && r.seeders > 1))
+    }
+    candidates.push(...results.filter(r => (r.type === 'best' || r.type === 'alt') && r.seeders > 9))
+    const uniqueCandidates = Array.from(new Set(candidates))
+    const toConsider = uniqueCandidates.length ? uniqueCandidates : results
+    if (torrentProvider?.length) {
+      const filteredByProvider = toConsider.filter(result => result.parseObject?.release_group && torrentProvider.some(provider => result.parseObject.release_group.toLowerCase().includes(provider.toLowerCase())))
+      if (filteredByProvider.length) return filteredByProvider[0]
+    }
+    return toConsider[0] || results[0]
   }
 
   function filterResults(results, searchText) {
@@ -198,7 +209,7 @@
 
   $: queryResults = sortResults($results?.torrents, $settings.torrentSort)
   $: lookup = queryResults?.results
-  $: best = getBest(lookup, $settings.audioLanguage)
+  $: best = getBest(lookup, $settings.audioLanguage, $settings.torrentProvider)
 
   $: lookupHidden = queryResults?.hiddenResults
   $: viewHidden = false
