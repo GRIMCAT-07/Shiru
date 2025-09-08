@@ -71,7 +71,7 @@
     clearTimeout(airingInterval)
   })
 
-  const { reactive, init } = createListener(['btn', 'scoring', 'sound'])
+  const { reactive, init } = createListener(['btn', 'scoring', 'sound', 'preview-safe-area'])
   $: init(preview)
   $: if (preview) clearTimeout(focusTimeout)
 </script>

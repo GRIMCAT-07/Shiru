@@ -7,7 +7,7 @@
   import { getContext } from 'svelte'
   import { playActive } from '@/components/TorrentButton.svelte'
   import { createListener, since } from '@/modules/util.js'
-  const { reactive, init } = createListener(['torrent-button', 'cont-button'])
+  const { reactive, init } = createListener(['torrent-button', 'cont-button', 'episode-safe-area'])
   init(true)
 </script>
 <script>

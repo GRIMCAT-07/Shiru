@@ -186,8 +186,8 @@
 </script>
 
 
-<div class='score-dropdown'>
-  <button type='button' id='list-btn' title='List Editor' class='btn scoring-btn {viewAnime ? `bg-dark btn-lg` : previewAnime ? `btn-square` : `bg-dark-light`} font-size-{viewAnime ? `20` : `16`} btn-square ml-10 shadow-none border-0 d-flex align-items-center justify-content-center' use:click={() => toggleModal({ toggle: !$showModal })} disabled={!Helper.isAuthorized()}>
+<div class='score-dropdown z-1 ml-10'>
+  <button type='button' id='list-btn' title='List Editor' class='btn scoring-btn {viewAnime ? `bg-dark btn-lg` : previewAnime ? `btn-square` : `bg-dark-light`} font-size-{viewAnime ? `20` : `16`} btn-square shadow-none border-0 d-flex align-items-center justify-content-center' use:click={() => toggleModal({ toggle: !$showModal })} disabled={!Helper.isAuthorized()}>
     {#if media?.mediaListEntry}
       <PencilLine size='1.7rem' />
     {:else}
@@ -264,22 +264,22 @@
   }
   .previewAnime {
     top: 65%;
-    margin-top: -26rem;
-    width: 70% !important;
-    left: 0.5rem;
+    margin-top: -21.5rem;
+    width: 78% !important;
+    left: -1.5rem;
     cursor: auto;
   }
   .viewAnime {
     top: auto;
     left: auto;
     margin-top: -20rem;
-    margin-left: 6rem;
+    margin-left: 5rem;
   }
   .banner {
     top: 0;
     left: auto;
     margin-top: 1rem;
-    margin-left: -22rem;
+    margin-left: -23.7rem;
   }
   .ml--255 {
     margin-left: -25.5rem !important;

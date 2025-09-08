@@ -74,8 +74,9 @@
       {anilistClient.title(media)}
     </div>
     {#if !_variables?.fileEdit}
-      <div class='d-flex flex-row'>
-        <button class='btn btn-secondary flex-grow-1 text-dark font-weight-bold shadow-none border-0 d-flex align-items-center justify-content-center' use:click={play} disabled={media.status === 'NOT_YET_RELEASED'}>
+      <div class='d-flex flex-row position-relative'>
+        <button type='button' tabindex='-1' class='position-absolute preview-safe-area top-0 left-0 h-50 bg-transparent border-0 shadow-none not-reactive' use:click={() => {}}/>
+        <button class='btn btn-secondary flex-grow-1 text-dark font-weight-bold shadow-none border-0 d-flex align-items-center justify-content-center z-1' use:click={play} disabled={media.status === 'NOT_YET_RELEASED'}>
           <Play class='pr-10 z-10' fill='currentColor' size='2.2rem'/>
           {playButtonText}
         </button>
@@ -202,6 +203,11 @@
     will-change: transform, opacity;
     left: -100%;
     right: -100%;
+  }
+  .preview-safe-area {
+    margin-top: -1rem !important;
+    margin-left: -1rem !important;
+    width: calc(100% + 2rem) !important;
   }
   @keyframes delayedShow {
     to {

@@ -7,7 +7,7 @@
   import { Database, BadgeCheck, FileQuestion } from 'lucide-svelte'
   import { toast } from 'svelte-sonner'
 
-  const { reactive, init } = createListener(['torrent-button'])
+  const { reactive, init } = createListener(['torrent-button', 'torrent-safe-area'])
   init(true)
 
   /** @typedef {import('extensions/index.d.ts').TorrentResult} Result */
@@ -147,6 +147,7 @@
     </div>
     <div class='position-absolute top-0 left-0 w-full h-full' style='background: var(--torrent-card-gradient);' />
   </div>
+  <button type='button' tabindex='-1' class='position-absolute torrent-safe-area top-0 right-0 h-full w-50 bg-transparent border-0 shadow-none not-reactive z-1' use:click={() => {}}/>
   <div class='d-flex pl-10 flex-column justify-content-between w-full h-auto position-relative' style='min-height: 10rem; min-width: 0;'>
     <div class='d-flex w-full'>
       {#if result.accuracy === 'high'}
@@ -174,7 +175,7 @@
     <div class='py-5 font-size-14 text-muted d-flex align-items-center'>
       <span class='overflow-hidden text-truncate'>{simplifyFilename(result.parseObject)}</span>
       <span class='ml-auto mr-5 w-30 h-10 flex-shrink-0'/>
-      <TorrentButton class='position-absolute btn btn-square shadow-none bg-transparent highlight h-40 w-40 right-0 mr--8' hash={result.hash} torrentID={result.link} search={{ media, episode: (media?.format !== 'MOVIE' && result.type !== 'batch') && episode }} size={'2.5rem'} strokeWidth={'2.3'}/>
+      <TorrentButton class='position-absolute btn btn-square shadow-none bg-transparent highlight h-40 w-40 right-0 mr--8 z-1' hash={result.hash} torrentID={result.link} search={{ media, episode: (media?.format !== 'MOVIE' && result.type !== 'batch') && episode }} size={'2.5rem'} strokeWidth={'2.3'}/>
     </div>
     <div class='metadata-container d-flex w-full align-items-start text-dark font-size-14' style='line-height: 1;'>
       <div class='primary-metadata py-5 d-flex flex-row'>

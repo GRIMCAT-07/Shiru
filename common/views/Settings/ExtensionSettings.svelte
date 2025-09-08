@@ -79,25 +79,6 @@
     <option value='best' selected>Best</option>
   </select>
 </SettingCard>
-<SettingCard title='Preferred Providers' description='Prioritizes results matching the preferred providers. Providers are considered equally and used only when choosing the best available result.'>
-  <div>
-    {#each settings.torrentProvider as _, i}
-      <div class='input-group mb-10 w-200 mw-full'>
-        <input id='torrent-provider-{i}' type='text' list='torrent-provider-list-{i}' class='w-400 form-control mw-full bg-dark text-truncate' placeholder={'SubsPlease'} autocomplete='off' bind:value={settings.torrentProvider[i]} />
-        <datalist id='torrent-provider-list-{i}'>
-          <option value='SubsPlease'>SubsPlease</option>
-          <option value='Erai-raws'>Erai-raws</option>
-          <option value='Yameii'>Yameii</option>
-          <option value='Judas'>Judas</option>
-        </datalist>
-        <div class='input-group-append'>
-          <button type='button' use:click={() => { settings.torrentProvider.splice(i, 1); settings.torrentProvider = settings.torrentProvider }} class='btn btn-danger btn-square input-group-append px-5 d-flex align-items-center'><Trash2 size='1.8rem' /></button>
-        </div>
-      </div>
-    {/each}
-    <button type='button' use:click={() => { settings.torrentProvider[settings.torrentProvider.length] = '' }} class='btn btn-primary mb-10 d-flex align-items-center justify-content-center'><span>Add Provider</span></button>
-  </div>
-</SettingCard>
 <SettingCard title='Preferred Audio' description='Prioritizes results matching the preferred language, otherwise will default to Japanese. This language will be loaded automatically when the video is loaded.'>
   <select class='form-control bg-dark mw-220 w-220 text-truncate' bind:value={settings.audioLanguage}>
     <option value='eng'>English</option>
@@ -125,6 +106,25 @@
     <option value='ara'>Arabic</option>
     <option value='idn'>Indonesian</option>
   </select>
+</SettingCard>
+<SettingCard title='Preferred Providers' description='Prioritizes results matching the preferred providers. Providers are considered equally and used only when choosing the best available result.'>
+  <div>
+    {#each settings.torrentProvider as _, i}
+      <div class='input-group mb-10 w-200 mw-full'>
+        <input id='torrent-provider-{i}' type='text' list='torrent-provider-list-{i}' class='w-400 form-control mw-full bg-dark text-truncate' placeholder={'SubsPlease'} autocomplete='off' bind:value={settings.torrentProvider[i]} />
+        <datalist id='torrent-provider-list-{i}'>
+          <option value='SubsPlease'>SubsPlease</option>
+          <option value='Erai-raws'>Erai-raws</option>
+          <option value='Yameii'>Yameii</option>
+          <option value='Judas'>Judas</option>
+        </datalist>
+        <div class='input-group-append'>
+          <button type='button' use:click={() => { settings.torrentProvider.splice(i, 1); settings.torrentProvider = settings.torrentProvider }} class='btn btn-danger btn-square input-group-append px-5 d-flex align-items-center'><Trash2 size='1.8rem' /></button>
+        </div>
+      </div>
+    {/each}
+    <button type='button' use:click={() => { settings.torrentProvider[settings.torrentProvider.length] = '' }} class='btn btn-primary mb-10 d-flex align-items-center justify-content-center'><span>Add Provider</span></button>
+  </div>
 </SettingCard>
 
 <h4 class='mb-10 font-weight-bold'>Extension Settings</h4>
