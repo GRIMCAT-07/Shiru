@@ -78,14 +78,15 @@
 
 <h4 class='mb-10 font-weight-bold'>Language Settings</h4>
 <SettingCard title='Preferred Subtitle Language' description="What subtitle language to automatically select when a video is loaded if it exists. This won't find torrents with this language automatically. If not found defaults to English.">
-  <select class='form-control bg-dark mw-150 w-150 text-truncate' bind:value={settings.subtitleLanguage}>
+  <select class='form-control bg-dark mw-220 w-220 text-truncate' bind:value={settings.subtitleLanguage}>
     <option value=''>None</option>
     <option value='eng' selected>English</option>
     <option value='jpn'>Japanese</option>
     <option value='chi'>Chinese</option>
     <option value='por'>Portuguese</option>
     <option value='spa'>Spanish</option>
-    <option value='lat'>Spanish MX</option>
+    <option value='spa'>Spanish (Spain)</option>
+    <option value='lat'>Spanish (Latin America)</option>
     <option value='ger'>German</option>
     <option value='pol'>Polish</option>
     <option value='cze'>Czech</option>
