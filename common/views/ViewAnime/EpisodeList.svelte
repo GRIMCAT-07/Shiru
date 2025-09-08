@@ -3,7 +3,10 @@
   import { malDubs } from '@/modules/anime/animedubs.js'
   import { settings } from '@/modules/settings.js'
   import { SUPPORTS } from '@/modules/support.js'
-  import { past } from '@/modules/util.js'
+  import { createListener, past } from '@/modules/util.js'
+
+  const { reactive, init } = createListener(['torrent-button'])
+  init(true)
 
   async function dubbedEpisode(i, media) {
     if (!settings.value.cardAudio) return
@@ -32,14 +35,17 @@
 </script>
 
 <script>
+  import { loadedTorrent, completedTorrents, seedingTorrents, stagingTorrents } from '@/modules/torrent/torrent.js'
   import { since, monthDay, matchPhrase, capitalize } from '@/modules/util.js'
   import { click } from '@/modules/click.js'
   import { onMount, onDestroy } from 'svelte'
   import { episodeByAirDate } from '@/modules/extensions/handler.js'
   import { liveAnimeProgress } from '@/modules/anime/animeprogress.js'
+  import { getHash } from '@/modules/anime/animehash.js'
   import { episodesList } from '@/modules/episodes.js'
   import { getAniMappings, hasZeroEpisode, durationMap } from '@/modules/anime/anime.js'
   import EpisodeListSk from '@/components/skeletons/EpisodeListSk.svelte'
+  import TorrentButton from '@/components/TorrentButton.svelte'
   import AudioLabel from '@/views/ViewAnime/AudioLabel.svelte'
 
   export let media
@@ -266,12 +272,20 @@
             {@const progress = !watched && ($animeProgress?.[episode + (zeroEpisode ? 1 : 0)] ?? 0)}
             {@const resolvedTitle = episodeList.filter((ep) => ep.episode < episode).some((ep) => matchPhrase(ep.title, title, 0.1, true)) ? null : title}
             {@const largeCard = image || (summary && !unreleased)}
+            {@const resolvedHash = ($completedTorrents || $seedingTorrents || $stagingTorrents || $loadedTorrent) && getHash(media?.id, { episode, client: true }, false, true)}
             <div class='w-full content-visibility-auto scale my-20' class:load-in={!loadScroll} class:opacity-half={completed} class:scale-target={target} class:px-20={!target} class:px-10={target} class:h-150={!SUPPORTS.isAndroid && largeCard} class:h-165={SUPPORTS.isAndroid && largeCard}>
-              <div class='episode-card rounded-2 w-full h-full overflow-hidden d-flex flex-xsm-column flex-row position-relative {unreleased ? `unreleased not-allowed` : `pointer`}' class:smallCard={!largeCard} class:android={SUPPORTS.isAndroid}  class:border={target || hasFiller} class:bg-black={completed} class:border-secondary={hasFiller} class:bg-dark={!completed} use:click={() => play(episode)}>
+              <div class='episode-card rounded-2 w-full h-full overflow-hidden d-flex flex-xsm-column flex-row position-relative {unreleased ? `unreleased not-allowed` : `pointer`}' class:not-reactive={!$reactive} class:smallCard={!largeCard} class:android={SUPPORTS.isAndroid}  class:border={target || hasFiller} class:bg-black={completed} class:border-secondary={hasFiller} class:bg-dark={!completed} use:click={() => play(episode)}>
                 <div class="unreleased-overlay position-absolute top-0 left-0 right-0 h-full pointer-events-none rounded-2" class:d-none={!unreleased}/>
                 {#if image}
                   <div class='d-flex'>
                     <img alt='thumbnail' src={image} class='img-cover h-full'/>
+                    {#if resolvedHash}
+                      <div class='position-relative torrent-button-container'>
+                        <div class='position-absolute top-0 right-0 text-danger icon-padding icon-shadow'>
+                          <TorrentButton class='btn btn-square shadow-none bg-transparent highlight h-40 w-40' hash={[resolvedHash]} search={{ media, episode }} size={'3rem'} strokeWidth={'2.3'}/>
+                        </div>
+                      </div>
+                    {/if}
                     {#if dubAiring}
                       <div class='position-relative d-none sm-label'>
                         <AudioLabel {media} episodeList={true} dubbed={dubAiring?.airdate && (new Date(dubAiring.airdate).getTime() <= new Date().getTime())} subbed={(airdate && (new Date(airdate).getTime() <= new Date().getTime())) || (dubAiring?.airdate && (new Date(dubAiring.airdate).getTime() <= new Date().getTime()))} />
@@ -282,6 +296,11 @@
                 {#if hasFiller}
                   <div class='position-absolute bottom-0 right-0 bg-secondary py-5 px-10 text-dark rounded-top rounded-left font-weight-bold'>
                     {filler?.filler ? 'Filler' : 'Recap'}
+                  </div>
+                {/if}
+                {#if !image && resolvedHash}
+                  <div class='position-absolute bottom-0 right-0 mr-5 mb-5 text-danger icon-shadow torrent-button-container' class:mb-30={hasFiller}>
+                    <TorrentButton class='btn btn-square shadow-none bg-transparent highlight h-40 w-40' hash={[resolvedHash]} search={{ media, episode }} size={'3rem'} strokeWidth={'2.3'}/>
                   </div>
                 {/if}
                 <div class='h-full w-full px-20 pt-15 d-flex flex-column'>
@@ -346,6 +365,10 @@
   .h-165 {
     height: 16.5rem !important
   }
+  .icon-padding {
+    padding-top: .25rem;
+    padding-right: .25rem;
+  }
   .unreleased {
     filter: blur(.06rem) grayscale(50%);
   }
@@ -375,6 +398,14 @@
   }
   .scale-target:hover, .scale-target:focus {
     transform: scale(1.015) !important;
+  }
+  .episode-card .torrent-button-container {
+    opacity: 0;
+    will-change: opacity;
+    transition: opacity .2s ease;
+  }
+  .episode-card:hover .torrent-button-container {
+    opacity: 1;
   }
   .border {
     --dm-border-color: white;

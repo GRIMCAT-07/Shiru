@@ -192,9 +192,6 @@
 </div>
 
 <style>
-  .icon-shadow {
-    filter: drop-shadow(0 0 .4rem rgba(0, 0, 0, 1))
-  }
   .overlay {
     background-color: rgba(28, 28, 28, 0.9);
   }

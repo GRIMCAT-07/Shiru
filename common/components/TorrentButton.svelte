@@ -44,8 +44,8 @@
 </script>
 <script>
     export let hash
-    export let torrentID
     export let search
+    export let torrentID = null
     export let size = '1.7rem'
     export let strokeWidth = '3'
     $: disabled = ($seedingTorrents?.length + $stagingTorrents?.length + 1) >= settings.value.seedingLimit && !settings.value.torrentPersist

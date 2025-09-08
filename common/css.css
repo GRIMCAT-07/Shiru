@@ -531,6 +531,10 @@ img[src=''], img[src=' '] {
   box-shadow: none !important;
 }
 
+.icon-shadow {
+  filter: drop-shadow(0 0 .4rem rgba(0, 0, 0, 1))
+}
+
 .content-visibility-auto {
   content-visibility: auto;
 }

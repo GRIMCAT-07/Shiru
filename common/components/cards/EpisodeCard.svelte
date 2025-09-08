@@ -174,9 +174,6 @@
 </div>
 
 <style>
-  .icon-shadow {
-    filter: drop-shadow(0 0 .4rem rgba(0, 0, 0, 1))
-  }
   .episode-card:hover {
     z-index: 30 !important;
     /* fixes transform scaling on click causing z-index issues */
