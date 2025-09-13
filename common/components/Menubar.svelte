@@ -46,7 +46,7 @@
   </div>
 </div>
 <div class='position-absolute' class:right-0={SUPPORTS.isAndroid}>
-  <img src='./icon_filled.png' class='z-102 position-absolute w-50 h-50 m-10 pointer d-none p-5 transition-mt {window.version?.platform === `darwin` ? fullscreen ? `mt-20` : `mt-30` : ``}' class:d-md-block={!SUPPORTS.isAndroid} alt='ico' use:click={home} />
+  <img src='./icon_filled.png' tabindex='-1' class='z-102 position-absolute w-50 h-50 m-10 pointer d-none p-5 transition-mt {window.version?.platform === `darwin` ? fullscreen ? `mt-20` : `mt-30` : ``}' class:d-md-block={!SUPPORTS.isAndroid} alt='ico' use:click={home} />
   {#if $debug}
     <div class='z-100 ribbon text-center position-absolute font-size-16 font-weight-bold pointer-events-none {!SUPPORTS.isAndroid ? `ribbon-left` : `ribbon-right`}'>Debug Mode</div>
   {/if}

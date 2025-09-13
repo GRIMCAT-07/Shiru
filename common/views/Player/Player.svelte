@@ -1640,7 +1640,7 @@
     {/if}
   </div>
   <div class='bottom d-flex z-40 flex-column px-20'>
-    <div class='w-full d-flex align-items-center h-20 mb-5 seekbar' tabindex='0' role='button' on:keydown={handleSeekbarKey}>
+    <div class='w-full d-flex align-items-center h-20 mb-5 seekbar' tabindex='-1' role='button' on:keydown={handleSeekbarKey}>
       <Seekbar
         accentColor='var(--accent-color)'
         class='font-size-20'
@@ -1683,9 +1683,9 @@
           {/if}
         </span>
         {#if !volumeBoosted}
-          <input class='ctrl h-full custom-range' type='range' min='0' max='1' step='any' data-name='setVolume' bind:value={volume} />
+          <input class='ctrl h-full custom-range' tabindex='-1' type='range' min='0' max='1' step='any' data-name='setVolume' bind:value={volume} />
         {:else}
-          <input class='ctrl h-full custom-range' class:boost-color={gain > 1} type='range' min='0' max='3' step='any' data-name='setVolume' bind:value={gain} on:input={setGain}/>
+          <input class='ctrl h-full custom-range' class:boost-color={gain > 1} tabindex='-1' type='range' min='0' max='3' step='any' data-name='setVolume' bind:value={gain} on:input={setGain}/>
         {/if}
         {#if (volume === 1) || volumeBoosted}
           <span class='icon ctrl boost p-0 mt-15 d-flex align-items-center justify-content-center' class:boost-color={volumeBoosted} title='Increase Volume Limit [V]' data-name='toggleGain' use:click={toggleGain}>
@@ -2113,7 +2113,8 @@
     color: #FF7F00 !important;
   }
 
-  .bottom .volume:hover .boost {
+  .bottom .volume:hover .boost,
+  .bottom .volume:focus-within .boost{
     width: 3rem;
     height: 3rem;
   }
@@ -2124,7 +2125,8 @@
     transition: width 0.1s ease, height 0.1s ease;
   }
 
-  .bottom .volume:hover .custom-range {
+  .bottom .volume:hover .custom-range,
+  .bottom .volume:focus-within .custom-range {
     width: 5vw;
     display: inline-block;
     margin-right: 1.125rem;
