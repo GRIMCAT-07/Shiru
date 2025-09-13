@@ -25,4 +25,4 @@
     else hidden = true
   }
 </script>
-<img class={$$restProps.class ? $$restProps.class.split(' ').filter(_class => (_class !== 'cover-rotated' && _class !== 'cr-380' && _class !== 'cr-400') || !resolvedImages[index]?.includes('404')).join(' ') : ''} style={(color ? `color: ${color};` : '')} class:d-none={hidden} src={!hidden ? (resolvedImages[index] || `${index}_404.jpg`) : `${index}_404.jpg`} alt='preview' title={title} draggable='false' loading='lazy' referrerpolicy='no-referrer' on:error={handleError} />
+<img class={$$restProps.class ? $$restProps.class.split(' ').filter(_class => (_class !== 'cover-rotated' && _class !== 'cr-380' && _class !== 'cr-400') || !resolvedImages[index]?.includes('404')).join(' ') : ''} style={(color ? `--color: ${color};` : '')} class:d-none={hidden} src={!hidden ? (resolvedImages[index] || `${index}_404.jpg`) : `${index}_404.jpg`} alt='preview' title={title} draggable='false' loading='lazy' referrerpolicy='no-referrer' on:error={handleError} />
