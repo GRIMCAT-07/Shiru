@@ -40,7 +40,13 @@
   }
 
   const continueWatching = 'Continue Watching'
-  const resolveData = async (data) => Promise.all(data.map(async item => ({ ...item, data: item.data && typeof item.data.then === 'function' ? await item.data : item.data })))
+  const resolveData = async (data) => Promise.all(
+    data.map(async item => {
+      const resolved = item.data && typeof item.data.then === 'function' ? await item.data : item.data
+      const media = resolved?.media || resolved
+      return { ...item, data: (media ? { id: media.id, idMal: media.idMal, title: media.title, bannerImage: media.bannerImage, isAdult: media.isAdult, duration: media.duration, episodes: media.episodes, format: media.format } : resolved) }
+    })
+  )
   if (Helper.getUser()) {
     refreshSections(Helper.getClient().userLists, ['Dubbed Releases', 'Subbed Releases', 'Hentai Releases'], true)
     refreshSections(Helper.getClient().userLists, [continueWatching, 'Sequels You Missed', 'Stories You Missed', 'Planning List', 'Completed List', 'Paused List', 'Dropped List', 'Watching List'])
@@ -61,7 +67,7 @@
     })
   }
 
-  // update AniSchedule "Releases" feeds when a change is detected for the specified feed(s).
+  // update AniSchedule 'Releases' feeds when a change is detected for the specified feed(s).
   WPC.listen('feedChanged', (updateFeeds) => {
     for (const section of manager.sections) {
       try {
