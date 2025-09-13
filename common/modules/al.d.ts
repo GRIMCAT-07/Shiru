@@ -37,6 +37,7 @@ export type Media = {
   isAdult?: boolean
   bannerImage?: string
   synonyms?: string[]
+  popularity: number
   stats: {
     scoreDistribution: {
       score: number

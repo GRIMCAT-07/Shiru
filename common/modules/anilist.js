@@ -70,6 +70,7 @@ countryOfOrigin,
 isAdult,
 bannerImage,
 synonyms,
+popularity,
 stats {
   scoreDistribution {
     score,
@@ -588,7 +589,7 @@ class AnilistClient {
       const titleObject = flattenedTitles[Number(variableName.slice(1))]
       if (searchResults[titleObject.key]) continue
       searchResults[titleObject.key] = media.map(media => getDistanceFromTitle(media, titleObject.title)).reduce((prev, curr) => prev.lavenshtein <= curr.lavenshtein ? prev : curr).id
-    // Convoluted and not as good as distance matching, better to return more than less.// Convoluted and not as good as distance matching, better to return more than less.
+    // Convoluted and not as good as distance matching, better to return more than less.
     //   if (searchResults[titleObject.key]) continue
     //   for (const mediaItem of media) {
     //     if (matchKeys(mediaItem, titleObject.title, ['title.userPreferred', 'title.english', 'title.romaji', 'title.native', 'synonyms'], titleObject.title.length > 15 ? 0.2 : titleObject.title.length > 9 ? 0.15 : 0.1)) {
@@ -623,7 +624,16 @@ class AnilistClient {
         }
       }
     }`
-    return cache.cacheEntry(caches.SEARCH, JSON.stringify(variables), { ...variables, ...(malClient.userID ? { fillLists: malClient.userLists.value } : {}) }, this.alRequest(query, variables), Date.now() + getRandomInt(75, 100) * 60 * 1000)
+
+    const request = (async () => {
+      try {
+        return await this.alRequest(query, variables)
+      } catch {
+        return this.fallbackSearch(variables)
+      }
+    })()
+
+    return cache.cacheEntry(caches.SEARCH, JSON.stringify(variables), { ...variables, ...(malClient.userID ? { fillLists: malClient.userLists.value } : {}) }, request, Date.now() + getRandomInt(75, 100) * 60 * 1000)
   }
 
   searchIDSingle(variables) {
@@ -637,7 +647,16 @@ class AnilistClient {
         ${queryObjects}${settings.value.queryComplexity === 'Complex' ? `, ${queryComplexObjects}` : ``}
       }
     }`
-    return cache.cacheEntry(caches.SEARCH_IDS, JSON.stringify(variables), { ...variables, ...(malClient.userID ? { fillLists: malClient.userLists.value } : {}) }, this.alRequest(query, variables), Date.now() + getRandomInt(80, 100) * 60 * 1000)
+
+    const request = (async () => {
+      try {
+        return await this.alRequest(query, variables)
+      } catch {
+        return this.fallbackSearch(variables, true)
+      }
+    })()
+
+    return cache.cacheEntry(caches.SEARCH_IDS, JSON.stringify(variables), { ...variables, ...(malClient.userID ? { fillLists: malClient.userLists.value } : {}) }, request, Date.now() + getRandomInt(80, 100) * 60 * 1000)
   }
 
   /** returns {import('./al.d.ts').PagedQuery<{media: import('./al.d.ts').Media[]}>} */
@@ -661,7 +680,16 @@ class AnilistClient {
         }
       }
     }`
-    return cache.cacheEntry(caches.SEARCH_IDS, JSON.stringify(variables), { ...variables, ...(malClient.userID ? { fillLists: malClient.userLists.value } : {}) }, this.alRequest(query, variables), Date.now() + getRandomInt(24, 30) * 60 * 1000)
+
+    const request = (async () => {
+      try {
+        return await this.alRequest(query, variables)
+      } catch {
+        return this.fallbackSearch(variables)
+      }
+    })()
+
+    return cache.cacheEntry(caches.SEARCH_IDS, JSON.stringify(variables), { ...variables, ...(malClient.userID ? { fillLists: malClient.userLists.value } : {}) }, request, Date.now() + getRandomInt(24, 30) * 60 * 1000)
   }
 
   /** returns {import('./al.d.ts').PagedQuery<{media: import('./al.d.ts').Media[]}>} */
@@ -785,6 +813,95 @@ class AnilistClient {
   reviews(media) {
     const totalReviewers = media.stats?.scoreDistribution?.reduce((total, score) => total + score.amount, 0)
     return media.averageScore && totalReviewers ? totalReviewers.toLocaleString() : '?'
+  }
+
+  /**
+   * Fallback search using mediaCache if the network/API fails.
+   * @param {object} variables - The query variables.
+   * @param {boolean} [single=false] - Whether to return a single media object or a paged result.
+   * @returns {Promise<import('./al.d.ts').Media | { data: { Page: { pageInfo: { hasNextPage: boolean }, media: import('./al.d.ts').Media[] } } }>}
+   */
+  fallbackSearch(variables, single = false) {
+    debug('AniList search failed, falling back to searching the mediaCache...')
+    let media = Object.values(mediaCache.value || {})
+
+    if (single) {
+      media = media.filter(_media => !(variables.id && _media.id !== variables.id) && !(variables.idMal && _media.idMal !== variables.idMal))
+    } else {
+      media = media.filter(_media => {
+        if (variables.id && !variables.id.includes(_media.id)) return false
+        if (variables.idMal && !variables.idMal.includes(_media.idMal)) return false
+        if (variables.id_not?.includes(_media.id)) return false
+        if (variables.idMal_not?.includes(_media.idMal)) return false
+
+        if ((variables.onList === true && !_media.mediaListEntry) || (variables.onList === false && _media.mediaListEntry)) return false
+        if (variables.isAdult === false && _media.isAdult) return false
+
+        if (variables.status && !variables.status.includes(_media.status)) return false
+        if (variables.status_not && variables.status_not.includes(_media.status)) return false
+
+        if (variables.season && _media.season !== variables.season) return false
+        if (variables.year && _media.seasonYear !== variables.year) return false
+
+        if (variables.format && !variables.format.includes(_media.format)) return false
+        if (variables.format_not && variables.format_not.includes(_media.format)) return false
+        if (_media.format === 'MUSIC') return false
+
+        if (variables.genre && !variables.genre.some(genre => _media.genres?.includes(genre))) return false
+        if (variables.genre_not && variables.genre_not.some(genre => _media.genres?.includes(genre))) return false
+
+        if (variables.tag && !variables.tag.some(tag => _media.tags?.some(mediaTag => mediaTag.name === tag))) return false
+        if (variables.tag_not && variables.tag_not.some(tag => _media.tags?.some(mediaTag => mediaTag.name === tag))) return false
+
+        if (variables.search) {
+          const searchText = variables.search.toLowerCase()
+          const titles = [_media.title?.romaji, _media.title?.english, _media.title?.native, _media.title?.userPreferred, ...(_media.synonyms || [])].filter(Boolean).map(t => t.toLowerCase())
+          if (!titles.some(t => t.includes(searchText))) return false
+        }
+        return true
+      })
+    }
+
+    if (variables.sort) {
+      media.sort((a, b) => {
+        switch (variables.sort) {
+          case 'TRENDING_DESC':
+            return (b.popularity || 0) - (a.popularity || 0)
+          case 'POPULARITY_DESC':
+            return (b.popularity ?? b.stats?.scoreDistribution?.reduce((acc, score) => acc + (score.amount || 0), 0) ?? 0) - (a.popularity ?? a.stats?.scoreDistribution?.reduce((acc, score) => acc + (score.amount || 0), 0) ?? 0)
+          case 'TITLE_ROMAJI':
+            return (a.title?.romaji || a.title?.userPreferred || '').localeCompare(b.title?.romaji || b.title?.userPreferred || '')
+          case 'SCORE_DESC':
+            return (b.averageScore || 0) - (a.averageScore || 0)
+          case 'START_DATE_DESC':
+            return ((b.startDate?.year || 0) * 10000 + (b.startDate?.month || 0) * 100 + (b.startDate?.day || 0)) - ((a.startDate?.year || 0) * 10000 + (a.startDate?.month || 0) * 100 + (a.startDate?.day || 0))
+          case 'FINISHED_ON_DESC':
+            return (b.mediaListEntry?.completedAt ? (b.mediaListEntry.completedAt.year || 0) * 10000 + (b.mediaListEntry.completedAt.month || 0) * 100 + (b.mediaListEntry.completedAt.day || 0) : 0) - (a.mediaListEntry?.completedAt ? (a.mediaListEntry.completedAt.year || 0) * 10000 + (a.mediaListEntry.completedAt.month || 0) * 100 + (a.mediaListEntry.completedAt.day || 0) : 0)
+          case 'STARTED_ON_DESC':
+            return (b.mediaListEntry?.startedAt ? (b.mediaListEntry.startedAt.year || 0) * 10000 + (b.mediaListEntry.startedAt.month || 0) * 100 + (b.mediaListEntry.startedAt.day || 0) : 0) - (a.mediaListEntry?.startedAt ? (a.mediaListEntry.startedAt.year || 0) * 10000 + (a.mediaListEntry.startedAt.month || 0) * 100 + (a.mediaListEntry.startedAt.day || 0) : 0)
+          case 'UPDATED_TIME_DESC':
+            return (b.mediaListEntry?.updatedAt || 0) - (a.mediaListEntry?.updatedAt || 0)
+          case 'PROGRESS_DESC':
+            return (b.mediaListEntry?.progress || 0) - (a.mediaListEntry?.progress || 0)
+          case 'USER_SCORE_DESC': // doesn't exist, AniList uses SCORE_DESC for both MediaSort and MediaListSort.
+            return (b.mediaListEntry?.score || 0) - (a.mediaListEntry?.score || 0)
+          default:
+            return 0
+        }
+      })
+    }
+
+    const perPage = variables.perPage || 50
+    const start = ((variables.page || 1) - 1) * perPage
+    const end = start + perPage
+    return Promise.resolve(single ? { data: { Media: media[0] || null } } : {
+      data: {
+        Page: {
+          pageInfo: { hasNextPage: end < media.length },
+          media: media.slice(start, end)
+        }
+      }
+    })
   }
 
   // Graveyard of no longer used/needed methods, good for reference.

@@ -1,4 +1,5 @@
 <script context='module'>
+  import SmartImage from '@/components/visual/SmartImage.svelte'
   import AudioLabel from '@/views/ViewAnime/AudioLabel.svelte'
   import TorrentButton from '@/components/TorrentButton.svelte'
   import { getContext } from 'svelte'
@@ -37,8 +38,8 @@
 </script>
 
 <div class='position-absolute w-400 mh-400 absolute-container top-0 m-auto bg-dark-light z-30 rounded overflow-hidden pointer d-flex flex-column'>
-  <div class='image h-200 w-full position-relative d-flex justify-content-between align-items-end text-white' class:bg-black={episodeThumbnail === ' '}>
-    <img loading='lazy' src={episodeThumbnail} alt='cover' class='img-cover w-full h-full position-absolute rounded' class:cover-rotated={!(data.episodeData?.image || media?.bannerImage) && media?.genres?.includes('Hentai')} style:--color={media?.coverImage.color || '#1890ff'} referrerpolicy='no-referrer' />
+  <div class='image h-200 w-full position-relative d-flex justify-content-between align-items-end text-white'>
+    <SmartImage class='img-cover w-full h-full position-absolute rounded p-0 m-0 {!(data.episodeData?.image || media?.bannerImage) && media?.genres?.includes(`Hentai`) ? `cover-rotated cr-400` : ``}' color={media?.coverImage.color || '#1890ff'} images={[episodeThumbnail, './404_episode.png']}/>
     {#if data.episodeData?.video}
       <video src={data.episodeData.video}
         class='w-full position-absolute left-0'
@@ -231,13 +232,6 @@
     left: 0 ; bottom: 0;
     width: 100%; height: 100%;
     background: var(--episode-preview-card-gradient);
-  }
-  .cover-rotated {
-    width: 20rem !important;
-    height: 40rem !important;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(-90deg);
   }
   .list-status-circle {
     background: var(--statusColor);

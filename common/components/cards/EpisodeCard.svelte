@@ -1,4 +1,5 @@
 <script context='module'>
+  import SmartImage from '@/components/visual/SmartImage.svelte'
   import AudioLabel from '@/views/ViewAnime/AudioLabel.svelte'
   import EpisodePreviewCard from '@/components/cards/EpisodePreviewCard.svelte'
   import { Play, RefreshCwOff } from 'lucide-svelte'
@@ -68,8 +69,8 @@
     <EpisodePreviewCard {data} bind:prompt={$prompt} />
   {/if}
   <div class='item load-in d-flex flex-column h-full pointer content-visibility-auto' class:opacity-half={completed}>
-    <div class='image h-200 w-full position-relative rounded overflow-hidden d-flex justify-content-between align-items-end text-white' class:bg-black={episodeThumbnail === ' '}>
-      <img loading='lazy' src={episodeThumbnail} alt='cover' class='cover-img w-full h-full position-absolute' class:cover-rotated={!(data.episodeData?.image || media?.bannerImage) && media?.genres?.includes('Hentai')} style:--color={media?.coverImage?.color || '#1890ff'} referrerpolicy='no-referrer' />
+    <div class='image h-200 w-full position-relative rounded overflow-hidden d-flex justify-content-between align-items-end text-white'>
+      <SmartImage class='cover-img cover-color w-full h-full position-absolute {!(data.episodeData?.image || media?.bannerImage) && media?.genres?.includes(`Hentai`) ? `cover-rotated cr-380` : ``}' color={media?.coverImage?.color || '#1890ff'} images={[episodeThumbnail, './404_episode.png']}/>
       {#if data.episodeData?.video}
         <video src={data.episodeData.video}
           class='w-full position-absolute left-0'
@@ -202,16 +203,6 @@
   .item {
     width: 36rem;
     contain-intrinsic-height: 25.7rem;
-  }
-  .cover-img {
-    background-color: var(--color) !important;
-  }
-  .cover-rotated {
-    width: 20rem !important;
-    height: 38rem !important;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(-90deg);
   }
   .list-status-circle {
     background: var(--statusColor);

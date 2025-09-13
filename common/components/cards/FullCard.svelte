@@ -3,6 +3,7 @@
   import { onMount, onDestroy } from 'svelte'
   import { airingAt, getAiringInfo, formatMap, getKitsuMappings, getMediaMaxEp, statusColorMap } from '@/modules/anime/anime.js'
   import { click } from '@/modules/click.js'
+  import SmartImage from '@/components/visual/SmartImage.svelte'
   import AudioLabel from '@/views/ViewAnime/AudioLabel.svelte'
   import { anilistClient, seasons } from '@/modules/anilist.js'
   import { mediaCache } from '@/modules/cache.js'
@@ -38,7 +39,7 @@
     <div class='row h-full'>
       <div class='img-col d-inline-block position-relative col-3 col-md-4'>
         <span class="airing-badge rounded-10 font-weight-semi-bold text-light bg-success-subtle" class:d-none={!airingInfo?.episode?.match(/out for/i)}>AIRING</span>
-        <img loading='lazy' src={media.coverImage.extraLarge || ''} alt='cover' class='cover-img w-full h-full' />
+        <SmartImage class='cover-img cover-color w-full h-full' color={media.coverImage.color || '#1890ff'} images={[media.coverImage.extraLarge, media.coverImage?.medium, './404_cover.png']}/>
         {#if !_variables?.scheduleList}
           <AudioLabel {media} smallCard={false} />
         {/if}
@@ -177,9 +178,6 @@
   .badge-color {
     background-color: var(--color) !important;
     border-color: var(--color) !important;
-  }
-  .cover-img {
-    background-color: var(--color) !important;
   }
   .list-status-circle {
     background: var(--statusColor);

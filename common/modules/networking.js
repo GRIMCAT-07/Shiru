@@ -56,6 +56,11 @@ async function ping(timeout = 2000) {
     }
 }
 
+function isNetworkError(error) {
+    if (!error || error.response || (error.status && error.status >= 400)) return false
+    return (/request failed|failed to fetch|resolve host|network\s?error/i).test(error.message || '')
+}
+
 let monitor
 let offlinePromise
 window.addEventListener('fetch-error', (event) => isOffline(event?.detail?.error))
@@ -64,7 +69,7 @@ export async function isOffline(error) {
         offlinePromise = (async () => {
             if (status.value === 'offline') return true
             debug('Detected an error when executing #fetch(), checking for network outage...')
-            if (!(!error?.response && (/request failed|failed to fetch|resolve host|network\s?error/i.test(error?.message) || (!error?.message && error?.status === 404)))) return false
+            if (!isNetworkError(error)) return false
             debug(`Verified suspicious error with navigator.onLine=${navigator.onLine}, verifying with ping...`)
             const result = await ping()
             if (!result) {

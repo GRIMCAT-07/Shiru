@@ -5,6 +5,7 @@
   import { airingAt, getAiringInfo, getKitsuMappings, formatMap, statusColorMap } from '@/modules/anime/anime.js'
   import { createListener } from '@/modules/util.js'
   import { hoverClick } from '@/modules/click.js'
+  import SmartImage from '@/components/visual/SmartImage.svelte'
   import AudioLabel from '@/views/ViewAnime/AudioLabel.svelte'
   import { anilistClient, currentYear } from '@/modules/anilist.js'
   import { settings } from '@/modules/settings.js'
@@ -91,7 +92,7 @@
     {/if}
     <div class='d-inline-block position-relative'>
       <span class="airing-badge rounded-10 font-weight-semi-bold text-light bg-success-subtle" class:d-none={!airingInfo?.episode?.match(/out for/i)}>AIRING</span>
-      <img loading='lazy' src={media.coverImage.extraLarge || ''} alt='cover' class='cover-img w-full rounded' style:--color={media.coverImage.color || '#1890ff'} />
+      <SmartImage class='cover-img cover-color cover-ratio w-full rounded' color={media.coverImage.color || '#1890ff'} images={[media.coverImage.extraLarge, media.coverImage?.medium, './404_cover.png']}/>
       {#if !_variables?.scheduleList}
         <AudioLabel {media} />
       {/if}
@@ -162,16 +163,9 @@
     -webkit-box-orient: vertical;
     line-height: 1.2;
   }
-  img {
-    width: 100%;
-    aspect-ratio: 230/331;
-  }
   .item {
     width: 100%;
     aspect-ratio: 152/296;
-  }
-  .cover-img {
-    background-color: var(--color) !important;
   }
   .list-status-circle {
     background: var(--statusColor);

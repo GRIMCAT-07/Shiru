@@ -63,10 +63,26 @@
   $: episodeOrder = !!staticMedia
   $: watched = media?.mediaListEntry?.status === 'COMPLETED'
   $: userProgress =  ['CURRENT', 'REPEATING', 'PAUSED', 'DROPPED'].includes(media?.mediaListEntry?.status) && media?.mediaListEntry?.progress
+  $: missingIds = staticMedia && []
   $: recommendations = staticMedia && anilistClient.recommendations({ id: staticMedia.id })
   $: searchIDS = staticMedia && (async () => {
     const searchIDS = [...(staticMedia.relations?.edges?.filter(({ node }) => node.type === 'ANIME').map(({ node }) => node.id) || []), ...((await recommendations)?.data?.Media?.recommendations?.edges?.map(({ node }) => node.mediaRecommendation?.id) || [])]
-    return searchIDS.length > 0 ? anilistClient.searchAllIDS({ page: 1, perPage: 50, id: searchIDS }) : Promise.resolve([])
+    if (searchIDS.length === 0) {
+      missingIds = searchIDS.filter(id => !mediaCache.value[id])
+      return Promise.resolve([])
+    }
+    const result = await anilistClient.searchAllIDS({ page: 1, perPage: 50, id: searchIDS })
+    missingIds = searchIDS.filter(id => !mediaCache.value[id])
+    return Promise.resolve({
+      ...result,
+      data: {
+        ...result.data,
+        Page: {
+          ...result.data.Page,
+          media: (result?.data?.Page?.media || []).filter(media => mediaCache.value[media.id])
+        }
+      }
+    })
   })()
   $: staticMedia && (modal?.focus(), setOverlay(), saveMedia(), (container && container.scrollTo({top: 0, behavior: 'smooth'})))
   $: staticMedia && (overlay.length === 1 && overlay.includes('viewanime') && modal?.focus())
@@ -207,7 +223,7 @@
             <div class='d-flex flex-sm-row flex-column align-items-sm-end pb-20 mb-15'>
               <div class='cover d-flex flex-row align-items-sm-end align-items-center justify-content-center mw-full mb-sm-0 mb-20 w-full' style='max-height: 50vh;'>
                 <div class='position-relative h-full'>
-                  <img class='rounded cover-img overflow-hidden h-full w-full' alt='cover-art' src={staticMedia.coverImage?.extraLarge || staticMedia.coverImage?.medium} />
+                  <SmartImage class='rounded cover-img overflow-hidden h-full w-full' color={media.coverImage.color || '#1890ff'} images={[staticMedia.coverImage?.extraLarge, staticMedia.coverImage?.medium, './404_cover.png']}/>
                   <AudioLabel media={staticMedia} smallCard={false} />
                 </div>
               </div>
@@ -326,12 +342,12 @@
               <EpisodeList bind:episodeList={episodeList} mobileList={true} media={staticMedia} {episodeOrder} bind:userProgress bind:watched episodeCount={getMediaMaxEp(media)} {play} class='h-600' />
             </div>
             <div class='d-lg-block'>
-              <ToggleList list={ staticMedia.relations?.edges?.filter(({ node, relationType }) => relationType !== 'CHARACTER' && node.type === 'ANIME' && node.format !== 'MUSIC' && !(settings.value.adult === 'none' && node.isAdult) && !(settings.value.adult !== 'hentai' && node.genres?.includes('Hentai'))).sort((a, b) => (a.node.seasonYear || Infinity) - (b.node.seasonYear || Infinity)) } promise={searchIDS} let:item let:promise title='Relations'>
+              <ToggleList list={ staticMedia.relations?.edges?.filter(({ node, relationType }) => relationType !== 'CHARACTER' && node.type === 'ANIME' && node.format !== 'MUSIC' && !(settings.value.adult === 'none' && node.isAdult) && !(settings.value.adult !== 'hentai' && node.genres?.includes('Hentai')) && !missingIds.includes(node.id)).sort((a, b) => (a.node.seasonYear || Infinity) - (b.node.seasonYear || Infinity)) } promise={searchIDS} let:item let:promise title='Relations'>
                 {#await promise}
                   <div class='small-card'>
                     <SmallCardSk />
                   </div>
-                {:then res }
+                {:then res}
                   {#if res}
                     <div class='small-card'>
                       <SmallCard data={item.node} type={item.relationType.replace(/_/g, ' ').toLowerCase()} />
@@ -342,7 +358,7 @@
               {#await recommendations then res}
                 {@const media = res?.data?.Media}
                 {#if media}
-                  <ToggleList list={ media.recommendations?.edges?.filter(({ node }) => node.mediaRecommendation && !(settings.value.adult === 'none' && node.mediaRecommendation.isAdult) && !(settings.value.adult !== 'hentai' && node.mediaRecommendation.genres?.includes('Hentai'))).sort((a, b) => b.node.rating - a.node.rating) } promise={searchIDS} let:item let:promise title='Recommendations'>
+                  <ToggleList list={ media.recommendations?.edges?.filter(({ node }) => node.mediaRecommendation && !(settings.value.adult === 'none' && node.mediaRecommendation.isAdult) && !(settings.value.adult !== 'hentai' && node.mediaRecommendation.genres?.includes('Hentai')) && !missingIds.includes(node.mediaRecommendation.id)).sort((a, b) => b.node.rating - a.node.rating) } promise={searchIDS} let:item let:promise title='Recommendations'>
                     {#await promise}
                       <div class='small-card'>
                         <SmallCardSk />

@@ -72,8 +72,10 @@ export default class SectionsManager {
     return Array.from({ length }, (_, i) => ({ type, data: SectionsManager.fromPending(res, i) }))
   }
 
-  static async fromPending (arr, i) {
-    const { data, errors } = await arr
+  static async fromPending (_arr, i) {
+    const arr = await _arr
+    if (!arr) return null
+    const { data, errors } = arr
     if (!data && errors) throw errors[0]
     return data?.Page.media[i]
   }

@@ -47,6 +47,7 @@
   import EpisodeListSk from '@/components/skeletons/EpisodeListSk.svelte'
   import TorrentButton from '@/components/TorrentButton.svelte'
   import AudioLabel from '@/views/ViewAnime/AudioLabel.svelte'
+  import SmartImage from '@/components/visual/SmartImage.svelte'
 
   export let media
 
@@ -278,7 +279,7 @@
                 <div class="unreleased-overlay position-absolute top-0 left-0 right-0 h-full pointer-events-none rounded-2" class:d-none={!unreleased}/>
                 {#if image}
                   <div class='d-flex'>
-                    <img alt='thumbnail' src={image} class='img-cover h-full'/>
+                    <SmartImage class='img-cover h-full' images={[image, './404_episode.png']}/>
                     {#if resolvedHash}
                       <div class='position-relative torrent-button-container'>
                         <div class='position-absolute top-0 right-0 text-danger icon-padding icon-shadow'>

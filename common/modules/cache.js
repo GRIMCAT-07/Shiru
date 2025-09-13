@@ -338,6 +338,8 @@ class Cache {
   history
   /** @type {Map<string, any>} */
   #pending = new Map()
+  /** @type {import('svelte/store').Writable<string>} */
+  status
 
   isReady
   subscribers = []
@@ -632,7 +634,11 @@ class Cache {
         return this.cachedEntry(cache, key, true)
       }
       const cacheRes = deepClone(res)
-      if (!variables?.mappings && (!res || ((res.errors?.length > 0) && !res.errors?.[0]?.title?.match(/record not found/i)))) return this.cachedEntry(cache, key, true) || res
+      if (!this.status) {
+        const { status } = await import('@/modules/networking.js')
+        this.status = status
+      }
+      if (this.status.value === 'offline' || (!variables?.mappings && (!res || ((res.errors?.length > 0) && !res.errors?.[0]?.title?.match(/record not found/i))))) return this.cachedEntry(cache, key, true) || res
       if (cache !== caches.RECOMMENDATIONS || this.general.value.settings.queryComplexity === 'Complex') {
         if (res?.data?.Page?.media) {
           cacheRes.data.Page.media = cacheRes.data.Page.media.map(media => media.id)
