@@ -120,7 +120,7 @@
   .gallery :global(.small-card-ct:first-child) :global(.absolute-container) {
     left: -45% !important;
   }
-  .gallery :global(.small-card-ct:last-child) :global(.absolute-container) {
+  .gallery :global(.small-card-ct:last-child):not(:only-child) :global(.absolute-container) {
     right: -45% !important;
   }
 
@@ -128,7 +128,7 @@
     .gallery :global(.small-card-ct:first-child) :global(.absolute-container) {
       left: -35% !important;
     }
-    .gallery :global(.small-card-ct:last-child) :global(.absolute-container) {
+    .gallery :global(.small-card-ct:last-child:not(:only-child)) :global(.absolute-container) {
       right: -35% !important;
     }
   }
