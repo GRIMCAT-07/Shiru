@@ -49,6 +49,14 @@
     <label for='disable-sidebar'>{settings.expandingSidebar ? 'On' : 'Off'}</label>
   </div>
 </SettingCard>
+{#if SUPPORTS.isAndroid}
+  <SettingCard title='Expandable Lists' description='Choose whether lists like recommendations or relations, open as dropdowns or scroll horizontally. Scrollable lists work better on smaller screens.'>
+    <div class='custom-switch'>
+      <input type='checkbox' id='toggle-list' bind:checked={settings.toggleList} />
+      <label for='toggle-list'>{settings.toggleList ? 'On' : 'Off'}</label>
+    </div>
+  </SettingCard>
+{/if}
 {#if !Helper.isAniAuth()}
   <SettingCard title='Preferred Title Language' description='What title language to automatically select when displaying the title of an anime.'>
     <select class='form-control bg-dark mw-150 w-150' bind:value={settings.titleLang}>

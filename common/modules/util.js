@@ -504,6 +504,7 @@ export const defaults = {
   cards: 'small',
   cardPreview: true,
   cardAudio: false,
+  toggleList: !SUPPORTS.isAndroid,
   titleLang: 'romaji',
   hideMyAnime: false,
   toasts: 'All',
