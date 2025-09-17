@@ -60,13 +60,13 @@
      }
     window.addEventListener('overlay-check', () => { if ($editorView) close() })
 </script>
-<SoftModal class='vwh-90 rounded scrollbar-none bg-dark' bind:showModal={$editorView} {close} id='fileEditorModal'>
+<SoftModal class='vwh-90 rounded scrollbar-none bg-very-dark' bind:showModal={$editorView} {close} id='fileEditorModal'>
     <div class='d-flex mt-10'>
         <div>
             <h3 class='mb-0 font-weight-bold text-white title font-size-24 ml-20'>Select a Series</h3>
             <h4 class='mb-0 text-muted title font-size-12 ml-20'>Click or tap the series that is currently playing.</h4>
         </div>
-        <button type='button' class='btn btn-square bg-very-dark ml-auto mr-20 d-flex align-items-center justify-content-center rounded-2 flex-shrink-0' use:click={close}><X size='1.7rem' strokeWidth='3'/></button>
+        <button type='button' class='btn btn-square ml-auto mr-20 d-flex align-items-center justify-content-center rounded-2 flex-shrink-0' use:click={close}><X size='1.7rem' strokeWidth='3'/></button>
     </div>
     <Search {key} {search}/>
 </SoftModal>

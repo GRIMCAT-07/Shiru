@@ -28,7 +28,7 @@
     padding-top: 4rem;
   }
   .modal-soft {
-    background-color: rgba(0,0,0,0.85);
+    background-color: hsla(var(--black-color-hsl), 0.85);
     transition: opacity .2s ease-in-out, visibility .2s ease-in-out;
   }
   .modal-soft.show {

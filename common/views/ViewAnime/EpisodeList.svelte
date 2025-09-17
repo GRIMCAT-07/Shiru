@@ -275,7 +275,7 @@
             {@const largeCard = image || (summary && !unreleased)}
             {@const resolvedHash = ($completedTorrents || $seedingTorrents || $stagingTorrents || $loadedTorrent) && getHash(media?.id, { episode, client: true }, false, true)}
             <div class='w-full content-visibility-auto scale my-20' class:load-in={!loadScroll} class:opacity-half={completed} class:scale-target={target} class:px-20={!target} class:px-10={target} class:h-150={!SUPPORTS.isAndroid && largeCard} class:h-165={SUPPORTS.isAndroid && largeCard}>
-              <div class='episode-card rounded-2 w-full h-full overflow-hidden d-flex flex-xsm-column flex-row position-relative {unreleased ? `unreleased not-allowed` : `pointer`}' class:not-reactive={!$reactive} class:smallCard={!largeCard} class:android={SUPPORTS.isAndroid}  class:border={target || hasFiller} class:bg-black={completed} class:border-secondary={hasFiller} class:bg-dark={!completed} use:click={() => play(episode)}>
+              <div class='episode-card rounded-2 w-full h-full overflow-hidden d-flex flex-xsm-column flex-row position-relative {unreleased ? `unreleased not-allowed` : `pointer`}' class:not-reactive={!$reactive} class:smallCard={!largeCard} class:android={SUPPORTS.isAndroid}  class:border={target || hasFiller} class:bg-black={completed} class:border-secondary={hasFiller} class:bg-dark-light={!completed} use:click={() => play(episode)}>
                 <div class="unreleased-overlay position-absolute top-0 left-0 right-0 h-full pointer-events-none rounded-2" class:d-none={!unreleased}/>
                 {#if image}
                   <div class='d-flex'>
@@ -283,7 +283,7 @@
                     {#if resolvedHash}
                       <div class='position-relative torrent-button-container'>
                         <div class='position-absolute top-0 right-0 text-danger icon-padding icon-shadow'>
-                          <TorrentButton class='btn btn-square shadow-none bg-transparent highlight h-40 w-40' hash={[resolvedHash]} search={{ media, episode }} size={'3rem'} strokeWidth={'2.3'}/>
+                          <TorrentButton class='btn btn-square shadow-none bg-transparent bd-highlight h-40 w-40' hash={[resolvedHash]} search={{ media, episode }} size={'3rem'} strokeWidth={'2.3'}/>
                         </div>
                       </div>
                     {/if}
@@ -301,7 +301,7 @@
                 {/if}
                 {#if !image && resolvedHash}
                   <div class='position-absolute bottom-0 right-0 mr-5 mb-5 text-danger icon-shadow torrent-button-container' class:mb-30={hasFiller}>
-                    <TorrentButton class='btn btn-square shadow-none bg-transparent highlight h-40 w-40' hash={[resolvedHash]} search={{ media, episode }} size={'3rem'} strokeWidth={'2.3'}/>
+                    <TorrentButton class='btn btn-square shadow-none bg-transparent bd-highlight h-40 w-40' hash={[resolvedHash]} search={{ media, episode }} size={'3rem'} strokeWidth={'2.3'}/>
                   </div>
                 {/if}
                 <div class='h-full w-full px-20 pt-15 d-flex flex-column'>
@@ -330,10 +330,10 @@
                   <div class='font-size-12 mt-auto' class:mb-5={dubAiring} class:mb-10={!dubAiring}>
                     {#if dubAiring}
                       <div class='d-flex flex-row date-row'>
-                        <div class='mr-5 py-5 px-10 text-dark text-nowrap rounded-top rounded-left font-weight-bold' class:lg-label={image} class:bg-danger={dubAiring.delayed} class:bg-dubbed={!dubAiring.delayed}>
+                        <div class='mr-5 py-5 px-10 text-dark text-nowrap rounded-top rounded-left font-weight-bold' class:lg-label={image} class:bg-danger={dubAiring.delayed} class:bg-senary={!dubAiring.delayed}>
                           Dub: {dubAiring.text}
                         </div>
-                        <div class='py-5 px-10 text-dark text-nowrap rounded-top rounded-left font-weight-bold' class:lg-label={image} class:bg-danger={!airdate && dubAiring.delayed} class:bg-subbed={!(!airdate && dubAiring.delayed)}>
+                        <div class='py-5 px-10 text-dark text-nowrap rounded-top rounded-left font-weight-bold' class:lg-label={image} class:bg-danger={!airdate && dubAiring.delayed} class:bg-septenary={!(!airdate && dubAiring.delayed)}>
                           Sub: {airdate ? since(new Date(airdate)) : dubAiring.text}
                         </div>
                       </div>
@@ -380,7 +380,7 @@
     color: var(--accent-color)
   }
   .unreleased-overlay {
-    background: repeating-linear-gradient(-45deg, rgba(0,0,0,0.3), rgba(0,0,0,0.3) 1rem, transparent 1rem, transparent 2rem);
+    background: repeating-linear-gradient(-45deg, hsla(var(--black-color-hsl), 0.3), hsla(var(--black-color-hsl), 0.3) 1rem, transparent 1rem, transparent 2rem);
   }
   .opacity-half {
     opacity: 50%;

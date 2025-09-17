@@ -200,12 +200,12 @@
 </script>
 
 <div class='modal modal-full z-50' class:show={staticMedia} on:keydown={checkClose} tabindex='-1' role='button' bind:this={modal}>
-  <div class='h-full modal-content bg-very-dark p-0 overflow-y-auto position-relative' bind:this={container}>
+  <div class='h-full modal-content bg-dark p-0 overflow-y-auto position-relative' bind:this={container}>
     {#if staticMedia}
-      <button class='close back pointer z-30 bg-dark top-20 left-0 position-fixed' class:d-none={(mediaList.length <= 1) || SUPPORTS.isAndroid} use:click={back}>
+      <button class='close back pointer z-30 bg-dark-light top-20 left-0 position-fixed' class:d-none={(mediaList.length <= 1) || SUPPORTS.isAndroid} use:click={back}>
         <ArrowLeft size='1.8rem' />
       </button>
-      <button class='close pointer z-30 bg-dark top-20 right-0 position-fixed' type='button' use:click={() => close()}> &times; </button>
+      <button class='close pointer z-30 bg-dark-light top-20 right-0 position-fixed' type='button' use:click={() => close()}> &times; </button>
       <SmartImage class='w-full cover-img anime-details position-absolute' images={[
         staticMedia.bannerImage,
         ...(staticMedia.trailer?.id ? [
@@ -223,8 +223,8 @@
             <div class='d-flex flex-sm-row flex-column align-items-sm-end pb-20 mb-15'>
               <div class='cover d-flex flex-row align-items-sm-end align-items-center justify-content-center mw-full mb-sm-0 mb-20 w-full' style='max-height: 50vh;'>
                 <div class='position-relative h-full'>
-                  <SmartImage class='rounded cover-img overflow-hidden h-full w-full' color={media.coverImage.color || '#1890ff'} images={[staticMedia.coverImage?.extraLarge, staticMedia.coverImage?.medium, './404_cover.png']}/>
-                  <AudioLabel media={staticMedia} smallCard={false} />
+                  <SmartImage class='rounded cover-img overflow-hidden h-full w-full' color={media.coverImage.color || 'var(--tertiary-color)'} images={[staticMedia.coverImage?.extraLarge, staticMedia.coverImage?.medium, './404_cover.png']}/>
+                  <AudioLabel media={staticMedia} smallCard={false} viewAnime={true} />
                 </div>
               </div>
               <div class='pl-sm-20 ml-sm-20'>
@@ -283,7 +283,7 @@
                       <Scoring {media} viewAnime={true} />
                     {/if}
                     {#if Helper.isAniAuth()}
-                      <button class='btn bg-dark btn-lg btn-square d-flex align-items-center justify-content-center shadow-none border-0 ml-10' title={media.isFavourite ? 'Unfavourite' : 'Favourite'} use:click={toggleFavourite} disabled={!Helper.isAniAuth()}>
+                      <button class='btn bg-dark-light btn-lg btn-square d-flex align-items-center justify-content-center shadow-none border-0 ml-10' data-toggle='tooltip' data-placement='top' data-target-breakpoint='md' data-title={media.isFavourite ? 'Unfavourite' : 'Favourite'} use:click={toggleFavourite} disabled={!Helper.isAniAuth()}>
                         <div class='favourite d-flex align-items-center justify-content-center' title={media.isFavourite ? 'Unfavourite' : 'Favourite'}>
                           <Heart color={media.isFavourite ? 'var(--tertiary-color)' : 'currentColor'} fill={media.isFavourite ? 'var(--tertiary-color)' : 'transparent'} size='1.7rem' />
                         </div>
@@ -291,14 +291,14 @@
                     {/if}
                     {#await (staticMedia.trailer?.id && media) || episodesList.getMedia(staticMedia.idMal) then trailerUrl}
                       {#if trailerUrl?.trailer?.id || trailerUrl?.data?.trailer?.youtube_id }
-                        <button class='btn bg-dark btn-lg btn-square d-flex align-items-center justify-content-center shadow-none border-0' title='Watch Trailer' class:ml-10={Helper.isAuthorized()} use:click={() => $trailer = { media: staticMedia, id: (trailerUrl?.trailer?.id || trailerUrl?.data?.trailer?.youtube_id) }}>
+                        <button class='btn bg-dark-light btn-lg btn-square d-flex align-items-center justify-content-center shadow-none border-0' data-toggle='tooltip' data-placement='top' data-target-breakpoint='md' data-title='Watch Trailer' class:ml-10={Helper.isAuthorized()} use:click={() => $trailer = { media: staticMedia, id: (trailerUrl?.trailer?.id || trailerUrl?.data?.trailer?.youtube_id) }}>
                           <TvMinimalPlay size='1.7rem' />
                         </button>
                       {/if}
-                      <button class='btn bg-dark btn-lg btn-square d-flex align-items-center justify-content-center shadow-none border-0' title='Share to Clipboard' class:ml-10={Helper.isAuthorized() || (trailerUrl?.trailer?.id || trailerUrl?.data?.trailer?.youtube_id)} use:click={() => copyToClipboard(Helper.isAniAuth() || !staticMedia.idMal ? `https://anilist.co/anime/${staticMedia.id}` : `https://myanimelist.net/anime/${staticMedia.idMal}`)}>
+                      <button class='btn bg-dark-light btn-lg btn-square d-flex align-items-center justify-content-center shadow-none border-0' data-toggle='tooltip' data-placement='top' data-target-breakpoint='md' data-title='Share to Clipboard' class:ml-10={Helper.isAuthorized() || (trailerUrl?.trailer?.id || trailerUrl?.data?.trailer?.youtube_id)} use:click={() => copyToClipboard(Helper.isAniAuth() || !staticMedia.idMal ? `https://anilist.co/anime/${staticMedia.id}` : `https://myanimelist.net/anime/${staticMedia.idMal}`)}>
                         <Share2 size='1.7rem' />
                       </button>
-                      <button class='btn bg-dark btn-lg btn-square d-flex align-items-center justify-content-center shadow-none border-0 ml-10' title={`View on ${Helper.isAniAuth() || !staticMedia.idMal ? 'Anilist' : 'MyAnimeList'}`} use:click={() => openInBrowser(Helper.isAniAuth() || !staticMedia.idMal ? `https://anilist.co/anime/${staticMedia.id}` : `https://myanimelist.net/anime/${staticMedia.idMal}`)}>
+                      <button class='btn bg-dark-light btn-lg btn-square d-flex align-items-center justify-content-center shadow-none border-0 ml-10' data-toggle='tooltip' data-placement='top' data-target-breakpoint='md' data-title={`View on ${Helper.isAniAuth() || !staticMedia.idMal ? 'Anilist' : 'MyAnimeList'}`} use:click={() => openInBrowser(Helper.isAniAuth() || !staticMedia.idMal ? `https://anilist.co/anime/${staticMedia.id}` : `https://myanimelist.net/anime/${staticMedia.idMal}`)}>
                         <ExternalLink size='1.7rem' />
                       </button>
                     {/await}
@@ -309,14 +309,14 @@
             <Details media={staticMedia} alt={recommendations} />
             <div bind:this={scrollTags} class='m-0 px-20 pb-0 pt-10 d-flex flex-row text-nowrap overflow-x-scroll text-capitalize align-items-start'>
               {#each staticMedia.tags as tag}
-                <div class='bg-dark px-20 py-10 mr-10 rounded text-nowrap d-flex align-items-center'>
+                <div class='bg-dark-light px-20 py-10 mr-10 rounded text-nowrap d-flex align-items-center'>
                   <Hash class='mr-5' size='1.8rem' /><span class='font-weight-bolder select-all'>{tag.name}</span><span class='font-weight-light'>: {tag.rank}%</span>
                 </div>
               {/each}
             </div>
             <div bind:this={scrollGenres} class='m-0 px-20 pb-0 pt-10 d-flex flex-row text-nowrap overflow-x-scroll text-capitalize align-items-start'>
               {#each staticMedia.genres as genre}
-                <div class='bg-dark px-20 py-10 mr-10 rounded text-nowrap d-flex align-items-center select-all'><svelte:component this={genreIcons[genre]} class='mr-5' size='1.8rem' /> {genre}</div>
+                <div class='bg-dark-light px-20 py-10 mr-10 rounded text-nowrap d-flex align-items-center select-all'><svelte:component this={genreIcons[genre]} class='mr-5' size='1.8rem' /> {genre}</div>
               {/each}
             </div>
             {#if staticMedia.description}
@@ -377,7 +377,7 @@
           </div>
         </div>
         <div class='col-lg-5 col-12 d-none d-lg-flex flex-column pl-lg-20' bind:this={rightColumn}>
-          <button class='close order pointer z-30 bg-dark position-absolute' class:d-none={!episodeList?.length} title='Reverse Episodes' use:click={()=> {episodeOrder = !episodeOrder}}>
+          <button class='close order pointer z-30 bg-dark-light position-absolute' class:d-none={!episodeList?.length} data-toggle='tooltip' data-placement='top' data-target-breakpoint='md' data-title='Reverse Episodes' use:click={()=> {episodeOrder = !episodeOrder}}>
             <svelte:component this={episodeOrder ? ArrowDown01 : ArrowUp10} size='2rem' />
           </button>
           <EpisodeList bind:episodeLoad={episodeLoad} media={staticMedia} {episodeOrder} bind:userProgress bind:watched episodeCount={getMediaMaxEp(media)} {play} />

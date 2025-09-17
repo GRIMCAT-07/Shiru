@@ -14,7 +14,7 @@
 <script>
   import { statusColorMap } from '@/modules/anime/anime.js'
   import { episodesList } from '@/modules/episodes.js'
-  import { hoverClick, hoverExit } from '@/modules/click.js'
+  import { hoverClick } from '@/modules/click.js'
   import { liveAnimeEpisodeProgress } from '@/modules/anime/animeprogress.js'
   import { anilistClient } from '@/modules/anilist.js'
   import { settings } from '@/modules/settings.js'
@@ -35,6 +35,9 @@
   $: episodeRange = episodesList.handleArray(data?.episode, data?.parseObject?.file_name)
   $: lastEpisode = (data?.episodeRange || data?.parseObject?.episodeRange)?.last || episodeRange?.last || data?.episode || (media?.episodes === 1 && media?.episodes)
   $: episodeThumbnail = ((!media?.mediaListEntry?.status || !(['CURRENT', 'REPEATING', 'PAUSED', 'PLANNING'].includes(media.mediaListEntry.status) && media.mediaListEntry.progress < lastEpisode)) && data.episodeData?.image) || media?.bannerImage || media?.coverImage.extraLarge || ' '
+  $: progress = liveAnimeEpisodeProgress(media?.id, data?.episode)
+  $: watched = media?.mediaListEntry?.status === 'COMPLETED'
+  $: completed = !watched && media?.mediaListEntry?.progress >= lastEpisode
   let hide = true
 
   const view = getContext('view')
@@ -46,31 +49,81 @@
     if (!$prompt && episode && !Array.isArray(episode) && (episode - 1) >= 1 && media?.mediaListEntry?.status !== 'COMPLETED' && (media?.mediaListEntry?.progress || -1) < (episode - 1)) prompt.set(true)
     else episode ? (media ? playActive(data.hash, { media, episode }, data.link) : data.onclick()) : viewMedia()
     clicked.set(true)
-    setTimeout(() => clicked.set(false))
+    setTimeout(() => clicked.set(false)).unref?.()
   }
   function setHoverState (state, tapped) {
     const episode = data.episode || (media?.episodes === 1 && media?.episodes)
     if (!$prompt && episode && !Array.isArray(episode) && (episode - 1) >= 1 && media?.mediaListEntry?.status !== 'COMPLETED' && (media?.mediaListEntry?.progress || -1) < (episode - 1)) prompt.set(!!tapped)
-    if (!$prompt || !$clicked) preview = state
+    if (!$prompt || !$clicked) {
+      if (previewCard && !state) {
+        previewCard.classList.add('card-load-out')
+        previewCard.addEventListener('animationend', () => {
+          preview = false
+          setTimeout(() => {
+            if (!preview) prompt.set(false)
+          }).unref?.()
+        }, { once: true })
+      } else preview = state
+    }
   }
 
-  $: progress = liveAnimeEpisodeProgress(media?.id, data?.episode)
-  $: watched = media?.mediaListEntry?.status === 'COMPLETED'
-  $: completed = !watched && media?.mediaListEntry?.progress >= lastEpisode
+  let container
+  let previewCard
+  let focusTimeout
+  let blurTimeout
+  function handleFocus() {
+    clearTimeouts()
+    if (preview) return
+    focusTimeout = setTimeout(() => {
+      if (settings.value.cardPreview) preview = true
+    }, 800)
+    focusTimeout.unref?.()
+  }
+  function handleBlur() {
+    clearTimeouts()
+    blurTimeout = setTimeout(() => {
+      const focused = document.activeElement
+      if (container && !container.contains(focused) && (!previewCard || !previewCard.contains(focused))) {
+        if (previewCard) {
+          previewCard.classList.add('card-load-out')
+          previewCard.addEventListener('animationend', () => {
+            preview = false
+            setTimeout(() => {
+              if (!preview) prompt.set(false)
+            }).unref?.()
+          }, { once: true })
+        }
+      }
+    })
+    blurTimeout.unref?.()
+  }
+  function clearTimeouts() {
+    clearTimeout(focusTimeout)
+    clearTimeout(blurTimeout)
+  }
 
   let sinceInterval
   $: timeSince = data?.date && since(data?.date)
-  onMount(() => sinceInterval = setInterval(() => timeSince = data?.date && since(data?.date), 60_000))
-  onDestroy(() => clearInterval(sinceInterval))
+  onMount(() => {
+    container.addEventListener('focusout', handleBlur)
+    sinceInterval = setInterval(() => timeSince = data?.date && since(data?.date), 60_000)
+    sinceInterval.unref?.()
+  })
+  onDestroy(() => {
+    container.removeEventListener('focusout', handleBlur)
+    clearTimeouts()
+    clearInterval(sinceInterval)
+  })
+  $: if (preview) clearTimeout(focusTimeout)
 </script>
 
-<div class='d-flex p-20 pb-10 position-relative episode-card' class:mb-150={section} class:not-reactive={!$reactive} use:hoverExit={() => setTimeout(() => { if (!preview) prompt.set(false) })} use:hoverClick={[setClickState, setHoverState, viewMedia]} role='none'>
+<div bind:this={container} class='d-flex p-20 pb-10 position-relative episode-card' class:mb-150={section} class:not-reactive={!$reactive} use:hoverClick={[setClickState, setHoverState, viewMedia]} on:focus={handleFocus}>
   {#if preview}
-    <EpisodePreviewCard {data} bind:prompt={$prompt} />
+    <EpisodePreviewCard {data} bind:prompt={$prompt} bind:element={previewCard} />
   {/if}
   <div class='item load-in d-flex flex-column h-full pointer content-visibility-auto' class:opacity-half={completed}>
     <div class='image h-200 w-full position-relative rounded overflow-hidden d-flex justify-content-between align-items-end text-white'>
-      <SmartImage class='cover-img cover-color w-full h-full position-absolute {!(data.episodeData?.image || media?.bannerImage) && media?.genres?.includes(`Hentai`) ? `cover-rotated cr-380` : ``}' color={media?.coverImage?.color || '#1890ff'} images={[episodeThumbnail, './404_episode.png']}/>
+      <SmartImage class='cover-img cover-color w-full h-full position-absolute {!(data.episodeData?.image || media?.bannerImage) && media?.genres?.includes(`Hentai`) ? `cover-rotated cr-380` : ``}' color={media?.coverImage?.color || 'var(--tertiary-color)'} images={[episodeThumbnail, './404_episode.png']}/>
       {#if data.episodeData?.video}
         <video src={data.episodeData.video}
           class='w-full position-absolute left-0'

@@ -186,12 +186,12 @@
     </div>
   </div>
 {:else}
-  <div class='alert bg-warn wm-1200 p-10 pl-15 mb-5 d-flex'>
+  <div class='alert bg-warning border-warning-dim text-warning-very-dim wm-1200 p-10 pl-15 mb-5 d-flex'>
     <TriangleAlert size='1.8rem' />
     <span class='ml-10'>Extensions are sandboxed and should be safe from attacks, but it is not recommended to add <u>unknown</u> or <u>untrusted</u> extensions.</span>
   </div>
   {#if failedSource}
-    <div class='alert bg-error wm-1200 p-10 pl-15 mb-5 d-flex'>
+    <div class='alert bg-error border-error-light wm-1200 p-10 pl-15 mb-5 d-flex'>
       <CircleX size='1.8rem' />
       <span class='ml-10'>{failedSource}</span>
     </div>
@@ -239,7 +239,7 @@
                 <Github size='2.2rem' />
               </div>
               <span class='font-weight-semi-bold ml-10 font-scale-18'>{source.startsWith('gh:') ? source.slice(3) : source}</span>
-              <button type='button' use:click={() => { addSource(source, true); if (missingSources.length <= 1) viewSources = !viewSources }} class='btn btn-square d-flex align-items-center justify-content-center ml-10 bg-transparent shadow-none border-0 ml-auto' title='Add Source' style='color: var(--success-color-subtle)' disabled={pendingSource} class:cursor-wait={pendingSource}><SquarePlus size='1.8rem' /></button>
+              <button type='button' use:click={() => { addSource(source, true); if (missingSources.length <= 1) viewSources = !viewSources }} class='btn btn-square d-flex align-items-center justify-content-center ml-10 bg-transparent shadow-none border-0 ml-auto' title='Add Source' style='color: var(--success-color)' disabled={pendingSource} class:cursor-wait={pendingSource}><SquarePlus size='1.8rem' /></button>
             </div>
           {/each}
         </div>

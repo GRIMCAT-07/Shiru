@@ -33,13 +33,13 @@
 <nav class='navbar navbar-fixed-bottom d-block d-md-none border-0 bg-dark bt-10'>
   <div class='navbar-menu h-full d-flex flex-row justify-content-center align-items-center m-0 pb-5 animate'>
     <NavbarLink click={() => { page = 'home'; if ($view) $view = null }} _page='home' text='Home' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
-      <Home size='3.6rem' class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
+      <Home size='3.6rem' class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : 'var(--gray-color-very-dim)'} />
     </NavbarLink>
     <NavbarLink click={() => { page = 'search'; if ($view) $view = null }} _page='search' icon='search' text='Search' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
-      <Search size='3.6rem' class='flex-shrink-0 p-5 m-5 rounded' stroke-width='2.5' stroke='currentColor' color={active ? 'currentColor' : '#5e6061'} />
+      <Search size='3.6rem' class='flex-shrink-0 p-5 m-5 rounded' stroke-width='2.5' stroke='currentColor' color={active ? 'currentColor' : 'var(--gray-color-very-dim)'} />
     </NavbarLink>
     <NavbarLink click={() => { page = 'schedule' }} _page='schedule' icon='schedule' text='Schedule' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
-      <CalendarSearch size='3.6rem' class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
+      <CalendarSearch size='3.6rem' class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : 'var(--gray-color-very-dim)'} />
     </NavbarLink>
     {#if $media?.media || (playPage && (Object.keys($media).length > 0))}
       {@const currentMedia = $view}
@@ -55,24 +55,24 @@
           $view = (currentMedia?.id === $media?.media.id && active ? null : $media?.media)
         }
       }} rbClick={() => { if ($media?.media) $view = (currentMedia?.id === $media.media.id && active ? null : $media.media) }} _page={playPage ? 'player' : ''} icon='queue_music' text={$media?.display ? 'Last Watched' : 'Now Playing'} {page} overlay={active} nowPlaying={!playPage && ($view?.id === $media?.media?.id)} let:active>
-        <svelte:component this={playPage ? TvMinimalPlay : $media?.display ? History : ListVideo} size='3.6rem' class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
+        <svelte:component this={playPage ? TvMinimalPlay : $media?.display ? History : ListVideo} size='3.6rem' class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : 'var(--gray-color-very-dim)'} />
       </NavbarLink>
     {/if}
     <NavbarLink click={() => { page = 'watchtogether' }} _page='watchtogether' icon='groups' text='Watch Together' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
-      <Users size='3.6rem' class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
+      <Users size='3.6rem' class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : 'var(--gray-color-very-dim)'} />
     </NavbarLink>
     <NavbarLink click={() => { page = 'torrents' }} _page='torrents' icon='download' text='Torrents' css='d-none d-sm-block' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
-      <Download size='3.6rem' class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
+      <Download size='3.6rem' class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : 'var(--gray-color-very-dim)'} />
     </NavbarLink>
     <NavbarLink click={() => { $notifyView = !$notifyView }} icon='bell' text='Notifications' {page} overlay={$notifyView && 'notify'} nowPlaying={$view} let:active>
       {#if $hasUnreadNotifications &&  $hasUnreadNotifications > 0}
         <BellDot size='3.6rem' class='flex-shrink-0 p-5 m-5 rounded notify' strokeWidth='2.5' color={$notifyView ? 'white' : 'currentColor'} />
       {:else}
-        <Bell size='3.6rem' class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={$notifyView ? 'currentColor' : '#5e6061'}/>
+        <Bell size='3.6rem' class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={$notifyView ? 'currentColor' : 'var(--gray-color-very-dim)'}/>
       {/if}
     </NavbarLink>
     <NavbarLink click={() => { page = 'settings' }} _page='settings' icon='settings' text='Settings' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
-      <Settings size='3.6rem' class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
+      <Settings size='3.6rem' class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : 'var(--gray-color-very-dim)'} />
     </NavbarLink>
   </div>
 </nav>
@@ -87,35 +87,35 @@
     will-change: drop-shadow;
   }
   .navbar :global(.donate):active {
-    color: #fa68b6 !important;
+    color: var(--quattuordenary-color) !important;
   }
   .navbar :global(.donate) {
     font-variation-settings: 'FILL' 1;
-    color: #fa68b6;
-    text-shadow: 0 0 1rem #fa68b6;
+    color: var(--quattuordenary-color);
+    text-shadow: 0 0 1rem var(--quattuordenary-color);
   }
   @keyframes pink_glow {
     from {
-      filter: drop-shadow(0 0 1rem #fa68b6);
+      filter: drop-shadow(0 0 1rem var(--quattuordenary-color));
     }
     to {
-      filter: drop-shadow(0 0 0.5rem #fa68b6);
+      filter: drop-shadow(0 0 0.5rem var(--quattuordenary-color));
     }
   }
   .navbar :global(.notify):active {
-    color: #af68fa !important;
+    color: var(--notify-color) !important;
   }
   .navbar :global(.notify) {
     font-variation-settings: 'FILL' 1;
-    color: #af68fa;
-    text-shadow: 0 0 1rem #af68fa;
+    color: var(--notify-color);
+    text-shadow: 0 0 1rem var(--notify-color);
   }
   @keyframes purple_glow {
     from {
-      filter: drop-shadow(0 0 2rem #af68fa);
+      filter: drop-shadow(0 0 2rem var(--notify-color));
     }
     to {
-      filter: drop-shadow(0 0 0.2rem #af68fa);
+      filter: drop-shadow(0 0 0.2rem var(--notify-color));
     }
   }
   @keyframes bell_shake {
@@ -136,6 +136,6 @@
     }
   }
   .bt-10 {
-    border-top: .10rem rgba(182, 182, 182, 0.13) solid !important;
+    border-top: .10rem var(--border-color-sp) solid !important;
   }
 </style>

@@ -35,11 +35,11 @@
 </script>
 
 <div class='d-flex px-md-20 py-10 position-relative justify-content-center full-card-ct' use:click={viewMedia}>
-  <div class='card load-in m-0 p-0 pointer full-card {airingInfo?.episode.match(/out for/i) ? `airing` : ``}' style:--color={media.coverImage.color || '#1890ff'}>
+  <div class='card load-in m-0 p-0 pointer full-card {airingInfo?.episode.match(/out for/i) ? `airing` : ``}' style:--color={media.coverImage.color || 'var(--tertiary-color)'}>
     <div class='row h-full'>
       <div class='img-col d-inline-block position-relative col-3 col-md-4'>
-        <span class="airing-badge rounded-10 font-weight-semi-bold text-light bg-success-subtle" class:d-none={!airingInfo?.episode?.match(/out for/i)}>AIRING</span>
-        <SmartImage class='cover-img cover-color w-full h-full' color={media.coverImage.color || '#1890ff'} images={[media.coverImage.extraLarge, media.coverImage?.medium, './404_cover.png']}/>
+        <span class='airing-badge rounded-10 font-weight-semi-bold text-light bg-success' class:d-none={!airingInfo?.episode?.match(/out for/i)}>AIRING</span>
+        <SmartImage class='cover-img cover-color w-full h-270' color={media.coverImage.color || 'var(--tertiary-color)'} images={[media.coverImage.extraLarge, media.coverImage?.medium, './404_cover.png']}/>
         {#if !_variables?.scheduleList}
           <AudioLabel {media} smallCard={false} />
         {/if}
@@ -97,7 +97,7 @@
           {#if airingInfo}
             <div class='d-flex align-items-center pt-5 text-white'>
               {airingInfo.episode}&nbsp;
-              <span class='font-weight-bold {airingInfo.episode.match(/out for/i) ? `text-success-subtle` : `text-light`} d-inline'>
+              <span class='font-weight-bold {airingInfo.episode.match(/out for/i) ? `text-success` : `text-light`} d-inline'>
                   {airingInfo.time}
               </span>
             </div>
@@ -109,7 +109,7 @@
           </div>
         {/if}
         {#if media.genres.length}
-          <div class='px-15 pb-5 genres'>
+          <div class='px-15 pb-5 genres bg-very-dark'>
             {#each media.genres.slice(0, 3) as genre}
               <span class='badge badge-color text-dark mt-5 mr-5 font-weight-bold'>{genre}</span>
             {/each}
@@ -131,7 +131,7 @@
     will-change: box-shadow, opacity;
   }
   @keyframes airing-pulse {
-    0%   { box-shadow: 0 0 0 0 var(--success-color-subtle); opacity: 0.9; }
+    0%   { box-shadow: 0 0 0 0 var(--success-color); opacity: 0.9; }
     25%  { box-shadow: 0 0 0 .7rem var(--dark-color); opacity: 0.6; }
     40% { box-shadow: 0 0 0 0 var(--dark-color); opacity: 0.4; }
     100% { box-shadow: 0 0 0 0 var(--dark-color); opacity: 0; }
@@ -142,7 +142,7 @@
     left: -.6rem;
     font-size: 1rem;
     padding: .35rem .9rem;
-    box-shadow: 0 .2rem .5rem rgba(0,0,0,0.2);
+    box-shadow: 0 .2rem .5rem hsla(var(--black-color-hsl), 0.2);
   }
   .title {
     display: -webkit-box !important;
@@ -164,7 +164,7 @@
   .card {
     width: 52rem !important;
     height: 27rem !important;
-    box-shadow: rgba(0, 4, 12, 0.3) 0px 7px 15px, rgba(0, 4, 12, 0.05) 0px 4px 4px;
+    box-shadow: hsla(var(--dark-color-very-light-hsl), 0.3) 0px 7px 15px, hsla(var(--dark-color-very-light-hsl), 0.05) 0px 4px 4px;
     contain-intrinsic-height: 27rem;
     transition: transform 0.2s ease;
   }

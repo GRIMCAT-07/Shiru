@@ -29,7 +29,12 @@
 
   let preview = false
   function setHoverState(state) {
-    if (settings.value.cardPreview) preview = state
+    if (settings.value.cardPreview) {
+      if (previewCard && !state) {
+        previewCard.classList.add('card-load-out')
+        previewCard.addEventListener('animationend', () => preview = false, { once: true })
+      } else preview = state
+    }
     else if (state) viewMedia()
   }
 
@@ -43,15 +48,20 @@
     focusTimeout = setTimeout(() => {
       if (settings.value.cardPreview) preview = true
     }, 800)
+    focusTimeout.unref?.()
   }
   function handleBlur() {
     clearTimeouts()
     blurTimeout = setTimeout(() => {
       const focused = document.activeElement
       if (container && !container.contains(focused) && (!previewCard || !previewCard.contains(focused))) {
-        preview = false
+        if (previewCard) {
+          previewCard.classList.add('card-load-out')
+          previewCard.addEventListener('animationend', () => preview = false, { once: true })
+        }
       }
     })
+    blurTimeout.unref?.()
   }
   function clearTimeouts() {
     clearTimeout(focusTimeout)
@@ -64,7 +74,10 @@
   onMount(() => {
     container.addEventListener('focusout', handleBlur)
     _airingAt = media && _variables?.scheduleList && airingAt(media, _variables)
-    if (_airingAt) airingInterval = setInterval(() => airingInfo = getAiringInfo(_airingAt), 60_000)
+    if (_airingAt) {
+      airingInterval = setInterval(() => airingInfo = getAiringInfo(_airingAt), 60_000)
+      airingInterval.unref?.()
+    }
   })
   onDestroy(() => {
     container.removeEventListener('focusout', handleBlur)
@@ -85,14 +98,14 @@
     {#if airingInfo}
       <div class='w-full text-center pb-10'>
         {airingInfo.episode}&nbsp;
-        <span class='font-weight-bold {airingInfo.episode.match(/out for/i) ? `text-success-subtle` : `text-light`}'>
+        <span class='font-weight-bold {airingInfo.episode.match(/out for/i) ? `text-success` : `text-light`}'>
             {airingInfo.time}
         </span>
       </div>
     {/if}
     <div class='d-inline-block position-relative'>
-      <span class="airing-badge rounded-10 font-weight-semi-bold text-light bg-success-subtle" class:d-none={!airingInfo?.episode?.match(/out for/i)}>AIRING</span>
-      <SmartImage class='cover-img cover-color cover-ratio w-full rounded' color={media.coverImage.color || '#1890ff'} images={[media.coverImage.extraLarge, media.coverImage?.medium, './404_cover.png']}/>
+      <span class='airing-badge rounded-10 font-weight-semi-bold text-light bg-success' class:d-none={!airingInfo?.episode?.match(/out for/i)}>AIRING</span>
+      <SmartImage class='cover-img cover-color cover-ratio w-full rounded' color={media.coverImage.color || 'var(--tertiary-color)'} images={[media.coverImage.extraLarge, media.coverImage?.medium, './404_cover.png']}/>
       {#if !_variables?.scheduleList}
         <AudioLabel {media} />
       {/if}
@@ -140,7 +153,7 @@
     will-change: box-shadow, opacity;
   }
   @keyframes airing-pulse {
-    0%   { box-shadow: 0 0 0 0 var(--success-color-subtle); opacity: 0.9; }
+    0%   { box-shadow: 0 0 0 0 var(--success-color); opacity: 0.9; }
     25%  { box-shadow: 0 0 0 .7rem var(--dark-color); opacity: 0.6; }
     40% { box-shadow: 0 0 0 0 var(--dark-color); opacity: 0.4; }
     100% { box-shadow: 0 0 0 0 var(--dark-color); opacity: 0; }
@@ -151,7 +164,7 @@
     right: -1rem;
     font-size: 1rem;
     padding: .35rem .9rem;
-    box-shadow: 0 .2rem .5rem rgba(0,0,0,0.2);
+    box-shadow: 0 .2rem .5rem hsla(var(--black-color-hsl), 0.2);
   }
   .small-card-ct:hover {
     z-index: 30;

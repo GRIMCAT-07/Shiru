@@ -36,17 +36,17 @@
         <Search size='2.6rem' strokeWidth='2.5' class='position-absolute z-10 text-dark-light h-full pl-10 pointer-events-none' />
         <input
           type='search'
-          class='form-control bg-dark-light pl-40 rounded-1 h-40 text-truncate'
+          class='form-control bg-dark-very-light pl-40 rounded-1 h-40 text-truncate'
           autocomplete='off'
           spellcheck='false'
           data-option='search'
-          placeholder='Filter torrents by text, or manually specify one by pasting a magnet link or torrent file' bind:value={searchText} />
+          placeholder='Filter torrents by text, or manually specify one by pasting a magnet link or torrent file' disabled={$rescanning} bind:value={searchText} />
       </div>
       <button type='button' use:click={() => { if (!disableRescan) { $rescanning = true; window.dispatchEvent(new Event('rescan')) } }} disabled={disableRescan || $rescanning} title={disableRescan ? 'Enable Persist Files or Increase Seeding Limit' : $rescanning ? 'Rescanning Cache...' : 'Rescan Cache'} class='btn btn-primary d-flex align-items-center justify-content-center ml-20 mr-20 font-scale-16 h-full' class:cursor-wait={$rescanning}><RefreshCw class='mr-10' size='1.8rem' strokeWidth='2.5'/><span>Rescan</span></button>
     </div>
   </div>
   <div class='d-none' class:d-inline-block={disableRescan}>
-    <div class='alert bg-warn p-10 pl-15 mt-10 mb-5 d-flex {$$restProps.class ? `ml-20` : ``}'>
+    <div class='alert bg-warning border-warning-dim text-warning-very-dim p-10 pl-15 mt-10 mb-5 d-flex {$$restProps.class ? `ml-20` : ``}'>
       <TriangleAlert class='flex-shrink-0' size='1.8rem' />
       <span class='ml-10'>You've reached your pre-download limit. To pre-download more torrents, stop seeding some, increase your seeding limit, or enable Persist Files in Client Settings.</span>
     </div>

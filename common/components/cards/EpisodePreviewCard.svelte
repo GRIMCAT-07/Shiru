@@ -18,6 +18,7 @@
 
   export let data
   export let prompt
+  export let element
   /** @type {import('@/modules/al.d.ts').Media | null} */
   const media = data.media && mediaCache.value[data.media.id]
   const episodeRange = episodesList.handleArray(data?.episode, data?.parseObject?.file_name)
@@ -37,9 +38,9 @@
   $: resolvedHash = getHash(media?.id, { episode: data?.episode, client: true }, false, true)
 </script>
 
-<div class='position-absolute w-400 mh-400 absolute-container top-0 m-auto bg-dark-light z-30 rounded overflow-hidden pointer d-flex flex-column'>
+<div class='position-absolute w-400 mh-400 absolute-container top-0 m-auto bg-dark-light z-30 rounded overflow-hidden pointer d-flex flex-column' bind:this={element}>
   <div class='image h-200 w-full position-relative d-flex justify-content-between align-items-end text-white'>
-    <SmartImage class='img-cover w-full h-full position-absolute rounded p-0 m-0 {!(data.episodeData?.image || media?.bannerImage) && media?.genres?.includes(`Hentai`) ? `cover-rotated cr-400` : ``}' color={media?.coverImage.color || '#1890ff'} images={[episodeThumbnail, './404_episode.png']}/>
+    <SmartImage class='img-cover w-full h-full position-absolute rounded p-0 m-0 {!(data.episodeData?.image || media?.bannerImage) && media?.genres?.includes(`Hentai`) ? `cover-rotated cr-400` : ``}' color={media?.coverImage.color || 'var(--tertiary-color)'} images={[episodeThumbnail, './404_episode.png']}/>
     {#if data.episodeData?.video}
       <video src={data.episodeData.video}
         class='w-full position-absolute left-0'
@@ -59,7 +60,7 @@
     {#if data.hash || resolvedHash}
       <div class='pr-5 pt-5 z-10 position-absolute top-0 right-0 text-danger icon-shadow'>
         <button type='button' tabindex='-1' class='position-absolute episode-safe-area top-0 right-0 h-50 w-50 bg-transparent border-0 shadow-none not-reactive' use:click={() => {}}/>
-        <TorrentButton class='btn btn-square shadow-none bg-transparent highlight h-40 w-40 z-1 position-relative' hash={[...(data.hash && data.hash !== resolvedHash ? [data.hash] : []), ...(resolvedHash ? [resolvedHash] : [])]} torrentID={data.link} search={{ media, episode: data.episode, episodeRange: episodeRange }} size={'3rem'} strokeWidth={'2.3'}/>
+        <TorrentButton class='btn btn-square shadow-none bg-transparent bd-highlight h-40 w-40 z-1 position-relative' hash={[...(data.hash && data.hash !== resolvedHash ? [data.hash] : []), ...(resolvedHash ? [resolvedHash] : [])]} torrentID={data.link} search={{ media, episode: data.episode, episodeRange: episodeRange }} size={'3rem'} strokeWidth={'2.3'}/>
       </div>
     {/if}
     <Play class='mb-5 ml-5 pl-10 pb-10 z-10' fill='currentColor' size='3rem' />
@@ -186,7 +187,7 @@
         Your Current Progress Is At <b>Episode {media?.mediaListEntry?.progress}</b>
       {/if}
     </p>
-    <button class='cont-button btn btn-lg btn-secondary w-250 text-dark font-weight-bold shadow-none border-0 d-flex align-items-center justify-content-center mt-10' use:click={() => { data.onclick() || viewMedia() }}>
+    <button class='cont-button btn btn-lg btn-secondary w-250 text-dark font-weight-bold shadow-none border-0 d-flex align-items-center justify-content-center mt-10' tabindex={!prompt ? '-1' : '0'} use:click={() => { data.onclick() || viewMedia() }}>
       <Play class='mr-10' fill='currentColor' size='1.6rem' />
       Continue Anyway?
     </button>
@@ -195,7 +196,7 @@
 
 <style>
   .overlay {
-    background-color: rgba(28, 28, 28, 0.9);
+    background-color: hsla(var(--black-color-hsl), 0.9);
   }
   .description {
     display: -webkit-box !important;
@@ -217,7 +218,7 @@
   }
   .absolute-container {
     animation: 0.3s ease 0s 1 load-in;
-    will-change: transform, opacity;
+    will-change: transform, opacity, bottom;
     left: -100%;
     right: -100%;
   }

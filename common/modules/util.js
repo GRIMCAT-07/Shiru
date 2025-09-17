@@ -37,7 +37,7 @@ export const codes = {
  * @returns {string} The full hex color of the string input.
  */
 export function stringToHex(str) {
-  if (!str) return '#ffffff'
+  if (!str) return 'var(--highlight-color)'
   let hash = 0
   for (let i = 0; i < str.length; i++) {
     hash = str.charCodeAt(i) + ((hash << 5) - hash)
@@ -461,6 +461,7 @@ export function createListener(triggerClasses = []) {
 
 export const defaults = {
   volume: 1,
+  presetTheme: 'default',
   playerAutoplay: true,
   playerPause: true,
   playerAutocomplete: true,

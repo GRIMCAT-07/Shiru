@@ -127,11 +127,11 @@
   }
   @media (hover: hover) and (pointer: fine) {
     .close-button:hover {
-      background: #e81123 !important;
+      background: var(--danger-color-dim) !important;
     }
   }
   .close-button:active {
-    background: #f1707a !important;
+    background: var(--danger-color-light) !important;
   }
   .svg-controls {
     width: 12px;

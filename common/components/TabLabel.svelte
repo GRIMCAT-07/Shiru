@@ -21,25 +21,25 @@
 
 <style>
   .tab-label > span {
-    color: #fff;
+    color: var(--highlight-color);
     border-radius: 0.3rem;
   }
   .tab-label > span {
-    color: #fff;
+    color: var(--highlight-color);
     transition: background .8s cubic-bezier(0.25, 0.8, 0.25, 1), color .8s cubic-bezier(0.25, 0.8, 0.25, 1);
   }
   .tab-label:active > span {
-    background: #fff;
+    background: var(--highlight-color);
     color: var(--dark-color);
   }
   @media (hover: hover) and (pointer: fine) {
     .tab-label:hover > span {
-      background: #fff;
+      background: var(--highlight-color);
       color: var(--dark-color);
     }
   }
   .tab-label:focus-visible > span {
-    background: #fff;
+    background: var(--highlight-color);
     color: var(--dark-color);
   }
   .tab-label:focus-visible {

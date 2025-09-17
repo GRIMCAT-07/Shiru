@@ -37,13 +37,13 @@
   <div class='sidebar-menu h-full d-flex flex-column m-0 pb-5 animate' class:br-10={!$settings.expandingSidebar}>
     <div class='w-50 m-10 p-5 mb-0 top-0 flex-shrink-0 pointer-events-none {_status === `offline` ? `h-80` : `h-50`}' class:status-transition={statusTransition} class:d-none={SUPPORTS.isAndroid}/>
     <SidebarLink click={() => { page = 'home'; if ($view) $view = null }} _page='home' text='Home' css='{!SUPPORTS.isAndroid ? `mt-auto` : ``}' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
-      <Home size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
+      <Home size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : 'var(--gray-color-very-dim)'} />
     </SidebarLink>
     <SidebarLink click={() => { page = 'search'; if ($view) $view = null }} _page='search' icon='search' text='Search' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
-      <Search size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' stroke-width='2.5' stroke='currentColor' color={active ? 'currentColor' : '#5e6061'} />
+      <Search size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' stroke-width='2.5' stroke='currentColor' color={active ? 'currentColor' : 'var(--gray-color-very-dim)'} />
     </SidebarLink>
     <SidebarLink click={() => { page = 'schedule' }} _page='schedule' icon='schedule' text='Schedule' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
-      <CalendarSearch size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
+      <CalendarSearch size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : 'var(--gray-color-very-dim)'} />
     </SidebarLink>
     {#if $media?.media || (playPage && (Object.keys($media).length > 0))}
       {@const currentMedia = $view}
@@ -59,14 +59,14 @@
           $view = (currentMedia?.id === $media?.media.id && active ? null : $media?.media)
         }
       }} rbClick={() => { if ($media?.media) $view = (currentMedia?.id === $media.media.id && active ? null : $media.media) }} _page={playPage ? 'player' : ''} icon='queue_music' text={$media?.display ? 'Last Watched' : 'Now Playing'} {page} overlay={active} nowPlaying={!playPage && ($view?.id === $media?.media?.id)} let:active>
-        <svelte:component this={playPage ? TvMinimalPlay : $media?.display ? History : ListVideo} size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
+        <svelte:component this={playPage ? TvMinimalPlay : $media?.display ? History : ListVideo} size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : 'var(--gray-color-very-dim)'} />
       </SidebarLink>
     {/if}
     <SidebarLink click={() => { page = 'watchtogether' }} _page='watchtogether' icon='groups' text='Watch Together' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
-      <Users size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
+      <Users size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : 'var(--gray-color-very-dim)'} />
     </SidebarLink>
     <SidebarLink click={() => { page = 'torrents' }} _page='torrents' icon='download' text='Torrents' css='d-sm-h-none' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
-      <Download size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
+      <Download size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : 'var(--gray-color-very-dim)'} />
     </SidebarLink>
     {#if $settings.donate && !SUPPORTS.isAndroid}
       <SidebarLink click={() => { IPC.emit('open', 'https://github.com/sponsors/RockinChaos/') }} icon='favorite' text='Support This App' css='{!SUPPORTS.isAndroid ? `mt-auto` : ``}' {page} let:active>
@@ -75,7 +75,7 @@
     {/if}
     {#if $updateState === 'downloading'}
       <SidebarLink click={() => { toast('Update is downloading...', { description: 'This may take a moment, the update will be ready shortly.' }) }} icon='download' text='Update Downloading...' css='{!$settings.donate ? `mt-auto` : ``} d-sm-h-none' {page} let:active>
-        <CloudDownload size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color='#4a90e2' />
+        <CloudDownload size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color='var(--tertiary-color-light)' />
       </SidebarLink>
     {:else if $updateState === 'ready' || $updateState === 'ignored'}
       <SidebarLink click={() => { $updateState = 'ready' }} icon='download' text='Update Available!' css='{!$settings.donate ? `mt-auto` : ``} d-sm-h-none' {page} let:active>
@@ -86,11 +86,11 @@
       {#if $hasUnreadNotifications && $hasUnreadNotifications > 0}
         <BellDot size={btnSize} class='flex-shrink-0 p-5 m-5 rounded notify {$notifyView ? `` : `notify-color`}' strokeWidth='2.5' color='currentColor' />
       {:else}
-        <Bell size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
+        <Bell size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : 'var(--gray-color-very-dim)'} />
       {/if}
     </SidebarLink>
     <SidebarLink click={() => { page = 'settings' }} _page='settings' icon='settings' text='Settings' {page} overlay={($view || $profileView || $notifyView || $actionPrompt || $rss) && 'active'} let:active>
-      <Settings size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : '#5e6061'} />
+      <Settings size={btnSize} class='flex-shrink-0 p-5 m-5 rounded' strokeWidth='2.5' color={active ? 'currentColor' : 'var(--gray-color-very-dim)'} />
     </SidebarLink>
     {#if !SUPPORTS.isAndroid}
       <SidebarLink click={() => { $profileView = !$profileView }} icon='login' text={Helper.getUser() ? 'Profiles' : 'Login'} {page} overlay={!$notifyView && !$actionPrompt && $profileView && 'profile'} nowPlaying={$view} image={Helper.getUserAvatar()}>
@@ -110,37 +110,37 @@
     will-change: drop-shadow;
   }
   :global(.update) {
-    color: #47cb6a;
+    color: var(--success-color-light);
     font-variation-settings: 'FILL' 1;
   }
   .sidebar :global(.donate):hover {
-    color: #fa68b6 !important;
+    color: var(--quattuordenary-color) !important;
   }
   .sidebar :global(.donate) {
     font-variation-settings: 'FILL' 1;
-    color: #fa68b6;
-    text-shadow: 0 0 1rem #fa68b6;
+    color: var(--quattuordenary-color);
+    text-shadow: 0 0 1rem var(--quattuordenary-color);
   }
   @keyframes pink_glow {
     from {
-      filter: drop-shadow(0 0 1rem #fa68b6);
+      filter: drop-shadow(0 0 1rem var(--quattuordenary-color));
     }
     to {
-      filter: drop-shadow(0 0 0.5rem #fa68b6);
+      filter: drop-shadow(0 0 0.5rem var(--quattuordenary-color));
     }
   }
   .sidebar :global(.notify):hover {
     color: var(--dark-color) !important;
   }
   .sidebar :global(.notify-color) {
-    color: #af68fa;
+    color: var(--notify-color);
   }
   @keyframes purple_glow {
     from {
-      filter: drop-shadow(0 0 2rem #af68fa);
+      filter: drop-shadow(0 0 2rem var(--notify-color));
     }
     to {
-      filter: drop-shadow(0 0 0.2rem #af68fa);
+      filter: drop-shadow(0 0 0.2rem var(--notify-color));
     }
   }
   @keyframes bell_shake {
@@ -187,6 +187,6 @@
     width: 63rem
   }
   .br-10 {
-    border-right: .10rem rgba(182, 182, 182, 0.13) solid !important;
+    border-right: .10rem var(--border-color-sp) solid !important;
   }
 </style>

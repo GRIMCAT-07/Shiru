@@ -125,8 +125,4 @@
   .tp {
     opacity: 0;
   }
-
-  .grab{
-    cursor: grab;
-  }
 </style>

@@ -95,8 +95,8 @@
 <SettingCard title='About This App' description="Restart may be required for some settings to take effect. If you don't know what settings do what, use defaults." class='d-lg-none'>
   <div class='d-flex flex-column'>
     <span class='text-nowrap'>{version ? `v${version}` : ``} {platformMap[window.version.platform] || 'dev'} {window.version.arch || 'dev'} {capitalize(window.version.session) || ''}</span>
-    <button type='button' use:click={() => { toast('Update is downloading...', { description: 'This may take a moment, the update will be ready shortly.' }) }} class='btn btn-primary mt-5 d-none align-items-center justify-content-center' style='background-color: #4a90e2;' class:d-flex={$updateState === 'downloading'}><span class='text-truncate'>Update Downloading...</span></button>
-    <button type='button' use:click={() => { $updateState = 'ready' }} class='btn btn-primary mt-5 d-none align-items-center justify-content-center' style='background-color: #47cb6a;' class:d-flex={$updateState === 'ready' || $updateState === 'ignored'}><span class='text-truncate'>Update Available!</span></button>
+    <button type='button' use:click={() => { toast('Update is downloading...', { description: 'This may take a moment, the update will be ready shortly.' }) }} class='btn btn-primary mt-5 d-none align-items-center justify-content-center' style='background-color: var(--tertiary-color-light);' class:d-flex={$updateState === 'downloading'}><span class='text-truncate'>Update Downloading...</span></button>
+    <button type='button' use:click={() => { $updateState = 'ready' }} class='btn btn-primary mt-5 d-none align-items-center justify-content-center bg-success-light' class:d-flex={$updateState === 'ready' || $updateState === 'ignored'}><span class='text-truncate'>Update Available!</span></button>
   </div>
 </SettingCard>
 {#if !SUPPORTS.isAndroid}
@@ -119,13 +119,13 @@
   </div>
 </SettingCard>
 <SettingCard title='Reset Notifications' description='Resets all notifications that have been cached, this is not recommended unless you are experiencing issues. This will also reset the last time you have been notified, so expect previous notifications to appear again.'>
-  <button type='button' use:click={() => cache.resetNotifications()} class='btn btn-primary d-flex align-items-center justify-content-center'><span class='text-truncate'>Reset Notifications</span></button>
+  <button type='button' use:click={() => cache.resetNotifications()} class='btn btn-primary d-flex align-items-center justify-content-center' data-toggle='tooltip' data-placement='top' data-title='Resets Your Notifications Within The App'><span class='text-truncate'>Reset Notifications</span></button>
 </SettingCard>
 <SettingCard title='Reset History' description='Resets all history data that has been cached, this is not recommended unless you are experiencing issues. You will lose your local episode progress, subtitle choices, volume boost, and magnet links history.'>
-  <button type='button' use:click={() => cache.resetHistory()} class='btn btn-primary d-flex align-items-center justify-content-center'><span class='text-truncate'>Reset History</span></button>
+  <button type='button' use:click={() => cache.resetHistory()} class='btn btn-primary d-flex align-items-center justify-content-center' data-toggle='tooltip' data-placement='top' data-title='Resets Your Episode Progress, Subtitle Choices, Volume Boost, Magnet Link History, Manually Corrected Series, and More'><span class='text-truncate'>Reset History</span></button>
 </SettingCard>
 <SettingCard title='Reset Caches' description='Resets everything the app has cached, this is not recommended unless you are experiencing issues. Caching speeds up load times and decreases down time. This does not reset the notifications or history cache. THIS WILL FORCE RESTART THE APP!'>
-  <button type='button' use:click={() => cache.resetCaches()} class='btn btn-primary d-flex align-items-center justify-content-center'><span class='text-truncate'>Reset Caches</span></button>
+  <button type='button' use:click={() => cache.resetCaches()} class='btn btn-primary d-flex align-items-center justify-content-center' data-toggle='tooltip' data-placement='top' data-title='Resets All Cached Media And Queries... This Will Cause The App To Restart!'><span class='text-truncate'>Reset Caches</span></button>
 </SettingCard>
 <SettingCard title='Settings Management' description='Import saved settings from your clipboard, export your current configuration to back it up or share with others, and restore everything back to default values if needed. This is especially useful for syncing preferences across devices, sharing settings with friends, or starting fresh with recommended defaults.'>
   <div class='d-inline-flex flex-column'>

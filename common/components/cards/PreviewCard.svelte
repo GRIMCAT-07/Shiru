@@ -84,7 +84,7 @@
           <Scoring {media} previewAnime={true}/>
         {/if}
         {#if Helper.isAniAuth()}
-          <button class='btn btn-square ml-10 d-flex align-items-center justify-content-center shadow-none border-0' title={media.isFavourite ? 'Unfavourite' : 'Favourite'} use:click={toggleFavourite} disabled={!Helper.isAniAuth()}>
+          <button class='btn btn-square ml-10 d-flex align-items-center justify-content-center shadow-none border-0 z-1' data-toggle='tooltip' data-placement='top-right' data-target-breakpoint='md' data-title={media.isFavourite ? 'Unfavourite' : 'Favourite'} use:click={toggleFavourite} disabled={!Helper.isAniAuth()}>
             <div class='favourite d-flex align-items-center justify-content-center'>
               <Heart color={media.isFavourite ? 'var(--tertiary-color)' : 'currentColor'} fill={media.isFavourite ? 'var(--tertiary-color)' : 'transparent'} size='1.7rem'/>
             </div>
@@ -160,7 +160,7 @@
     height: 40%
   }
   .sound {
-    filter: drop-shadow(0 0 .4rem rgba(0, 0, 0, 1))
+    filter: drop-shadow(0 0 .4rem hsla(var(--black-color-hsl), 1))
   }
   .details > span:not(:last-child) {
     margin-right: .2rem;
@@ -188,19 +188,19 @@
   }
   @keyframes load-in {
     from {
-      bottom: -1.2rem;
+      top: 1.2rem;
       opacity: 0;
       transform: scale(0.95);
     }
     to {
-      bottom: 0;
+      top: 0;
       opacity: 1;
       transform: scale(1);
     }
   }
   .absolute-container {
     animation: 0.3s ease 0s 1 load-in;
-    will-change: transform, opacity;
+    will-change: transform, opacity, bottom;
     left: -100%;
     right: -100%;
   }

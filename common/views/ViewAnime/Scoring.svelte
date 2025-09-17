@@ -187,7 +187,7 @@
 
 
 <div class='score-dropdown z-1 ml-10'>
-  <button type='button' id='list-btn' title='List Editor' class='btn scoring-btn {viewAnime ? `bg-dark btn-lg` : previewAnime ? `btn-square` : `bg-dark-light`} font-size-{viewAnime ? `20` : `16`} btn-square shadow-none border-0 d-flex align-items-center justify-content-center' use:click={() => toggleModal({ toggle: !$showModal })} disabled={!Helper.isAuthorized()}>
+  <button type='button' id='list-btn' data-toggle='tooltip' data-placement={previewAnime ? 'top-right' : 'top'} data-target-breakpoint='md' data-title='List Editor' class='btn scoring-btn font-size-{viewAnime ? `20 btn-lg` : `16`} btn-square shadow-none border-0 d-flex align-items-center justify-content-center' class:bg-dark-light={!previewAnime} use:click={() => toggleModal({ toggle: !$showModal })} disabled={!Helper.isAuthorized()}>
     {#if media?.mediaListEntry}
       <PencilLine size='1.7rem' />
     {:else}
@@ -195,7 +195,7 @@
     {/if}
   </button>
   {#if Helper.isAuthorized()}
-    <div class='modal scoring position-absolute bg-dark shadow-lg rounded-3 p-20 z-30 {$showModal ? `visible` : `invisible`} {!previewAnime && !viewAnime ? `banner ${SUPPORTS.isAndroid ? `ml--255` : ``}` : !previewAnime ? `viewAnime` : `previewAnime`} {(!previewAnime || !viewAnime) ? `w-auto h-auto` : ``}' use:click={() => {}}>
+    <div class='modal scoring position-absolute bg-very-dark shadow-lg rounded-3 p-20 z-30 {$showModal ? `visible` : `invisible`} {!previewAnime && !viewAnime ? `banner ${SUPPORTS.isAndroid ? `ml--255` : ``}` : !previewAnime ? `viewAnime` : `previewAnime`} {(!previewAnime || !viewAnime) ? `w-auto h-auto` : ``}' use:click={() => {}}>
       <div class='d-flex justify-content-between align-items-center mb-2'>
         <h5 class='font-weight-bold'>List Editor</h5>
         <button type='button' class='btn btn-square d-flex align-items-center justify-content-center' use:click={() => toggleModal({ toggle: false })}><X size='1.7rem' strokeWidth='3'/></button>

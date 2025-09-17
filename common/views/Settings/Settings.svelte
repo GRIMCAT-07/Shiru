@@ -127,8 +127,8 @@
         {#each Object.values(groups) as group}
           <TabLabel name={group.name} action={group.action} sidebar={group.sidebar} substitute={group.substitute} let:active>
             {@const isActive = (!overlay?.length && active || (group.name === 'Profiles' && (overlay?.includes(group.name.toLowerCase()))))}
-            <svelte:component this={group.icon} size='3.6rem' stroke-width='2.5' class='flex-shrink-0 p-5 m-5 rounded' color={isActive ? 'currentColor' : '#5e6061'} fill={group.icon === Play ? (isActive ? 'currentColor' : '#5e6061') : 'transparent'} />
-            <div class='font-size-16 line-height-normal d-none d-sm-block mr-10 text-truncate' style='color: {isActive ? `currentColor` : `#5e6061`}'>{group.name}</div>
+            <svelte:component this={group.icon} size='3.6rem' stroke-width='2.5' class='flex-shrink-0 p-5 m-5 rounded' color={isActive ? 'currentColor' : 'var(--gray-color-very-dim)'} fill={group.icon === Play ? (isActive ? 'currentColor' : 'var(--gray-color-very-dim)') : 'transparent'} />
+            <div class='font-size-16 line-height-normal d-none d-sm-block mr-10 text-truncate' style='color: {isActive ? `currentColor` : `var(--gray-color-very-dim)`}'>{group.name}</div>
           </TabLabel>
         {/each}
       </div>
@@ -227,12 +227,12 @@
     left: 0;
     right: 0;
     height: 1.2rem;
-    box-shadow: 0 1.2rem 1.2rem #131416;
+    box-shadow: 0 1.2rem 1.2rem var(--dark-color-dim);
     pointer-events: none;
     margin-top: -1.6rem;
     z-index: 1;
   }
   .bb-10 {
-    border-bottom: .10rem rgba(182, 182, 182, 0.13) solid !important;
+    border-bottom: .10rem var(--border-color-sp) solid !important;
   }
 </style>

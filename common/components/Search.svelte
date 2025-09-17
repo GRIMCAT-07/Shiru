@@ -157,7 +157,7 @@
   }
 </script>
 
-<form class='container-fluid py-20 px-md-50 bg-dark pb-0 position-sticky top-0 search-container z-40' on:input bind:this={form}>
+<form class='container-fluid py-20 px-md-50 bg-dark pb-0 position-sticky top-0 search-container z-40' class:bg-very-dark={search.fileEdit} on:input bind:this={form}>
   <div class='row'>
     <div class='col-lg col-4 p-10 d-flex flex-column justify-content-end' class:d-advanced-title={advancedSearch}>
       <div class='pb-10 font-weight-semi-bold d-flex align-items-center {advancedSearch} font-scale-24'>
@@ -178,7 +178,7 @@
           placeholder='Any'/>
       </div>
     </div>
-    <div class='col-lg col-4 p-10 z-3 d-flex {advancedSearch} flex-column justify-content-end'>
+    <div class='col-lg col-4 p-10 z-4 d-flex {advancedSearch} flex-column justify-content-end'>
       <div class='pb-10 font-weight-semi-bold d-flex align-items-center font-scale-24'>
         <Hash class='mr-10 block-scale-30'/>
         <div>Genres</div>
@@ -187,7 +187,7 @@
         <CustomDropdown id={`tags-input`} bind:form headers={searchTags.headers} options={[...toArray(genreList), ...toArray(tagList)]} bind:value={searchTags.tags} bind:altValue={searchTags.tags_not} constrainAlt={false} disabled={search.disableSearch || (!Helper.isAniAuth() && Helper.isUserSort(search))}/>
       </div>
     </div>
-    <div class='col-lg col-4 p-10 z-3 d-none {advancedSearch} flex-column justify-content-end' class:d-flex={!search.scheduleList}>
+    <div class='col-lg col-4 p-10 z-4 d-none {advancedSearch} flex-column justify-content-end' class:d-flex={!search.scheduleList}>
       <div class='pb-10 font-weight-semi-bold d-flex align-items-center font-scale-24'>
         <CalendarRange class='mr-10 block-scale-30'/>
         <div>Season</div>
@@ -207,7 +207,7 @@
         </div>
       </div>
     </div>
-    <div class='col p-10 z-2 d-flex {advancedSearch} flex-column justify-content-end'>
+    <div class='col p-10 z-3 d-flex {advancedSearch} flex-column justify-content-end'>
       <div class='pb-10 font-weight-semi-bold d-flex align-items-center font-scale-24'>
         <Tv class='mr-10 block-scale-30'/>
         <div>Format</div>
@@ -216,7 +216,7 @@
         <CustomDropdown id={`format-input`} bind:form options={{ TV: 'TV Show', MOVIE: 'Movie', TV_SHORT: 'TV Short', SPECIAL: 'Special', OVA: 'OVA', ONA: 'ONA' }} bind:value={search.format} bind:altValue={search.format_not} bind:disabled={search.disableSearch}/>
       </div>
     </div>
-    <div class='col p-10 z-1 d-none {advancedSearch} flex-column justify-content-end' class:d-flex={!search.scheduleList}>
+    <div class='col p-10 z-2 d-none {advancedSearch} flex-column justify-content-end' class:d-flex={!search.scheduleList}>
       <div class='pb-10 font-weight-semi-bold d-flex align-items-center font-scale-24'>
         <MonitorPlay class='mr-10 block-scale-30'/>
         <div>Status</div>
@@ -261,13 +261,7 @@
     </div>
     <div class='col-auto p-10 d-none d-advanced-search-toggle'>
       <div class='align-self-end'>
-        <button
-          class='btn btn-square bg-dark-light px-5 align-self-end border-0'
-          type='button'
-          title='Advanced Search'
-          use:click={toggleAdvancedSearch}
-          disabled={search.disableHide || search.disableSearch}
-          class:text-primary={!advancedSearch?.length}>
+        <button class='btn btn-square bg-dark-light px-5 align-self-end border-0 z-1' type='button' data-toggle='tooltip' data-placement='bottom' data-target-breakpoint='md' data-title='Advanced Search' use:click={toggleAdvancedSearch} disabled={search.disableHide || search.disableSearch} class:text-primary={!advancedSearch?.length}>
           <label for='d-advanced-search-toggle' class='pointer mb-0 d-flex align-items-center justify-content-center'>
             <SlidersHorizontal size='1.625rem' />
           </label>
@@ -277,13 +271,7 @@
     {#if !search.fileEdit}
       <div class='col-auto p-10 d-flex'>
         <div class='align-self-end'>
-          <button
-            class='btn btn-square bg-dark-light px-5 align-self-end border-0'
-            type='button'
-            title='Hide My Anime'
-            use:click={toggleHideMyAnime}
-            disabled={search.disableHide || search.disableSearch || !Helper.isAuthorized()}
-            class:text-primary={search.hideMyAnime}>
+          <button class='btn btn-square bg-dark-light px-5 align-self-end border-0 z-1' type='button' data-toggle='tooltip' data-placement='bottom' data-target-breakpoint='md' data-title='Hide My Anime' use:click={toggleHideMyAnime} disabled={search.disableHide || search.disableSearch || !Helper.isAuthorized()} class:text-primary={search.hideMyAnime}>
             <label for='hide-my-anime' class='pointer mb-0 d-flex align-items-center justify-content-center'>
               <EyeOff size='1.625rem' />
             </label>
@@ -292,13 +280,7 @@
       </div>
       <div class='col-auto p-10 d-flex'>
         <div class='align-self-end'>
-          <button
-            class='btn btn-square bg-dark-light px-5 align-self-end border-0'
-            type='button'
-            title='Dubbed Audio'
-            use:click={toggleSubs}
-            disabled={search.disableSearch}
-            class:text-primary={search.hideSubs}>
+          <button class='btn btn-square bg-dark-light px-5 align-self-end border-0 z-1' type='button' data-toggle='tooltip' data-placement='bottom' data-target-breakpoint='md' data-title='Dubbed Audio' use:click={toggleSubs} disabled={search.disableSearch} class:text-primary={search.hideSubs}>
             <label for='hide-subs' class='pointer mb-0 d-flex align-items-center justify-content-center'>
               <Mic size='1.625rem' />
             </label>
@@ -308,7 +290,7 @@
       <input type='file' class='d-none' id='search-image' accept='image/*' on:input|preventDefault|stopPropagation={handleFile} />
       <div class='col-auto p-10 d-none' class:d-flex={!search.scheduleList}>
         <div class='align-self-end'>
-          <button class='btn btn-square bg-dark-light px-5 align-self-end border-0' type='button' title='Image Search'>
+          <button class='btn btn-square bg-dark-light px-5 align-self-end border-0 z-1' type='button' data-toggle='tooltip' data-placement='bottom' data-target-breakpoint='md' data-title='Image Search'>
             <label for='search-image' class='pointer mb-0 d-flex align-items-center justify-content-center'>
               <ImageUp size='1.625rem' />
             </label>
@@ -318,7 +300,7 @@
     {/if}
     <div class='col-auto p-10 d-flex'>
       <div class='align-self-end'>
-        <button class='btn btn-square bg-dark-light d-flex align-items-center justify-content-center px-5 align-self-end border-0' type='button' title='Reset Filters' use:click={searchClear} disabled={(sanitisedSearch.length <= 0) && !search.clearNext} class:text-danger={!!sanitisedSearch?.length || search.disableSearch || search.clearNext}>
+        <button class='btn btn-square bg-dark-light d-flex align-items-center justify-content-center px-5 align-self-end border-0 z-1' type='button' data-toggle='tooltip' data-placement='bottom' data-target-breakpoint='md' data-title='Reset Filters' use:click={searchClear} disabled={(sanitisedSearch.length <= 0) && !search.clearNext} class:text-danger={!!sanitisedSearch?.length || search.disableSearch || search.clearNext}>
           {#if !!sanitisedSearch?.length || search.disableSearch || search.clearNext}
             <FilterX size='1.625rem' />
           {:else}
@@ -341,10 +323,10 @@
             {@const matchingBadges = filteredBadges.filter(badge => badge.key === key)}
             {#each matchingBadges as badge}
               {#if badge.key === key && (badge.key !== 'hideStatus' && (search.userList || badge.key !== 'title')) && !(badge.key === 'sort' && badge.value === 'TRENDING_DESC')}
-                <div class='badge border-0 py-5 px-10 text-capitalize mr-10 text-white text-nowrap d-flex align-items-center mb-5' class:bg-light={!badge.key.includes('_not')} class:bg-danger-dark={badge.key.includes('_not')}>
+                <div class='badge border-0 py-5 px-10 text-capitalize mr-10 text-white text-nowrap d-flex align-items-center mb-5' class:bg-dark-light={!badge.key.includes('_not')} class:bg-danger-very-dim={badge.key.includes('_not')}>
                   <svelte:component this={badge.key === 'genre' ? genreIcons[badge.value] || badgeDisplayNames[badge.key] : badgeDisplayNames[badge.key]} class='mr-5 square-scale-18'/>
                   <span>{badge.key === 'sort' ? getSortDisplayName(badge.value) : (badge.key === 'format' || badge.key === 'format_not') ? getFormatDisplayName(badge.value) : (badge.key === 'hideMyAnime' ? 'Hide My Anime' : badge.key === 'hideSubs' ? 'Dubbed' : ('' + badge.value).replace(/_/g, ' ').toLowerCase())}</span>
-                  <button on:click={() => removeBadge(badge)} class='pointer bg-transparent border-0 text-white position-relative pl-0 pr-0 pt-0 x-filter d-flex align-items-center' title='Remove Filter' type='button'><X size='1.3rem' strokeWidth='3'/></button>
+                  <button on:click={() => removeBadge(badge)} class='pointer bg-transparent border-0 icon text-white position-relative pl-0 pr-0 pt-0 x-filter d-flex align-items-center z-1' type='button' data-toggle='tooltip' data-placement='bottom' data-target-breakpoint='md' data-title='Remove Filter'><X size='1.3rem' strokeWidth='3'/></button>
                 </div>
               {/if}
             {/each}
@@ -353,15 +335,12 @@
         {/if}
       </div>
     </form>
-    <span class='mr-10 filled ml-auto text-dark-light pointer' class:d-advanced-search={!advancedSearch?.length} class:d-none={!(!search.disableSearch && !search.clearNext)} title='Small Cards' class:text-muted={$settings.cards === 'small'} use:click={() => changeCardMode('small')}><Grid3X3 size='2.25rem' /></span>
-    <span class='text-dark-light pointer' title='Large Cards' class:d-advanced-search={!advancedSearch?.length} class:d-none={!(!search.disableSearch && !search.clearNext)} class:text-muted={$settings.cards === 'full'} use:click={() => changeCardMode('full')}><Grid2X2 size='2.25rem' /></span>
+    <span class='mr-10 filled ml-auto icon text-dark-light pointer' class:d-advanced-search={!advancedSearch?.length} class:d-none={!(!search.disableSearch && !search.clearNext)} data-toggle='tooltip' data-placement='bottom' data-target-breakpoint='md' data-title='Small Cards' class:text-muted={$settings.cards === 'small'} use:click={() => { if ($settings.cards !== 'small') changeCardMode('small') }}><Grid3X3 size='2.25rem' /></span>
+    <span class='icon text-dark-light pointer' class:d-advanced-search={!advancedSearch?.length} class:d-none={!(!search.disableSearch && !search.clearNext)} data-toggle='tooltip' data-placement='bottom' data-target-breakpoint='md' data-title='Large Cards' class:text-muted={$settings.cards === 'full'} use:click={() => { if ($settings.cards !== 'full') changeCardMode('full') }}><Grid2X2 size='2.25rem' /></span>
   </div>
 </form>
 
 <style>
-  .bg-danger-dark {
-    background-color: #631420;
-  }
   .pl-35 {
     padding-left: 3.5rem;
   }
@@ -370,7 +349,6 @@
     opacity: 0;
     max-width: 0;
     transition: opacity 0.2s ease-in-out, max-width 0.2s, margin-left 0.2s ease-in-out;
-    overflow: hidden;
   }
   .badge:hover .x-filter {
     opacity: 1;
@@ -378,18 +356,6 @@
     margin-left: 1.5rem;
   }
 
-  .input-group,
-  .container-fluid button, .pointer {
-    transition: scale 0.2s ease;
-  }
-
-  .input-group:hover, .pointer:hover {
-    scale: 1.02;
-  }
-
-  .container-fluid button:hover {
-    scale: 1.20;
-  }
   input:not(:focus):invalid {
     box-shadow: 0 0 0 0.2rem var(--danger-color) !important;
   }

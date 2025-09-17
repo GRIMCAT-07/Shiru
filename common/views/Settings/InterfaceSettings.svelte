@@ -1,5 +1,5 @@
 <script>
-  import { variables } from '@/modules/themes.js'
+  import { variables, setStyle } from '@/modules/themes.js'
   import { click } from '@/modules/click.js'
   import HomeSections from '@/views/Settings/HomeSectionsSettings.svelte'
   import IPC from '@/modules/ipc.js'
@@ -29,6 +29,12 @@
 {/if}
 
 <h4 class='mb-10 font-weight-bold'>Interface Settings</h4>
+<SettingCard title='Theme' description='Select how the app looks and feels, including colors, layouts, and other visual styles.'>
+  <select class='form-control bg-dark w-160 mw-full text-truncate' bind:value={settings.presetTheme} on:change={() => setStyle()}>
+    <option value='default-dark' selected>Default (Dark)</option>
+    <option value='default-amoled'>Default (Amoled)</option>
+  </select>
+</SettingCard>
 <SettingCard title='CSS Variables' description='Used for custom themes. Can change colors, sizes, spacing and more. Supports only variables.{!SUPPORTS.isAndroid ? ` Best way to discover variables is to use the built-in devtools.` : ``}'>
   <div class='d-flex flex-column'>
     <textarea class='form-control w-md-500 w-full bg-dark' placeholder='--accent-color: #e5204c;' bind:value={$variables} />

@@ -48,7 +48,7 @@
 <div class='modal z-55' class:show={$actionPrompt}>
   {#if $actionPrompt}
     <div class='modal-dialog' on:pointerup|self={close} on:keydown={checkClose} tabindex='-1' role='button' bind:this={modal}>
-      <div class='modal-content w-600 d-flex flex-column'>
+      <div class='modal-content w-600 d-flex flex-column bg-very-dark'>
         <div class='d-flex justify-content-between align-items-start w-auto'>
           <button type='button' class='btn btn-square ml-auto d-flex align-items-center justify-content-center' use:click={close}><X size='1.7rem' strokeWidth='3'/></button>
         </div>

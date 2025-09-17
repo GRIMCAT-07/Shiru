@@ -174,13 +174,13 @@
   {#if $notifyView}
     <div class='d-flex mt-30'>
       <h3 class='mb-0 font-weight-bold text-white title mr-5 font-size-24 ml-20'>Notifications</h3>
-      <button type='button' class='btn btn-square bg-dark ml-auto d-flex align-items-center justify-content-center rounded-2 flex-shrink-0' use:click={close}><X size='1.7rem' strokeWidth='3'/></button>
+      <button type='button' class='btn btn-square ml-auto d-flex align-items-center justify-content-center rounded-2 flex-shrink-0' use:click={close}><X size='1.7rem' strokeWidth='3'/></button>
     </div>
     <div class='input-group mt-10' class:d-none={!$notifications?.length}>
       <Search size='2.6rem' strokeWidth='2.5' class='position-absolute z-10 text-dark-light h-full pl-10 ml-20 pointer-events-none' />
       <input
         type='search'
-        class='form-control pl-40 ml-20 mr-30 bg-dark-light rounded-1 h-40 text-truncate'
+        class='form-control pl-40 ml-20 mr-30 bg-dark-very-light rounded-1 h-40 text-truncate'
         autocomplete='off'
         spellcheck='false'
         data-option='search'
@@ -203,7 +203,7 @@
           {#if notification.heroImg}
             <div class='position-absolute top-0 left-0 w-full h-full'>
               <img src={notification.heroImg} alt='bannerImage' class='hero-img img-cover w-full h-full' />
-              <div class='position-absolute top-0 left-0 w-full h-full rounded-5' style='background: var(--notification-card-gradient)' />
+              <div class='position-absolute rounded-5 opacity-transition-hack' style='background: var(--notification-card-gradient);' />
             </div>
           {/if}
           <div class='rounded-5 d-flex justify-content-center align-items-center overflow-hidden mr-10 z-10 notification-icon-container'>
@@ -213,7 +213,7 @@
             <div class='d-flex'>
               <p class='notification-title overflow-hidden font-weight-bold my-0 mt-5 mr-10 font-scale-18 {SUPPORTS.isAndroid ? `line-clamp-1` : `line-clamp-2`}'>{notification.title}</p>
               <div class='ml-auto d-flex'>
-                <button type='button' tabindex='-1' class='position-absolute n-safe-area top-0 right-0 h-50 bg-transparent border-0 shadow-none not-reactive {notification.hash || resolvedHash ? `w-90` : `w-50`}' use:click={() => {}}/>
+                <button type='button' tabindex='-1' class='position-absolute n-safe-area top-0 right-0 h-50 bg-transparent border-0 shadow-none not-reactive z-1 {notification.hash || resolvedHash ? `w-90` : `w-50`}' use:click={() => {}}/>
                 {#if notification.hash || resolvedHash}
                   <TorrentButton class='btn btn-square mr-5 z-1' hash={[...(notification.hash && notification.hash !== resolvedHash ? [notification.hash] : []), ...(resolvedHash ? [resolvedHash] : [])]} torrentID={notification.magnet} search={{ media: { id: notification.id }, episode: notification.episode }}/>
                 {/if}
@@ -231,24 +231,25 @@
               <p class='font-size-10 text-muted my-0'>{since(new Date(notification.timestamp * 1000))}</p>
               <div>
                 {#if announcement}
-                  <span class='badge text-dark bg-announcement mr-5'>Announcement</span>
+                  <span class='badge text-dark bg-duodenary mr-5'>Announcement</span>
                 {:else if notification.format === 'MOVIE'}
-                  <span class='badge text-dark bg-episode mr-5'>Movie</span>
+                  <span class='badge text-dark bg-undenary mr-5'>Movie</span>
                 {:else if !notification.season}
-                  {#if delayed}<span class='badge text-dark bg-delayed mr-5'>Delayed</span>{/if}
-                  <span class='badge text-dark bg-episode mr-5'>{notification.episode ? `Episode ${Array.isArray(notification.episode) ? `${notification.episode[0]} ~ ${notification.episode[1]}` : notification.episode}` : `Batch`} </span>
+                  {#if delayed}<span class='badge text-dark bg-denary mr-5'>Delayed</span>{/if}
+                  <span class='badge text-dark bg-undenary mr-5'>{notification.episode ? `Episode ${Array.isArray(notification.episode) ? `${notification.episode[0]} ~ ${notification.episode[1]}` : notification.episode}` : `Batch`} </span>
                 {:else if notification.season}
-                  <span class='badge text-dark bg-episode mr-5'>Season {notification.episode}</span>
+                  <span class='badge text-dark bg-undenary mr-5'>Season {notification.episode}</span>
                 {/if}
                 {#if notification.dub}
-                  <span class='badge text-dark bg-dubbed'>Dub</span>
+                  <span class='badge text-dark bg-senary'>Dub</span>
                 {:else}
-                  <span class='badge text-dark bg-subbed'>Sub</span>
+                  <span class='badge text-dark bg-septenary'>Sub</span>
                 {/if}
               </div>
             </div>
+            <div class='position-absolute bd-highlight rounded-5 opacity-transition-hack' style='left: -.5rem' />
           </div>
-          <div class='overlay position-absolute w-full h-full z-40 d-flex flex-column align-items-center' class:visible={notification.prompt} class:invisible={!notification.prompt}>
+          <div class='prompt position-absolute w-full h-full z-40 d-flex flex-column align-items-center' class:visible={notification.prompt} class:invisible={!notification.prompt}>
             <p class='mx-20 font-scale-20 text-white text-center mt-auto mb-0'>
               {#if !$mediaCache[notification?.id]?.mediaListEntry?.progress}
                 You Haven't Watched Any Episodes Yet!
@@ -300,26 +301,26 @@
   }
 
   .notification-item {
-    background-color: rgb(26, 28, 32);
+    background-color: var(--dark-color-light);
     border-radius: .75rem;
   }
   .notification-item.read {
     opacity: .5;
   }
   .notification-item.current {
-    border-left: .4rem solid rgb(61,180,242);
+    border-left: .4rem solid var(--current-color);
   }
   .notification-item.watched {
-    border-left: .4rem solid rgb(123,213,85);
+    border-left: .4rem solid var(--watched-color);
   }
   .notification-item.behind {
-    border-left: .4rem solid rgb(250,122,122);
+    border-left: .4rem solid var(--dropped-color);
   }
   .notification-item.announcement {
-    border-left: .4rem solid #FFFFF0;
+    border-left: .4rem solid var(--duodenary-color);
   }
   .notification-item.not-watching {
-    border-left: .4rem solid #494747;
+    border-left: .4rem solid var(--gray-color-very-dim);
   }
 
   .notification-title {
@@ -359,15 +360,15 @@
     right: 0;
     height: 1.2rem;
     margin-top: 11.3rem;
-    box-shadow: 0 1.2rem 1.2rem #131416;
+    box-shadow: 0 1.2rem 1.2rem var(--dark-color-dim);
     pointer-events: none;
     z-index: 1;
   }
 
-  .overlay {
+  .prompt {
     margin-left: -.9rem !important;
     width: 100.6% !important;
     border-radius: .62rem;
-    background-color: rgba(0, 0, 0, 0.8) !important;
+    background-color: hsla(var(--black-color-hsl), 0.8) !important;
   }
 </style>

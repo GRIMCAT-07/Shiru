@@ -97,7 +97,7 @@
     {/if}
     <div class='d-flex flex-column align-items-start'>
       {#each $profiles as profile}
-        <button type='button' class='profile-item {profile.reauth ? `authenticate` : ``} box text-left pointer border-0 d-flex align-items-center justify-content-between position-relative flex-wrap' title='Switch to Profile: {profile.viewer.data.Viewer.name}' class:not-reactive={!$reactive} use:click={() => switchProfile(profile)}>
+        <button type='button' class='profile-item {profile.reauth ? `authenticate` : ``} box text-left pointer border-0 d-flex align-items-center justify-content-between position-relative flex-wrap z-1' data-toggle='tooltip' data-placement='top' data-title='Switch to Profile: {profile.viewer.data.Viewer.name}' class:not-reactive={!$reactive} use:click={() => switchProfile(profile)}>
           <div class='d-flex align-items-center flex-wrap'>
             <SmartImage class='h-50 w-50 ml-10 mt-5 mb-5 mr-10 rounded-circle bg-transparent' images={[profile.viewer.data.Viewer.avatar?.large, profile.viewer.data.Viewer.avatar?.medium, profile.viewer.data.Viewer.picture, './404_square.png']}/>
             <img class='ml-5 auth-icon rounded-circle' src={isAniProfile(profile) ? './anilist_icon.png' : './myanimelist_icon.png'} alt={isAniProfile(profile) ? 'Logged in with AniList' : 'Logged in with MyAnimeList'} title={isAniProfile(profile) ? 'Logged in with AniList' : 'Logged in with MyAnimeList'}>
@@ -106,16 +106,16 @@
           <div class='controls d-flex align-items-center flex-wrap ml-10'>
             <button type='button' tabindex='-1' class='position-absolute profile-safe-area top-0 right-0 h-full w-100 bg-transparent border-0 shadow-none not-reactive' use:click={() => {}}/>
             {#if !profile.reauth}
-              <button type='button' class='custom-switch bg-transparent border-0 z-1' title='Sync List Entries' use:click|stopPropagation>
+              <button type='button' class='custom-switch bg-transparent border-0 z-1' data-toggle='tooltip' data-placement='left' data-title='Sync List Entries' use:click|stopPropagation>
                 <input type='checkbox' id='sync-{profile.viewer.data.Viewer.id}' checked={$sync.includes(profile.viewer.data.Viewer.id)} use:click={() => toggleSync(profile)} />
                 <label for='sync-{profile.viewer.data.Viewer.id}'><br/></label>
               </button>
             {:else}
-              <button type='button' class='button {profile.reauth ? `pa-button` : `p-button`} pt-5 pb-5 pl-5 pr-5 mr-15 bg-transparent border-0 d-flex align-items-center justify-content-center z-1' title='Authenticate' use:click|stopPropagation={confirmMAL}>
+              <button type='button' class='button {profile.reauth ? `pa-button` : `p-button`} pt-5 pb-5 pl-5 pr-5 mr-15 bg-transparent border-0 d-flex align-items-center justify-content-center z-1' data-toggle='tooltip' data-placement='left' data-title='Authenticate' use:click|stopPropagation={confirmMAL}>
                 <ClockAlert size='2.2rem' />
               </button>
             {/if}
-            <button type='button' class='button {profile.reauth ? `pa-button` : `p-button`} pt-5 pb-5 pl-5 pr-5 bg-transparent border-0 rounded d-flex align-items-center justify-content-center z-1' title='Logout' use:click|stopPropagation={() => dropProfile(profile)}>
+            <button type='button' class='button {profile.reauth ? `pa-button` : `p-button`} pt-5 pb-5 pl-5 pr-5 bg-transparent border-0 rounded d-flex align-items-center justify-content-center z-1' data-toggle='tooltip' data-placement='left' data-title='Logout' use:click|stopPropagation={() => dropProfile(profile)}>
               <LogOut size='2.2rem' />
             </button>
           </div>
@@ -168,17 +168,17 @@
 <style>
   @media (hover: hover) and (pointer: fine) {
     .p-button:hover {
-      background: #393838 !important;
+      background: var(--dark-color-light) !important;
     }
     .pa-button:hover {
-      background: #6c363c !important;
+      background: var(--error-color-very-light) !important;
     }
     .authenticate:hover {
-      background: #4e272c !important;
+      background: var(--error-color-light) !important;
     }
   }
   .authenticate {
-    background: #2e171a !important;
+    background: var(--error-color) !important;
   }
   .rounded-top-30 {
     border-radius: 3rem 3rem 0 0;
@@ -194,11 +194,11 @@
   }
   @media (hover: hover) and (pointer: fine) {
     .box:hover:not(.info) {
-      background: #272727;
+      background: var(--dark-color-very-light);
     }
   }
   .box {
-    background: #0e0e0e;
+    background: var(--dark-color-light);
     width: 100%;
     margin-bottom: .3rem;
   }
@@ -211,17 +211,17 @@
     height: 1.6rem;
   }
   .anilist {
-    background-color: #283342 !important;
+    background-color: var(--anilist-color) !important;
   }
   .myanimelist {
-    background-color: #2C51A2 !important;
+    background-color: var(--myanimelist-color) !important;
   }
   @media (hover: hover) and (pointer: fine) {
     .anilist:hover {
-      background-color: #46536c !important;
+      background-color: var(--anilist-color-light) !important;
     }
     .myanimelist:hover {
-      background-color: #2861d6 !important;
+      background-color: var(--myanimelist-color-light) !important;
     }
   }
 </style>

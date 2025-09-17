@@ -51,29 +51,29 @@
   }
 
   .sidebar-link > span {
-    color: #fff;
+    color: var(--highlight-color);
     border-radius: 0.3rem;
   }
 
   .sidebar-link > span > span:nth-child(1) {
-    color: #fff;
+    color: var(--highlight-color);
     transition: background .8s cubic-bezier(0.25, 0.8, 0.25, 1), color .8s cubic-bezier(0.25, 0.8, 0.25, 1);
   }
 
   @media (hover: hover) and (pointer: fine) {
     .sidebar-link:hover > span > span:nth-child(1) {
-      background: #fff;
+      background: var(--highlight-color);
       color: var(--dark-color);
     }
   }
 
   .sidebar-link:active > span > span:nth-child(1) {
-    background: #fff;
+    background: var(--highlight-color);
     color: var(--dark-color);
   }
 
   .sidebar-link:focus-visible > span > span:nth-child(1) {
-    background: #fff;
+    background: var(--highlight-color);
     color: var(--dark-color);
   }
 

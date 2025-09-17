@@ -133,9 +133,6 @@
 </SoftModal>
 
 <style>
-  .btn-close {
-    background-color: var(--dark-color-light);
-  }
   @media (hover: hover) and (pointer: fine) {
     .btn-close:hover {
       background-color: var(--gray-color-light) !important;

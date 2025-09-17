@@ -14,43 +14,43 @@
   /** @typedef {import('anitomyscript').AnitomyResult} AnitomyResult */
 
   const termMapping = {}
-  termMapping['5.1'] = { text: '5.1', color: '#f67255' }
+  termMapping['5.1'] = { text: '5.1', color: 'var(--octonary-color)' }
   termMapping['5.1CH'] = termMapping[5.1]
-  termMapping['TRUEHD5.1'] = { text: 'TrueHD 5.1', color: '#f67255' }
-  termMapping.AAC = { text: 'AAC', color: '#f67255' }
+  termMapping['TRUEHD5.1'] = { text: 'TrueHD 5.1', color: 'var(--octonary-color)' }
+  termMapping.AAC = { text: 'AAC', color: 'var(--octonary-color)' }
   termMapping.AACX2 = termMapping.AAC
   termMapping.AACX3 = termMapping.AAC
   termMapping.AACX4 = termMapping.AAC
-  termMapping.AC3 = { text: 'AC3', color: '#f67255' }
-  termMapping.EAC3 = { text: 'EAC3', color: '#f67255' }
+  termMapping.AC3 = { text: 'AC3', color: 'var(--octonary-color)' }
+  termMapping.EAC3 = { text: 'EAC3', color: 'var(--octonary-color)' }
   termMapping['E-AC-3'] = termMapping.EAC3
-  termMapping.FLAC = { text: 'FLAC', color: '#f67255' }
+  termMapping.FLAC = { text: 'FLAC', color: 'var(--octonary-color)' }
   termMapping.FLACX2 = termMapping.FLAC
   termMapping.FLACX3 = termMapping.FLAC
   termMapping.FLACX4 = termMapping.FLAC
-  termMapping.VORBIS = { text: 'Vorbis', color: '#f67255' }
-  termMapping.DUALAUDIO = { text: 'Dual Audio', color: '#f67255' }
-  termMapping.ENGLISHAUDIO = { text: 'English Audio', color: '#f67255' }
+  termMapping.VORBIS = { text: 'Vorbis', color: 'var(--octonary-color)' }
+  termMapping.DUALAUDIO = { text: 'Dual Audio', color: 'var(--octonary-color)' }
+  termMapping.ENGLISHAUDIO = { text: 'English Audio', color: 'var(--octonary-color)' }
   termMapping['DUB'] = termMapping.ENGLISHAUDIO
   termMapping['DUAL'] = termMapping.DUALAUDIO
   termMapping['DUAL AUDIO'] = termMapping.DUALAUDIO
   termMapping['MULTI AUDIO'] = termMapping.DUALAUDIO
   termMapping['ENGLISH AUDIO'] = termMapping.ENGLISHAUDIO
   termMapping['ENGLISH DUB'] = termMapping.ENGLISHAUDIO
-  termMapping['10BIT'] = { text: '10 Bit', color: '#0c8ce9' }
+  termMapping['10BIT'] = { text: '10 Bit', color: 'var(--tertiary-color)' }
   termMapping['10BITS'] = termMapping['10BIT']
   termMapping['10-BIT'] = termMapping['10BIT']
   termMapping['10-BITS'] = termMapping['10BIT']
   termMapping.HI10 = termMapping['10BIT']
   termMapping.HI10P = termMapping['10BIT']
-  termMapping.HI444 = { text: 'HI444', color: '#0c8ce9' }
+  termMapping.HI444 = { text: 'HI444', color: 'var(--tertiary-color)' }
   termMapping.HI444P = termMapping.HI444
   termMapping.HI444PP = termMapping.HI444
-  termMapping.HEVC = { text: 'HEVC', color: '#0c8ce9' }
+  termMapping.HEVC = { text: 'HEVC', color: 'var(--tertiary-color)' }
   termMapping.H265 = termMapping.HEVC
   termMapping['H.265'] = termMapping.HEVC
   termMapping.X265 = termMapping.HEVC
-  termMapping.AV1 = { text: 'AV1', color: '#0c8ce9' }
+  termMapping.AV1 = { text: 'AV1', color: 'var(--tertiary-color)' }
 
   /** @param {AnitomyResult} param0 */
   export function sanitiseTerms ({ video_term: vid, audio_term: aud, video_resolution: resolution, file_name: fileName }) {
@@ -58,7 +58,7 @@
     const audio = !Array.isArray(aud) ? [aud] : aud
 
     const terms = [...new Set([...video, ...audio].map(term => termMapping[term?.toUpperCase()]).filter(t => t))]
-    if (resolution) terms.unshift({ text: resolution, color: '#c6ec58' })
+    if (resolution) terms.unshift({ text: resolution, color: 'var(--quaternary-color)' })
 
     for (const key of Object.keys(termMapping)) {
       if (fileName && !terms.some(existingTerm => existingTerm.text === termMapping[key].text)) {
@@ -122,16 +122,16 @@
       card.style.removeProperty('color')
       return
     }
-    let color = '#f5a623'
-    if (value < 3) color = '#e92c2c'
+    let color = 'var(--warning-color)'
+    if (value < 3) color = 'var(--danger-color-dim)'
     card.style.borderColor = color
     card.style.setProperty('color', color)
   }
 </script>
 
-<div bind:this={card} class='card bg-dark p-15 d-flex mx-0 overflow-hidden pointer mb-10 mt-0 position-relative scale rounded-3' class:not-reactive={!$reactive} class:border-best={type === 'best'} class:border-magnet={type === 'magnet'} class:glow={countdown > -1} role='button' tabindex='0' use:click={() => play(result)} on:contextmenu|preventDefault={() => copyToClipboard(result.link)} title={result.parseObject.file_name}>
+<div class='card bg-dark p-15 d-flex mx-0 pointer mb-10 mt-0 position-relative scale rounded-3' class:not-reactive={!$reactive} class:glow={countdown > -1} role='button' tabindex='0' use:click={() => play(result)} on:contextmenu|preventDefault={() => copyToClipboard(result.link)} title={result.parseObject.file_name}>
   <div class='position-absolute top-0 left-0 w-full h-full'>
-    <div class='position-absolute w-full h-full overflow-hidden' class:image-border={type === 'default'} >
+    <div class='position-absolute w-full h-full overflow-hidden rounded-3' class:image-border={type === 'default'} >
       <SmartImage class='img-cover w-full h-full' images={[
         () => getEpisodeMetadataForMedia(media).then(metadata => metadata?.[episode]?.image),
         media.bannerImage,
@@ -145,14 +145,14 @@
           metadata?.included?.[0]?.attributes?.coverImage?.tiny])]}
       />
     </div>
-    <div class='position-absolute top-0 left-0 w-full h-full' style='background: var(--torrent-card-gradient);' />
+    <div class='position-absolute rounded-3 opacity-transition-hack' style='background: var(--torrent-card-gradient);' />
   </div>
   <button type='button' tabindex='-1' class='position-absolute torrent-safe-area top-0 right-0 h-full w-50 bg-transparent border-0 shadow-none not-reactive z-1' use:click={() => {}}/>
   <div class='d-flex pl-10 flex-column justify-content-between w-full h-auto position-relative' style='min-height: 10rem; min-width: 0;'>
     <div class='d-flex w-full'>
       {#if result.accuracy === 'high'}
-        <div class='d-flex align-items-center justify-content-center mr-10' title='High Accuracy'>
-          <BadgeCheck size='2.5rem' style='color: #53da33' />
+        <div class='d-flex align-items-center justify-content-center mr-10 text-success-light' title='High Accuracy'>
+          <BadgeCheck size='2.5rem' />
         </div>
       {/if}
       <div class='font-size-22 font-weight-bold text-nowrap d-flex align-items-center'>
@@ -175,7 +175,7 @@
     <div class='py-5 font-size-14 text-muted d-flex align-items-center'>
       <span class='overflow-hidden text-truncate'>{simplifyFilename(result.parseObject)}</span>
       <span class='ml-auto mr-5 w-30 h-10 flex-shrink-0'/>
-      <TorrentButton class='position-absolute btn btn-square shadow-none bg-transparent highlight h-40 w-40 right-0 mr--8 z-1' hash={result.hash} torrentID={result.link} search={{ media, episode: (media?.format !== 'MOVIE' && result.type !== 'batch') && episode }} size={'2.5rem'} strokeWidth={'2.3'}/>
+      <TorrentButton class='position-absolute btn btn-square shadow-none bg-transparent bd-highlight h-40 w-40 right-0 mr--8 z-1' hash={result.hash} torrentID={result.link} search={{ media, episode: (media?.format !== 'MOVIE' && result.type !== 'batch') && episode }} size={'2.5rem'} strokeWidth={'2.3'}/>
     </div>
     <div class='metadata-container d-flex w-full align-items-start text-dark font-size-14' style='line-height: 1;'>
       <div class='primary-metadata py-5 d-flex flex-row'>
@@ -187,11 +187,11 @@
       </div>
       <div class='secondary-metadata d-flex flex-wrap ml-auto justify-content-end'>
         {#if result.type === 'best'}
-          <div class='rounded px-15 py-5 ml-10 border text-nowrap font-weight-bold d-flex align-items-center' style='background: #1d2d1e; border-color: #53da33 !important; color: #53da33'>
+          <div class='rounded px-15 py-5 ml-10 border text-nowrap font-weight-bold d-flex align-items-center' style='background: var(--success-color-very-dim); border-color: var(--success-color-light) !important; color: var(--success-color-light)'>
             Best Release
           </div>
         {:else if result.type === 'alt'}
-          <div class='rounded px-15 py-5 ml-10 border text-nowrap font-weight-bold d-flex align-items-center' style='background: #391d20; border-color: #c52d2d !important; color: #c52d2d'>
+          <div class='rounded px-15 py-5 ml-10 border text-nowrap font-weight-bold d-flex align-items-center' style='background: var(--danger-color-very-dim); border-color: var(--danger-color) !important; color: var(--danger-color)'>
             Alt Release
           </div>
         {/if}
@@ -203,16 +203,15 @@
       </div>
     </div>
   </div>
+  <div bind:this={card} class='position-absolute rounded-3 bd-highlight opacity-transition-hack' class:border-best={type === 'best'} class:border-magnet={type === 'magnet'} />
 </div>
 
 <style>
   .scale {
     transition: transform 0.2s ease;
-    border: .1rem solid transparent;
   }
   .scale:hover {
     transform: scale(1.015);
-    border: .1rem solid var(--highlight-color);
   }
   .border-best {
     border: .1rem solid var(--tertiary-color);

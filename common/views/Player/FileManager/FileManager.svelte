@@ -49,14 +49,14 @@
             <h3 class='mb-0 font-weight-bold text-white title font-size-24'>File Manager</h3>
             <h5 class='mb-0 mt-0 text-muted info font-size-12'>Something didn't resolve correctly? Please open an issue on GitHub so we can investigate and fix it!</h5>
         </div>
-        <button type='button' class='btn btn-square bg-dark ml-auto d-flex align-items-center justify-content-center rounded-2 flex-shrink-0' use:click={close}><X size='1.7rem' strokeWidth='3'/></button>
+        <button type='button' class='btn btn-square ml-auto d-flex align-items-center justify-content-center rounded-2 flex-shrink-0' use:click={close}><X size='1.7rem' strokeWidth='3'/></button>
     </div>
     <FileCard {playFile} bind:file={playing} bind:files playing={true} bind:fileEdit class='mr-30'/>
     <div class='input-group mt-10' class:d-none={files?.length < 2}>
         <Search size='2.6rem' strokeWidth='2.5' class='position-absolute z-10 text-dark-light h-full pl-10 ml-20 pointer-events-none' />
         <input
             type='search'
-            class='form-control bg-dark-light pl-40 ml-20 mr-30 rounded-1 h-40 text-truncate'
+            class='form-control bg-dark-very-light pl-40 ml-20 mr-30 rounded-1 h-40 text-truncate'
             autocomplete='off'
             spellcheck='false'
             data-option='search'
@@ -78,7 +78,7 @@
         right: 0;
         height: 1.2rem;
         margin-top: -1rem;
-        box-shadow: 0 1.2rem 1.2rem #131416;
+        box-shadow: 0 1.2rem 1.2rem var(--dark-color-dim);
         pointer-events: none;
         z-index: 1;
     }

@@ -1,7 +1,4 @@
 :root {
-  --accent-color: #e5204c;
-  --dm-link-text-color: var(--dm-muted-text-color) !important;
-  --dm-link-text-color-hover: var(--dm-text-color) !important;
   --base-html-font-size: 48%;
   --base-html-font-size-1600: 50%;
   --base-html-font-size-1920: 62.5%;
@@ -13,42 +10,110 @@
   --sidebar-width: 0px;
   --navbar-height: 7rem;
   --statusbar-height: 3.2rem;
-  --tertiary-color: #2e74e4 !important;
-  --tertiary-color-dim: #204b9a !important;
-  --quaternary-color: #98c379 !important;
-  --highlight-color: rgb(255, 255, 255);
+  --safe-area-top: 0px;
+  --safe-area-left: 0px;
+
+  --accent-color: #e5204c;
+  --highlight-color: #FFFFFF !important;
+  --current-color: #3DB4F2 !important;
+  --planning-color: #F79A63 !important;
+  --completed-color: #7BD555 !important;
+  --paused-color: #FA7A7A !important;
+  --repeating-color: #3BAEEA !important;
+  --dropped-color: #E85D75 !important;
+  --notify-color: #Af68FA !important;
   --dark-color-base-hue: 220deg !important;
   --dark-color-base-saturation: 10% !important;
   --dark-color-hsl: var(--dark-color-base-hue), var(--dark-color-base-saturation), 10% !important;
-  --dark-color-light: #25292F !important;
-  --dm-shadow: 0px 4px 7px rgba(0, 0, 0, 0.25);
-  --dm-input-border-color: none;
+  --dark-color-light-hsl: var(--dark-color-base-hue), var(--dark-color-base-saturation), 14%;
+  --dark-color-very-light-hsl: var(--dark-color-base-hue), var(--dark-color-base-saturation), 16%;
+  --dark-color-dim-hsl: var(--dark-color-base-hue), var(--dark-color-base-saturation), 8%;
+  --dark-color-very-dim-hsl: var(--dark-color-base-hue), var(--dark-color-base-saturation), 4%;
+  --dm-shadow: 0px 4px 7px hsla(var(--black-color-hsl), 0.25);
   --gray-color-light: hsl(var(--gray-color-light-hsl));
   --gray-color-light-hsl: var(--gray-color-base-hue), 10%, 28%;
   --gray-color-base-hue: 216;
-  --safe-area-top: 0px;
-  --safe-area-left: 0px;
-  --sidebar-gradient: linear-gradient(90deg, #17191D 15.62%, rgba(23, 25, 29, 0.92) 36.46%, rgba(23, 25, 29, 0.619632) 70.83%, rgba(23, 25, 29, 0) 100%);
-  --banner-gradient-bottom: linear-gradient(0deg, #17191D 0%, #0000 15%, #0000 100%);
-  --banner-gradient-left: linear-gradient(90deg, #17191D 0%, rgba(23, 25, 29, 0.5) 75%, rgba(25, 28, 32, 0) 100%);
-  --torrent-card-gradient: linear-gradient(90deg, #17191C 32%, rgba(23, 25, 28, 0.90) 100%);
-  --torrent-banner-gradient: linear-gradient(0, #131416 15%, rgba(23,25,28,0.64) 85%), linear-gradient(to left, #131416 0, transparent 1%);
-  --notification-card-gradient: linear-gradient(90deg, rgba(23, 25, 28, 0.98) 32%, rgba(23, 25, 28, 0.85) 100%);
-  --episode-card-gradient: linear-gradient(180deg, rgba(0, 0, 0, 0) 77.08%, rgba(0, 0, 0, 0.7) 100%);
-  --episode-preview-card-gradient: linear-gradient(180deg, #0000 0%, #25292f00 80%, #25292f 100%);
-  --preview-card-end-gradient: linear-gradient(180deg, #0000 0%, #25292f00 85%, #25292fe3 95%, #25292f 98%);
-  --preview-card-trailer-gradient: linear-gradient(180deg, #0000 0%, #25292f00 85%, #25292fe3 95%, #25292f 100%);
-  --section-end-gradient: linear-gradient(270deg, #17191cff 0%, #17191c00 100%);
-  --warning-color: rgb(211 175 24);
-  --error-color: rgb(71, 4, 4);
-  --adult-color: rgb(215, 6, 10);
-  --dubbed-color: rgb(255, 214, 0);
-  --subbed-color: rgb(137, 39, 255);
-  --incomplete-color: rgb(255, 94, 0);
-  --delayed-color: rgb(188, 32, 35);
-  --episode-color: rgb(204, 204, 255);
-  --announcement-color: rgb(255, 255, 240);
-  --success-color-subtle: rgb(36, 138, 0);
+  --green-color-base-hue: 106;
+  --green-color-base-saturation: 100%;
+  --green-color-hsl: var(--green-color-base-hue), var(--green-color-base-saturation), 27%;
+  --green-color-light-hsl: var(--green-color-base-hue), var(--green-color-base-saturation), 40%;
+  --red-color-very-dim-hsl: var(--red-color-base-hue), 66%, 15%;
+  --white-color-hue: 0deg;
+  --white-color-saturation: 0%;
+  --white-color-dim-hsl: var(--white-color-hue), var(--white-color-saturation), 60%;
+  --white-color-dim: hsl(var(--white-color-dim-hsl));
+  --white-color-very-dim-hsl: var(--white-color-hue), var(--white-color-saturation), 50%;
+  --white-color-very-dim: hsl(var(--white-color-very-dim-hsl));
+  --warning-color-base-hue: 48;
+  --warning-color-base-saturation: 80%;
+  --warning-color-hsl: var(--warning-color-base-hue), var(--warning-color-base-saturation), 46%;
+  --warning-color: hsl(var(--warning-color-hsl)) !important;
+  --warning-color-dim-hsl: var(--warning-color-base-hue), var(--warning-color-base-saturation), 31%;
+  --warning-color-dim: hsl(var(--warning-color-dim-hsl)) !important;
+  --warning-color-very-dim-hsl: var(--warning-color-base-hue), var(--warning-color-base-saturation), 19%;
+  --warning-color-very-dim: hsl(var(--warning-color-very-dim-hsl)) !important;
+  --error-color-hue: 0deg;
+  --error-color-saturation: 89%;
+  --error-hsl: var(--error-color-hue), var(--error-color-saturation), 15%;
+  --error-color: hsl(var(--error-hsl));
+  --error-color-light-hsl: var(--error-color-hue), var(--error-color-saturation), 25%;
+  --error-color-light: hsl(var(--error-color-light-hsl));
+  --error-color-very-light-hsl: var(--error-color-hue), var(--error-color-saturation), 35%;
+  --error-color-very-light: hsl(var(--error-color-very-light-hsl));
+  --myanimelist-color-hue: 221deg;
+  --myanimelist-color-saturation: 57%;
+  --myanimelist-color-hsl: var(--myanimelist-color-hue), var(--myanimelist-color-saturation), 40%;
+  --myanimelist-color: hsl(var(--myanimelist-color-hsl));
+  --myanimelist-color-light-hsl: var(--myanimelist-color-hue), var(--myanimelist-color-saturation), 55%;
+  --myanimelist-color-light: hsl(var(--myanimelist-color-light-hsl));
+  --anilist-color-hue: 215deg;
+  --anilist-color-saturation: 25%;
+  --anilist-color-hsl: var(--anilist-color-hue), var(--anilist-color-saturation), 21%;
+  --anilist-color: hsl(var(--anilist-color-hsl));
+  --anilist-color-light-hsl: var(--anilist-color-hue), var(--anilist-color-saturation), 35%;
+  --anilist-color-light: hsl(var(--anilist-color-light-hsl));
+  --tertiary-color-hue: 217deg;
+  --tertiary-color-saturation: 77%;
+  --tertiary-color-hsl: var(--tertiary-color-hue), var(--tertiary-color-saturation), 54%;
+  --tertiary-color: hsl(var(--tertiary-color-hsl)) !important;
+  --tertiary-color-light-hsl: var(--tertiary-color-hue), var(--tertiary-color-saturation), 64%;
+  --tertiary-color-light: hsl(var(--tertiary-color-light-hsl)) !important;
+  --tertiary-color-very-light-hsl: var(--tertiary-color-hue), var(--tertiary-color-saturation), 79%;
+  --tertiary-color-very-light: hsl(var(--tertiary-color-very-light-hsl)) !important;
+  --tertiary-color-dim-hsl: var(--tertiary-color-hue), var(--tertiary-color-saturation), 30%;
+  --tertiary-color-dim: hsl(var(--tertiary-color-dim-hsl)) !important;
+  --quaternary-color: #98C379 !important;
+  --quinary-color: #D7060A !important;
+  --senary-color: #FFD600 !important;
+  --septenary-color: #8927FF !important;
+  --octonary-color: #FF5E00 !important;
+  --denary-color: #BC2023 !important;
+  --undenary-color-hue: 240deg;
+  --undenary-color-saturation: 100%;
+  --undenary-color-hsl: var(--undenary-color-hue), var(--undenary-color-saturation), 90%;
+  --undenary-color: hsl(var(--undenary-color-hsl)) !important;
+  --undenary-color-dim-hsl: var(--undenary-color-hue), var(--undenary-color-saturation), 84%;
+  --undenary-color-dim: hsl(var(--undenary-color-dim-hsl)) !important;
+  --duodenary-color: #FFFFF0 !important;
+  --quattuordenary-color: #FA68B6 !important;
+
+  --border-color-sp: hsla(var(--gray-color-dim-hsl), 0.2);
+  --dm-input-border-color: none;
+  --dm-link-text-color: var(--dm-muted-text-color) !important;
+  --dm-link-text-color-hover: var(--dm-text-color) !important;
+  --sidebar-gradient: linear-gradient(90deg, var(--dark-color) 15.62%, hsla(var(--dark-color-hsl), 0.92) 36.46%, hsla(var(--dark-color-hsl), 0.62) 70.83%, hsla(var(--black-color-hsl), 0) 100%);
+  --banner-gradient-bottom: linear-gradient(0deg, var(--dark-color) 0%, hsla(var(--dark-color-hsl), 0) 15%, hsla(var(--dark-color-hsl), 0) 100%);
+  --banner-gradient-left: linear-gradient(90deg, var(--dark-color) 0%, rgba(23, 25, 29, 0.5) 75%, rgba(25, 28, 32, 0) 100%);
+  --torrent-card-gradient: linear-gradient(90deg, hsla(var(--dark-color-hsl), 0.98) 25%, hsla(var(--dark-color-light-hsl), 0.85) 100%);
+  --torrent-banner-gradient: linear-gradient(0, var(--dark-color-dim) 15%, hsla(var(--dark-color-very-dim-hsl), 0.64) 85%), linear-gradient(to left, var(--dark-color-dim) 0, transparent 1%);
+  --notification-card-gradient: linear-gradient(90deg, hsla(var(--dark-color-light-hsl), 0.98) 32%, hsla(var(--dark-color-hsl), 0.85) 100%);
+  --episode-card-gradient: linear-gradient(180deg, hsla(var(--black-color-hsl), 0) 77.08%, hsla(var(--dark-color-light-hsl), 0.7) 100%);
+  --episode-preview-card-gradient: linear-gradient(180deg, hsla(var(--black-color-hsl), 0) 0%, hsla(var(--black-color-hsl), 0) 80%, var(--dark-color-light) 100%);
+  --preview-card-end-gradient: linear-gradient(180deg, hsla(var(--black-color-hsl), 0) 0%, hsla(var(--black-color-hsl), 0) 85%, hsla(var(--dark-color-light-hsl), 0.85) 95%, var(--dark-color-light) 98%);
+  --preview-card-trailer-gradient: linear-gradient(180deg, hsla(var(--black-color-hsl), 0) 0%, hsla(var(--black-color-hsl), 0) 85%, hsla(var(--dark-color-light-hsl), 0.85) 95%, var(--dark-color-light) 100%);
+  --section-end-gradient: linear-gradient(270deg, hsla(var(--dark-color-hsl), 1) 0%, hsla(var(--dark-color-light-hsl), 0) 100%);
+
+  --theme-color: var(--dark-color) !important;
   color-scheme: dark;
 }
 
@@ -101,6 +166,9 @@
 .h-80 {
   height: 8rem;
 }
+.h-270 {
+  height: 27rem;
+}
 
 .w-30 {
   width: 3rem;
@@ -116,6 +184,12 @@
 }
 .w-120 {
   width: 12rem;
+}
+.w-160 {
+  width: 16rem;
+}
+.w-170 {
+  width: 17rem;
 }
 .w-180 {
   width: 18rem;
@@ -253,16 +327,16 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-a[href]:active, button:not([disabled], .not-reactive):active:not([data-sonner-toast] > button), fieldset:not([disabled]):active, input:not([disabled], [type='range'], .not-reactive):active, optgroup:not([disabled]):active, option:not([disabled]):active, select:not([disabled]):active, textarea:not([disabled]):active, details:active, [tabindex]:not([tabindex="-1"], .seekbar, .dropdown, .scoring, .not-reactive):active, [contenteditable]:active, [controls]:active {
+a[href]:active, button:not([disabled], .not-reactive):active:not([data-sonner-toast] > button), fieldset:not([disabled]):active, input:not([disabled], [type='range'], .not-reactive):active, optgroup:not([disabled]):active, option:not([disabled]):active, select:not([disabled]):active, textarea:not([disabled]):active, details:active, [tabindex]:not([disabled], [tabindex="-1"], .seekbar, .dropdown, .scoring, .not-reactive):active, [contenteditable]:active, [controls]:active {
   transition: box-shadow 0.1s ease, filter 0.1s ease !important;
   filter: brightness(0.95) contrast(1.05) !important;
-  box-shadow: 0 0 2rem rgba(0, 0, 0, 0.1), 0 .4rem .6rem rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 0 2rem hsla(var(--black-color-hsl), 0.1), 0 .4rem .6rem hsla(var(--black-color-hsl), 0.05) !important;
   transform: translateY(0.15rem) !important;
 }
 
 .btn-secondary {
-  --dm-button-secondary-bg-color: #fff !important;
-  --dm-button-secondary-bg-color-hover: #ddd !important;
+  --dm-button-secondary-bg-color: var(--white-color) !important;
+  --dm-button-secondary-bg-color-hover: var(--white-color-dim) !important;
   --dm-button-secondary-bg-color-focus: var(--dm-button-secondary-bg-color) !important;
 }
 
@@ -289,7 +363,7 @@ a[href]:active, button:not([disabled], .not-reactive):active:not([data-sonner-to
   border-radius: .4rem !important;
   border-color: transparent !important;
   background-color: transparent !important;
-  color: #eee !important;
+  color: hsla(var(--white-color-hsl), 0.93) !important;
 }
 
 [data-sonner-toast] > button svg {
@@ -358,9 +432,6 @@ a[href]:active, button:not([disabled], .not-reactive):active:not([data-sonner-to
     z-index: 105 !important;
 }
 
-.text-success-subtle {
-  color: var(--success-color-subtle);
-}
 .text-dark-light {
   color: var(--gray-color-light);
 }
@@ -376,18 +447,22 @@ a[href]:active, button:not([disabled], .not-reactive):active:not([data-sonner-to
   }
 }
 
+.grab{
+  cursor: grab;
+}
 .pointer {
   cursor: pointer;
 }
-
 .not-allowed {
   cursor: not-allowed;
 }
-
 .cursor-wait {
   cursor: wait !important;
 }
 
+.mb--3 {
+  margin-bottom: -.3rem !important;
+}
 .mb-30 {
   margin-bottom: 3rem;
 }
@@ -437,63 +512,66 @@ body {
 }
 
 .bg-black {
-  background: #000;
+  background: var(--black-color);
 }
 
-.bg-warn {
-  color: hsl(45, 100%, 19%) !important;
-  border-color: hsl(44, 100%, 31%) !important;
+.text-warning-very-dim {
+  color: var(--warning-color-very-dim) !important;
+}
+.bg-warning {
+  border-color: var(--warning-color) !important;
   background-color: var(--warning-color) !important;
+}
+.border-warning-dim {
+  border-color: var(--warning-color-dim) !important;
 }
 
 .bg-error {
-  border-color: hsl(0, 100%, 25%) !important;
+  border-color: var(--error-color) !important;
   background-color: var(--error-color) !important;
 }
-
-.bg-adult {
-  border-color: var(--adult-color) !important;
-  background-color: var(--adult-color) !important;
+.border-error-light {
+  border-color: var(--error-color-light) !important;
 }
 
-.bg-dubbed {
-  border-color: var(--dubbed-color) !important;
-  background-color: var(--dubbed-color) !important;
+.bg-quinary {
+  border-color: var(--quinary-color) !important;
+  background-color: var(--quinary-color) !important;
 }
 
-.bg-subbed {
-  border-color: var(--subbed-color) !important;
-  background-color: var(--subbed-color) !important;
+.bg-senary {
+  border-color: var(--senary-color) !important;
+  background-color: var(--senary-color) !important;
 }
 
-.bg-incomplete {
-  border-color: var(--incomplete-color) !important;
-  background-color: var(--incomplete-color) !important;
+.bg-septenary {
+  border-color: var(--septenary-color) !important;
+  background-color: var(--septenary-color) !important;
 }
 
-.bg-watching {
-  border-color: rgb(61,180,242) !important;
-  background-color: rgb(61,180,242) !important;
+.bg-octonary {
+  border-color: var(--octonary-color) !important;
+  background-color: var(--octonary-color) !important;
 }
 
-.bg-delayed {
-  border-color: var(--delayed-color) !important;
-  background-color: var(--delayed-color) !important;
+.bg-current {
+  border-color: var(--current-color) !important;
+  background-color: var(--current-color) !important;
 }
 
-.bg-episode {
-  border-color: var(--episode-color) !important;
-  background-color: var(--episode-color) !important;
+.bg-denary {
+  border-color: var(--denary-color) !important;
+  background-color: var(--denary-color) !important;
 }
 
-.bg-announcement {
-  border-color: var(--announcement-color) !important;
-  background-color: var(--announcement-color) !important;
+.bg-undenary {
+  border-color: var(--undenary-color) !important;
+  background-color: var(--undenary-color) !important;
 }
 
-.bg-success-subtle {
-  border-color: var(--success-color-subtle) !important;
-  background-color: var(--success-color-subtle) !important;
+.bg-duodenary {
+  border-color: var(--duodenary-color) !important;
+  background-color: var(--duodenary-color) !important;
 }
 
 .anime-details {
@@ -538,8 +616,14 @@ img[src=''], img[src=' '] {
   box-shadow: inset 0 0 0 .4rem var(--tertiary-color) !important;
 }
 
+[data-toggle="tooltip"]:focus:not(:hover)::before {
+  visibility: visible;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
 .btn-secondary:focus-visible {
-  box-shadow: inset 0 0 0 1.5px #000 !important;
+  box-shadow: inset 0 0 0 1.5px var(--black-color) !important;
 }
 
 .modal:focus-visible {
@@ -547,7 +631,7 @@ img[src=''], img[src=' '] {
 }
 
 .icon-shadow {
-  filter: drop-shadow(0 0 .4rem rgba(0, 0, 0, 1))
+  filter: drop-shadow(0 0 .4rem hsla(var(--black-color-hsl), 1))
 }
 
 .content-visibility-auto {
@@ -576,6 +660,22 @@ img[src=''], img[src=' '] {
   0% { transform: translateY(1.5rem) scale(0.98) }
   60% { transform: translateY(-0.25rem) scale(1.015) }
   100% { transform: none }
+}
+
+@keyframes card-load-out {
+  from {
+    top: 0;
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    top: 1.2rem;
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+.absolute-container.card-load-out {
+  animation: card-load-out 0.2s ease forwards !important;
 }
 
 @keyframes skeleton-swipe {
@@ -680,6 +780,13 @@ img[src=''], img[src=' '] {
   margin-right: 5rem;
 }
 
+.opacity-transition-hack {
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+}
+
 .dr-arrow, .dmr-arrow {
   z-index: 0;
 }
@@ -734,7 +841,7 @@ img[src=''], img[src=' '] {
 }
 @media (hover: hover) and (pointer: fine) {
   .bd-highlight:hover {
-    border: .1rem solid var(--highlight-color);
+    border: .1rem solid var(--highlight-color) !important;
   }
 }
 
@@ -748,10 +855,40 @@ img[src=''], img[src=' '] {
 }
 
 @media (hover: hover) and (pointer: fine) {
+  button:not([disabled]), input:not([disabled]), input:not([disabled]):not(.input-group input), .input-group:not(:has(input:disabled)), .icon.text-white:not([disabled]) > svg, .icon.text-dark-light:not([disabled]) > svg, .button:not([disabled]) > svg, .custom-switch:not([disabled]), .form-control:not([disabled]), .progressive:not([disabled]) {
+    transition: scale 0.2s ease;
+  }
   button.bg-dark:not([disabled]):hover {
     background: var(--dark-color-light) !important;
   }
   button.bg-dark-light:not([disabled]):hover {
+    background: var(--dark-color-very-light) !important;
+  }
+  .progressive:not([disabled]):hover {
     background: var(--gray-color-light) !important;
+  }
+  .icon.text-white:not([disabled]):hover, .icon.text-muted:not([disabled]):hover > svg, .button:not([disabled]):hover > svg {
+    color: var(--white-color-dim) !important;
+  }
+  .icon.text-dark-light:not([disabled]):hover > svg {
+    color: var(--white-color-very-dim) !important;
+  }
+  .icon.text-white:not([disabled]):hover > svg, .icon.text-dark-light:not([disabled]):hover > svg, .button:not([disabled]):hover > svg, .progressive:not([disabled]):hover {
+    scale: 1.15;
+  }
+  button:not([disabled]):hover {
+    scale: 1.04;
+  }
+  .custom-switch:not([disabled]):hover {
+    scale: 1.05;
+  }
+  button.btn-square:not([disabled]):hover {
+    scale: 1.1;
+  }
+  input:not([disabled]):not(.input-group input):hover, .form-control:not([disabled], .input-group input):hover {
+    scale: 1.02;
+  }
+  .input-group:hover:not(:has(input:disabled)) {
+    scale: 1.02;
   }
 }

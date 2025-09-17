@@ -125,7 +125,7 @@
       <Scoring media={current} />
     {/if}
     {#if Helper.isAniAuth()}
-      <button class='btn bg-dark-light btn-square ml-10 d-flex align-items-center justify-content-center shadow-none border-0' title={current.isFavourite ? 'Unfavourite' : 'Favourite'} use:click={toggleFavourite} disabled={!Helper.isAniAuth()}>
+      <button class='btn bg-dark-light btn-square ml-10 d-flex align-items-center justify-content-center shadow-none border-0' data-toggle='tooltip' data-placement='top' data-target-breakpoint='md' data-title={current.isFavourite ? 'Unfavourite' : 'Favourite'} use:click={toggleFavourite} disabled={!Helper.isAniAuth()}>
         <div class='favourite d-flex align-items-center justify-content-center'>
           <Heart color={current.isFavourite ? 'var(--tertiary-color)' : 'currentColor'} fill={current.isFavourite ? 'var(--tertiary-color)' : 'transparent'} size='1.7rem' />
         </div>
@@ -135,8 +135,9 @@
   <div class='d-flex'>
     {#each mediaList as media}
       {@const active = (currentStatic?.id === media?.id)}
-      <div class='pt-10 pb-10 badge-wrapper' aria-hidden='true' class:pointer={!active} class:default-cursor={active} use:click={() => setCurrent(media)}>
-        <div class='rounded bg-dark-light mr-10 progress-badge overflow-hidden' class:active style='height: 3px;' style:width={active ? '5rem' : '2.7rem'}>
+      {@const disabled = active || null}
+      <div class='pt-10 pb-10 badge-wrapper' aria-hidden='true' {disabled} class:pointer={!active} class:default-cursor={active} use:click={() => setCurrent(media)}>
+        <div class='rounded bg-dark-light mr-10 progress-badge overflow-hidden progressive' {disabled} class:active style='height: 3px;' style:width={active ? '5rem' : '2.7rem'}>
           <div class='progress-content h-full' class:bg-white={active} />
         </div>
       </div>
@@ -181,35 +182,14 @@
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 1);
+    text-shadow: 2px 2px 4px hsla(var(--black-color-hsl), 1);
   }
   .banner, img {
     animation: fadeIn ease .8s;
     will-change: opacity;
   }
-  .grab {
-    cursor: grab;
-  }
   .default-cursor {
     cursor: default;
-  }
-  .description {
-    height: 10rem;
-    display: -webkit-box !important;
-    -webkit-line-clamp: 4;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    word-wrap: break-word;
-  }
-
-  .description::after {
-    content: '...';
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    background: linear-gradient(to left, #17191c, transparent);
-    padding-left: 0.5rem;
   }
 
   @keyframes fadeIn {
@@ -218,11 +198,6 @@
     }
     to {
       opacity: 1;
-    }
-  }
-  @media (hover: hover) and (pointer: fine) {
-    button:hover, .badge-wrapper.pointer:hover .progress-badge {
-      background: var(--gray-color-light) !important;
     }
   }
 </style>

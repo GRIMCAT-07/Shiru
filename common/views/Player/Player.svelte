@@ -1601,33 +1601,33 @@
     <span aria-hidden='true' class='icon ctrl align-items-center justify-content-end w-150 mw-full mr-auto' class:hidden={externalPlayback} class:mb-50={!miniplayer} on:click={rewind}><Rewind size='3rem' /></span>
     <!-- miniplayer buttons -->
     {#if miniplayer}
-      <span class='position-absolute rounded-10 top-0 right-0 m-10 btn-shadow' class:ctrl={!SUPPORTS.isAndroid} class:mr-40={!SUPPORTS.isAndroid} class:mr-50={SUPPORTS.isAndroid} title='Minimize' data-name='playPause' use:click={() => (playPage = !playPage)}>
+      <span class='position-absolute rounded-10 top-0 right-0 m-10 btn-shadow button' class:ctrl={!SUPPORTS.isAndroid} class:mr-40={!SUPPORTS.isAndroid} class:mr-50={SUPPORTS.isAndroid} title='Minimize' data-name='playPause' use:click={() => (playPage = !playPage)}>
         <Minus size='1.9rem' strokeWidth='3'/>
       </span>
-      <span class='position-absolute rounded-10 top-0 right-0 m-10 btn-shadow' class:ctrl={!SUPPORTS.isAndroid} title='Exit' data-name='playPause' use:click={() => { window.dispatchEvent(new CustomEvent('torrent-unload')); if (page === 'player') page = 'home'}}>
+      <span class='position-absolute rounded-10 top-0 right-0 m-10 btn-shadow button' class:ctrl={!SUPPORTS.isAndroid} title='Exit' data-name='playPause' use:click={() => { window.dispatchEvent(new CustomEvent('torrent-unload')); if (page === 'player') page = 'home'}}>
         <X size='1.9rem' strokeWidth='3'/>
       </span>
     {/if}
     <div class='d-flex align-items-center position-relative' class:mb-50={!miniplayer} style='width: 100%;' title='Play/Pause'>
       {#if hasLast}
-        <span class='icon ctrl position-absolute rounded-10' style={externalPlayback ? `left: 5%` : `left: 15%`} title='Last' data-name='playPause' use:click={playLast}>
-          <SkipBack size='3rem' fill='white' />
+        <span class='icon ctrl position-absolute rounded-10 text-white' style={externalPlayback ? `left: 5%` : `left: 15%`} title='Last' data-name='playPause' use:click={playLast}>
+          <SkipBack size='3rem' fill='currentColor' />
         </span>
       {/if}
-        <span class='icon ctrl position-absolute rounded-10' data-name='playPause' style='left: 50%; margin-left: -3rem;' use:click={playPause}>
+        <span class='icon ctrl position-absolute rounded-10 text-white' data-name='playPause' style='left: 50%; margin-left: -3rem;' use:click={playPause}>
           {#if ended}
             <RotateCw size='3rem' />
           {:else}
             {#if paused}
-              <Play size='3rem' fill='white' />
+              <Play size='3rem' fill='currentColor' />
             {:else}
-              <Pause size='3rem' fill='white' />
+              <Pause size='3rem' fill='currentColor' />
             {/if}
           {/if}
         </span>
       {#if hasNext}
-        <span class='icon ctrl position-absolute rounded-10' style={externalPlayback ? `right: 5%` : `right: 15%`} title='Next' data-name='playPause' use:click={playNext}>
-          <SkipForward size='3rem' fill='white' />
+        <span class='icon ctrl position-absolute rounded-10 text-white' style={externalPlayback ? `right: 5%` : `right: 15%`} title='Next' data-name='playPause' use:click={playNext}>
+          <SkipForward size='3rem' fill='currentColor' />
         </span>
       {/if}
     </div>
@@ -1654,32 +1654,33 @@
       />
     </div>
     <div class='d-flex'>
-      <span class='icon ctrl m-5' title='Play/Pause [Space]' data-name='playPause' use:click={playPause}>
+      <span class='icon ctrl m-5 text-white' title='Play/Pause [Space]' data-name='playPause' use:click={playPause}>
         {#if ended}
           <RotateCw size='2rem' />
         {:else}
           {#if paused}
-            <Play size='2rem' fill='white' />
+            <Play size='2rem' fill='currentColor' />
           {:else}
-            <Pause size='2rem' fill='white' />
+            <Pause size='2rem' fill='currentColor' />
           {/if}
-        {/if}</span>
+        {/if}
+      </span>
       {#if hasLast}
-        <span class='icon ctrl m-5 d-btn' title='Last [B]' use:click={playLast}>
-          <SkipBack size='2rem' fill='white' />
+        <span class='icon ctrl m-5 d-btn text-white' title='Last [B]' use:click={playLast}>
+          <SkipBack size='2rem' fill='currentColor' />
         </span>
       {/if}
       {#if hasNext}
-        <span class='icon ctrl m-5 d-btn' title='Next [N]' use:click={playNext}>
-          <SkipForward size='2rem' fill='white' />
+        <span class='icon ctrl m-5 d-btn text-white' title='Next [N]' use:click={playNext}>
+          <SkipForward size='2rem' fill='currentColor' />
         </span>
       {/if}
       <div class='d-none w-auto volume' class:d-flex={!externalPlayback}>
-        <span class='icon ctrl m-5' title='Mute [M]' data-name='toggleMute' use:click={toggleMute}>
+        <span class='icon ctrl m-5 text-white' title='Mute [M]' data-name='toggleMute' use:click={toggleMute}>
           {#if muted}
-            <VolumeX size='2rem' fill='white' />
+            <VolumeX size='2rem' fill='currentColor' />
           {:else}
-            <Volume2 size='2rem' fill='white' />
+            <Volume2 size='2rem' fill='currentColor' />
           {/if}
         </span>
         {#if !volumeBoosted}
@@ -1688,8 +1689,8 @@
           <input class='ctrl h-full custom-range' class:boost-color={gain > 1} tabindex='-1' type='range' min='0' max='3' step='any' data-name='setVolume' bind:value={gain} on:input={setGain}/>
         {/if}
         {#if (volume === 1) || volumeBoosted}
-          <span class='icon ctrl boost p-0 mt-15 d-flex align-items-center justify-content-center' class:boost-color={volumeBoosted} title='Increase Volume Limit [V]' data-name='toggleGain' use:click={toggleGain}>
-            <SlidersVertical size='1.4rem' fill='white' />
+          <span class='icon ctrl boost p-0 mt-15 d-flex align-items-center justify-content-center text-white' class:boost-color={volumeBoosted} title='Increase Volume Limit [V]' data-name='toggleGain' use:click={toggleGain}>
+            <SlidersVertical size='1.4rem' fill='currentColor' />
           </span>
         {/if}
       </div>
@@ -1699,7 +1700,7 @@
       {/if}
       <input type='file' class='d-none' id='search-subtitle' accept='.srt,.vtt,.ass,.ssa,.sub,.txt' on:input|preventDefault|stopPropagation={handleFile} bind:this={fileInput}/>
       <div class='dropdown dropleft with-arrow' use:click={() => {showOptions.set(!$showOptions)}}>
-        <span class='icon ctrl d-flex align-items-center h-full' title='More'><EllipsisVertical size='2.5rem' strokeWidth={2.5} /></span>
+        <span class='icon text-white ctrl d-flex align-items-center h-full' title='More'><EllipsisVertical size='2.5rem' strokeWidth={2.5} /></span>
         <div class='position-absolute hm-40 text-capitalize text-nowrap bg-dark rounded dr-arrow' style='margin-top: {(externalPlayback ? -10.3 : -17.5)}rem !important; margin-left: {(externalPlayback ? -9.6 : -11.4)}rem !important; transition: opacity 0.1s ease-in;' class:hidden={!$showOptions}>
           <div role='button' aria-label='Add External Subtitles' class='pointer d-none align-items-center justify-content-center font-size-16 bd-highlight py-5 px-10 rounded-top option' class:d-flex={!externalPlayback} title='Add External Subtitles' use:click={() => { fileInput.click(); showOptions.set(false); }}>
             <FilePlus2 size='2rem' strokeWidth={2.5} /> <div class='ml-10'>Add Subtitles</div>
@@ -1720,17 +1721,17 @@
           </div>
         </div>
       </div>
-      <span class='icon ctrl mr-5 d-flex align-items-center keybinds' title='Keybinds [`]' use:click={() => (showKeybinds = true)}>
+      <span class='icon text-white ctrl mr-5 d-flex align-items-center keybinds' title='Keybinds [`]' use:click={() => (showKeybinds = true)}>
         <Keyboard size='2.5rem' strokeWidth={2.5} />
       </span>
       {#if playPage}
-        <span class='icon ctrl mr-5 d-flex align-items-center' title='Now Playing [O]' use:click={() => ($view = media?.media)}>
+        <span class='icon text-white ctrl mr-5 d-flex align-items-center' title='Now Playing [O]' use:click={() => ($view = media?.media)}>
           <Eye size='2.5rem' strokeWidth={2.5} />
         </span>
       {/if}
       {#if 'audioTracks' in HTMLVideoElement.prototype && video?.audioTracks?.length > 1}
         <div class='dropdown dropup with-arrow' use:click={toggleDropdown}>
-          <span class='icon ctrl mr-5 d-flex align-items-center h-full' title='Audio Tracks'>
+          <span class='icon text-white ctrl mr-5 d-flex align-items-center h-full' title='Audio Tracks'>
             <ListMusic size='2.5rem' strokeWidth={2.5} />
           </span>
           <div class='dropdown-menu dropdown-menu-right ctrl p-10 pb-0 mr-15 text-capitalize text-nowrap'>
@@ -1748,7 +1749,7 @@
       {/if}
       {#if 'videoTracks' in HTMLVideoElement.prototype && video?.videoTracks?.length > 1}
         <div class='dropdown dropup with-arrow' use:click={toggleDropdown}>
-          <span class='icon ctrl mr-5 d-flex align-items-center h-full' title='Video Tracks'>
+          <span class='icon text-white ctrl mr-5 d-flex align-items-center h-full' title='Video Tracks'>
             <ListVideo size='2.5rem' strokeWidth={2.5} />
           </span>
           <div class='dropdown-menu dropdown-menu-right ctrl p-10 pb-0 mr-15 text-capitalize text-nowrap'>
@@ -1766,7 +1767,7 @@
       {/if}
       {#if subHeaders?.length}
         <div class='subtitles dropdown dropup with-arrow' use:click={toggleDropdown}>
-          <span class='icon ctrl mr-5 d-flex align-items-center h-full' title='Subtitles [C]'>
+          <span class='icon text-white ctrl mr-5 d-flex align-items-center h-full' title='Subtitles [C]'>
             <Captions size='2.5rem' strokeWidth={2.5} />
           </span>
           <div class='dropdown-menu dropdown-menu-right ctrl p-10 pb-5 mr-15 text-capitalize text-nowrap'>
@@ -1794,16 +1795,16 @@
         </div>
       {/if}
       <!--{#if 'PresentationRequest' in window && canCast && current}-->
-      <!--  <span class='icon ctrl mr-5 d-flex align-items-center' title='Cast Video [D]' data-name='toggleCast' use:click={toggleCast}>-->
+      <!--  <span class='icon text-white ctrl mr-5 d-flex align-items-center text-white' title='Cast Video [D]' data-name='toggleCast' use:click={toggleCast}>-->
       <!--    {#if presentationConnection}-->
-      <!--      <Cast size='2.5rem' fill='white' strokeWidth={0} />-->
+      <!--      <Cast size='2.5rem' fill='currentColor' strokeWidth={0} />-->
       <!--    {:else}-->
       <!--      <Cast size='2.5rem' strokeWidth={2.5} />-->
       <!--    {/if}-->
       <!--  </span>-->
       <!--{/if}-->
       {#if 'pictureInPictureEnabled' in document}
-        <span class='icon ctrl mr-5 d-none align-items-center' class:d-flex={!externalPlayback} title='Popout Window [P]' data-name='togglePopout' use:click={togglePopout}>
+        <span class='icon text-white ctrl mr-5 d-none align-items-center' class:d-flex={!externalPlayback} title='Popout Window [P]' data-name='togglePopout' use:click={togglePopout}>
           {#if pip}
             <PictureInPicture size='2.5rem' strokeWidth={2.5} />
           {:else}
@@ -1811,7 +1812,7 @@
           {/if}
         </span>
       {/if}
-      <span class='icon ctrl mr-5 d-none align-items-center' class:d-flex={!externalPlayback} title='Fullscreen [F]' data-name='toggleFullscreen' use:click={toggleFullscreen}>
+      <span class='icon text-white ctrl mr-5 d-none align-items-center' class:d-flex={!externalPlayback} title='Fullscreen [F]' data-name='toggleFullscreen' use:click={toggleFullscreen}>
         {#if isFullscreen}
           <Minimize size='2.5rem' strokeWidth={2.5} />
         {:else}
@@ -1845,13 +1846,13 @@
     color: var(--accent-color);
     --thumb-height: 0px;
     --track-height: 3px;
-    --track-color: rgba(255, 255, 255, 0.2);
+    --track-color: hsla(var(--white-color-hsl), 0.2);
     --brightness-hover: 120%;
     --brightness-down: 80%;
     --clip-edges: 2px;
     --target-height: max(var(--track-height), var(--thumb-height));
     position: relative;
-    background: #fff0;
+    background: hsla(var(--white-color-hsl), 0);
     overflow: hidden;
     transition: all ease 100ms;
     appearance: none;
@@ -1949,7 +1950,7 @@
     position: relative !important;
   }
   .bg-tp {
-    background: #000000bb;
+    background: hsla(var(--black-color-hsl), 0.73);
     backdrop-filter: blur(10px);
   }
   .bg-tp .close {
@@ -1971,7 +1972,7 @@
   .player {
     user-select: none;
     font-family: Roboto, Arial, Helvetica, sans-serif;
-    background: #000000;
+    background: var(--black-color);
   }
 
   .pip :global(canvas:not(.w-full)) {
@@ -2004,8 +2005,8 @@
   }
 
   .middle .bufferingDisplay {
-    border: 4px solid #ffffff00;
-    border-top: 4px solid #fff;
+    border: 4px solid hsla(var(--white-color-hsl), 0);
+    border-top: 4px solid var(--white-color);
     border-radius: 50%;
     width: 40px;
     height: 40px;
@@ -2014,7 +2015,7 @@
     opacity: 0;
     visibility: hidden;
     transition: 0.2s opacity ease 0s;
-    filter: drop-shadow(0 0 8px #000);
+    filter: drop-shadow(0 0 8px var(--black-color));
   }
 
   .middle .bufferingPos {
@@ -2045,7 +2046,7 @@
     display: none;
   }
   :fullscreen {
-    background: #000 !important;
+    background: var(--black-color) !important;
   }
 
   @media (pointer: none), (pointer: coarse) {
@@ -2067,7 +2068,7 @@
     font-size: 5.625rem;
   }
   .miniplayer:hover .middle {
-    background: #00000066;
+    background: hsla(var(--black-color-hsl), 0.4);
   }
   .middle .ctrl[data-name='playPause'] {
     font-size: 6.75rem;
@@ -2077,22 +2078,22 @@
   .bottom .ctrl:hover,
   .bottom .ts:hover,
   .bottom .hover .ts {
-    filter: drop-shadow(0 0 8px #000);
+    filter: drop-shadow(0 0 8px var(--black-color));
   }
   .skip {
     transition: 0.2s opacity ease 0s;
-    background: #ececec;
+    background: hsla(var(--white-color-hsl), 0.92);
   }
   .skip:hover {
     background-color: var(--lm-button-bg-color-hover);
   }
 
   .bottom {
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.6) 25%, rgba(0, 0, 0, 0.4) 50%, rgba(0, 0, 0, 0.1) 75%, transparent);
+    background: linear-gradient(to top, hsla(var(--black-color-hsl), 0.8), hsla(var(--black-color-hsl), 0.6) 25%, hsla(var(--black-color-hsl), 0.4) 50%, hsla(var(--black-color-hsl), 0.1) 75%, transparent);
     transition: 0.2s opacity ease 0s;
   }
   .top {
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.4) 25%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0.1) 75%, transparent);
+    background: linear-gradient(to bottom, hsla(var(--black-color-hsl), 0.8), hsla(var(--black-color-hsl), 0.4) 25%, hsla(var(--black-color-hsl), 0.2) 50%, hsla(var(--black-color-hsl), 0.1) 75%, transparent);
     transition: 0.2s opacity ease 0s;
   }
   .mr-50 {
@@ -2110,7 +2111,7 @@
   }
 
   .boost-color {
-    color: #FF7F00 !important;
+    color: var(--octonary-color) !important;
   }
 
   .bottom .volume:hover .boost,
@@ -2149,11 +2150,11 @@
   }
 
   .btn-shadow {
-    filter: drop-shadow(0rem 0rem 0.5rem rgba(0, 0, 0, 0.9));
+    filter: drop-shadow(0rem 0rem 0.5rem hsla(var(--black-color-hsl), 0.9));
   }
 
   .bottom .ts {
-    color: #ececec;
+    color: hsla(var(--white-color-hsl), 0.92);
     white-space: nowrap;
     align-self: center;
     line-height: var(--base-line-height);

@@ -255,12 +255,12 @@ export const formatMap = {
 }
 
 export const statusColorMap = {
-  CURRENT: 'rgb(61,180,242)',
-  PLANNING: 'rgb(247,154,99)',
-  COMPLETED: 'rgb(123,213,85)',
-  PAUSED: 'rgb(250,122,122)',
-  REPEATING: '#3baeea',
-  DROPPED: 'rgb(232,93,117)'
+  CURRENT: 'var(--current-color)',
+  PLANNING: 'var(--planning-color)',
+  COMPLETED: 'var(--completed-color)',
+  PAUSED: 'var(--paused-color)',
+  REPEATING: 'var(--repeating-color)',
+  DROPPED: 'var(--dropped-color)'
 }
 
 export const genreIcons = {

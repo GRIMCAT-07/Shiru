@@ -27,7 +27,7 @@
     $: dubEpisodes = null
     animeSchedule.dubAiredLists.subscribe(async (value) => getDubEpisodes(await value))
     function getDubEpisodes(dubAiredLists) {
-        if (!banner && !viewAnime) {
+        if (!banner) {
             const dubAiring = animeSchedule.dubAiring.value?.find(entry => entry.unaired && entry.media?.media?.id === media.id)
             const episodes = String(($isDubbed || $isPartial) && dubAiredLists?.filter(episode => episode.id === media.id)?.reduce((max, ep) => Math.max(max, ep.episode.aired), 0) || (dubAiredLists?.find(entry => entry.media?.media?.id === media.id)?.episodeNumber && '0') || (!$isPartial && media.status !== 'RELEASING' && media.status !== 'NOT_YET_RELEASED' && Number(media.seasonYear || 0) < 2025 && !dubAiring && getMediaMaxEp(media)) || '')
             if (dubEpisodes !== episodes) dubEpisodes = episodes
@@ -77,27 +77,27 @@
     })
 </script>
 {#if settings.value.cardAudio}
-    {#if !banner && !viewAnime && !episodeList}
+    {#if !banner && !episodeList}
         {@const subEpisodes = String(media.status !== 'NOT_YET_RELEASED' && media.status !== 'CANCELLED' && getMediaMaxEp(media, (media.status !== 'FINISHED')) || dubEpisodes || '')}
-        <div bind:this={audioContainer} class='position-absolute bottom-0 right-0 d-flex flex-row-reverse flex-wrap align-items-end justify-content-start h-20 vertical-flip' class:mb-4={smallCard} class:mb-3={!smallCard}>
-            <div class='audio-label px-10 z-10 text-dark rounded-right font-weight-bold d-flex align-items-center vertical-flip h-full bg-subbed slant mrl-1 z-4'>
+        <div bind:this={audioContainer} class='position-absolute bottom-0 right-0 d-flex flex-row-reverse flex-wrap align-items-end justify-content-start h-20 vertical-flip z-1' class:mb-4={!viewAnime} class:mb--3={viewAnime}>
+            <div class='audio-label px-10 z-10 text-dark rounded-right font-weight-bold d-flex align-items-center vertical-flip h-full bg-septenary slant mrl-1 z-4'>
                 <Captions size='2rem' strokeWidth='1.5' />
                 <span class='d-flex align-items-center line-height-1' class:ml-3={(subEpisodes && subEpisodes.length > 0) || (dubEpisodes && Number(dubEpisodes) > 0)}><div class='line-height-1 mt-2'>{#if subEpisodes && (!dubEpisodes || (Number(subEpisodes) >= Number(dubEpisodes)))}{Number(subEpisodes)}{:else if dubEpisodes && (Number(dubEpisodes) > 0)}{Number(dubEpisodes)}{/if}</div></span>
             </div>
             {#if $isDubbed || $isPartial}
-                <div class='audio-label pl-10 pr-20 text-dark rounded-right font-weight-bold d-flex align-items-center vertical-flip h-full slant z-3' class:w-icon={!dubEpisodes || dubEpisodes.length === 0 || Number(dubEpisodes) === 0} class:w-text={dubEpisodes && dubEpisodes.length > 0 && Number(dubEpisodes) > 0} class:bg-dubbed={$isDubbed} class:bg-incomplete={$isPartial}>
+                <div class='audio-label pl-10 pr-20 text-dark rounded-right font-weight-bold d-flex align-items-center vertical-flip h-full slant z-3' class:w-icon={!dubEpisodes || dubEpisodes.length === 0 || Number(dubEpisodes) === 0} class:w-text={dubEpisodes && dubEpisodes.length > 0 && Number(dubEpisodes) > 0} class:bg-senary={$isDubbed} class:bg-octonary={$isPartial}>
                     <svelte:component this={$isDubbed ? Mic : MicOff} size='1.8rem' strokeWidth='2' />
                     <span class='d-flex align-items-center line-height-1 ml-2'><div class='line-height-1 mt-2'>{#if Number(dubEpisodes) > 0}{Number(dubEpisodes)}{/if}</div></span>
                 </div>
             {/if}
             {#if media.mediaListEntry?.progress}
-                <div class='audio-label pl-10 pr-20 text-dark rounded-right font-weight-bold d-flex align-items-center vertical-flip h-full slant w-icon w-text bg-watching z-2'>
+                <div class='audio-label pl-10 pr-20 text-dark rounded-right font-weight-bold d-flex align-items-center vertical-flip h-full slant w-icon w-text bg-current z-2'>
                     <ClockFading size='1.8rem' strokeWidth='2' />
                     <span class='d-flex align-items-center line-height-1 ml-2'><div class='line-height-1 mt-2'>{Number(media.mediaListEntry?.progress)}</div></span>
                 </div>
             {/if}
             {#if media.isAdult}
-                <div class='audio-label pl-10 pr-15 text-dark rounded-right font-weight-bold d-flex align-items-center vertical-flip h-full lg-slant bg-adult mrl-2 z-1'>
+                <div class='audio-label pl-10 pr-15 text-dark rounded-right font-weight-bold d-flex align-items-center vertical-flip h-full lg-slant bg-quinary mrl-2 z-1'>
                     <Adult size='2rem' strokeWidth='1.8' />
                 </div>
             {/if}
@@ -105,12 +105,12 @@
     {:else if episodeList}
         <div class='position-absolute bottom-0 right-0 d-flex h-2'>
             {#if dubbed}
-                <div class='pl-10 pr-20 text-dark font-weight-bold d-flex align-items-center h-full bg-dubbed slant w-icon'>
+                <div class='pl-10 pr-20 text-dark font-weight-bold d-flex align-items-center h-full bg-senary slant w-icon'>
                     <Mic size='1.8rem' strokeWidth='2' />
                 </div>
             {/if}
             {#if subbed}
-                <div class='px-10 z-10 text-dark rounded-right font-weight-bold d-flex align-items-center h-full bg-subbed slant mrl-1'>
+                <div class='px-10 z-10 text-dark rounded-right font-weight-bold d-flex align-items-center h-full bg-septenary slant mrl-1'>
                     <Captions size='2rem' strokeWidth='1.5' />
                 </div>
             {/if}
@@ -118,9 +118,6 @@
     {:else if !viewAnime}
         {@const multiAudio = (matchPhrase(data?.parseObject?.file_name, ['Multi Audio', 'Dual Audio'], 3) || matchPhrase(data?.parseObject?.file_name, ['Dual'], 1)) || (banner && !episode && ($isDubbed || $isPartial)) }
         {$isDubbed ? `Dub${ multiAudio ? ' | Sub' : ''}` : $isPartial ? `Partial Dub${ multiAudio ? ' | Sub' : ''}` : 'Sub'}
-    {:else if viewAnime}
-        <svelte:component this={$isDubbed ? Mic : $isPartial ? MicOff : Captions} class='mx-10' size='2.2rem' />
-        <span class='mr-20'>{$isDubbed ? 'Dub | Sub' : $isPartial ? 'Partial Dub | Sub' : 'Sub'}</span>
     {/if}
 {/if}
 
