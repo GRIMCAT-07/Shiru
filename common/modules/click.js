@@ -114,8 +114,10 @@ export function hoverClick(node, [cb = noop, hoverUpdate = noop, rcb = noop]) {
   node.role = 'button'
   node.addEventListener('pointerenter', e => {
     if (e.pointerType !== 'touch') {
-      lastHoverElement?.(false)
-      lastTapElement?.(false)
+      if (!node.contains(e.target)) {
+        lastHoverElement?.(false)
+        lastTapElement?.(false)
+      }
       hoverUpdate(true)
       lastHoverElement = hoverUpdate
       pointerType = e.pointerType
