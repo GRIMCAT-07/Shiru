@@ -755,6 +755,7 @@ export async function getEpisodeMetadataForMedia (media) {
 
 export function getAiringInfo(airingAt) {
   if (!airingAt) return null
+  if (airingAt.delayedIndefinitely) return { time: 'Suspended', episode: airingAt.episode }
   const airingIn = (airingAt.time.getTime() - Date.now()) / 1000
   return { time: countdown(airingIn), episode: airingAt.episode.replace('{suffix}', (airingIn <= 0 ? 'out for' : 'in')) }
 }
@@ -777,7 +778,7 @@ export function episode(media, variables) {
 export function airingAt(media, variables) {
   if (variables?.hideSubs) {
     const entry = animeSchedule.dubAiring.value.find((entry) => entry.media?.media?.id === media.id)
-    if (entry?.delayedIndefinitely) return 'Suspended'
+    if (entry?.delayedIndefinitely) return { delayedIndefinitely: true, time: 'Suspended', episode: episode(media, variables) }
     const airingAt = nextAiring(entry?.media?.media?.airingSchedule?.nodes, variables)?.airingAt
     return airingAt ? { time: new Date(airingAt), episode: episode(media, variables) } : null
   }
