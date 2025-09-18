@@ -33,6 +33,8 @@ class AnimeSchedule {
 
     constructor() {
         this.lastUpdated.value = cache.cachedEntry(caches.RSS, 'anischedule-manifest', true)?.then(value => value || {}) || {}
+        this.lastUpdated.subscribe(lastUpdated => cache.cacheEntry(caches.RSS, 'anischedule-manifest', { mappings: true }, lastUpdated, Date.now() + 315_000))
+
         this.subAiringLists.value = this.feedFromManifest('sub', true)
         this.dubAiringLists.value = this.feedFromManifest('dub', true)
         this.subAiredLists.value = this.feedFromManifest('sub')
@@ -76,7 +78,7 @@ class AnimeSchedule {
                 for (const feed of feedTypes.filter(feed => feed.key !== 'hentai')) {
                     if (manifest.force || manifest.previousManifest?.[feed.key]?.schedule !== manifest.currentManifest?.[feed.key]?.schedule) {
                         try {
-                            const newFeed = await this.feedChanged(feed.route, true)
+                            const newFeed = await this.feedChanged(feed.route, true, true, manifest)
                             const airingLists = this[`${feed.route}AiringLists`]
                             if (newFeed && !equal(await airingLists.value, newFeed)) airingLists.value = Promise.resolve(newFeed)
                         } catch (error) {
@@ -89,7 +91,7 @@ class AnimeSchedule {
                     this.findNewDelayedEpisodes()
                 }
                 const updateFeeds = feedTypes.filter(feed => manifest.force || manifest.previousManifest?.[feed.key]?.episodes !== manifest.currentManifest?.[feed.key]?.episodes).map(feed => feed.title)
-                if (updateFeeds.length) WPC.send('feedChanged', updateFeeds)
+                if (updateFeeds.length) WPC.send('feedChanged', { updateFeeds, manifest })
             } catch (error) {
                 debug(`Failed to check update manifest for changes, will try again later...`, error)
             } finally {
@@ -241,7 +243,7 @@ class AnimeSchedule {
       const feed = `${type.toLowerCase()}${!schedule ? '-episode-feed' : '-schedule'}`
       const cachedSchedule = await cache.cachedEntry(caches.RSS, `${feed}`, true)
       if (!cachedSchedule || manifest.force || (manifest.changed && (manifest.previousManifest?.[type === 'sub' ? 'subbed' : type === 'dub' ? 'dubbed' : 'hentai']?.[schedule ? 'schedule' : 'episodes'] !== manifest.currentManifest?.[type === 'sub' ? 'subbed' : type === 'dub' ? 'dubbed' : 'hentai']?.[schedule ? 'schedule' : 'episodes']))) {
-        return this.feedChanged(type, schedule, false)
+        return this.feedChanged(type, schedule, false, manifest)
       }
       return cachedSchedule
     }
@@ -265,9 +267,7 @@ class AnimeSchedule {
                 }
             }
             if (!equal(previousManifest, lastUpdated)) {
-                const res = await cache.cacheEntry(caches.RSS, 'anischedule-manifest', { mappings: true }, lastUpdated, Date.now() + 315_000)
-                this.lastUpdated.value = Promise.resolve(res)
-                return { changed: true, previousManifest, currentManifest: res  }
+                return { changed: true, previousManifest, currentManifest: lastUpdated  }
             }
             return { changed: false }
         })().catch((error) => {
@@ -278,7 +278,8 @@ class AnimeSchedule {
         return promise
     }
 
-  async feedChanged(type, schedule = false, updateStore = true) {
+    _lastUpdatedLock = Promise.resolve()
+    async feedChanged(type, schedule = false, updateStore = true, manifest = null) {
         const feed = `${type.toLowerCase()}${!schedule ? '-episode-feed' : '-schedule'}`
         let content
         try {
@@ -292,9 +293,20 @@ class AnimeSchedule {
             else throw e
         }
         const res = !schedule && updateStore ? await this[`${type.toLowerCase()}AiredLists`].value : null
-        if (JSON.stringify(content) !== JSON.stringify(res)) {
+        if (!res || JSON.stringify(content) !== JSON.stringify(res)) {
             if (!schedule && updateStore) this[`${type.toLowerCase()}AiredLists`].value = content
             cache.cacheEntry(caches.RSS, `${feed}`, { mappings: true }, content, Date.now() + 315_000)
+            if (manifest?.currentManifest) {
+                const feedKey = type === 'sub' ? 'subbed' : type === 'dub' ? 'dubbed' : 'hentai'
+                const dataKey = schedule ? 'schedule' : 'episodes'
+                this._lastUpdatedLock = this._lastUpdatedLock.then(async () => {
+                    const previousManifest = (await this.lastUpdated.value) || {}
+                    if (!previousManifest[feedKey]) previousManifest[feedKey] = {}
+                    previousManifest[feedKey][dataKey] = manifest.currentManifest[feedKey]?.[dataKey] || previousManifest[feedKey][dataKey]
+                    this.lastUpdated.value = Promise.resolve(previousManifest)
+                })
+                await this._lastUpdatedLock
+            }
             return content
         }
         return null

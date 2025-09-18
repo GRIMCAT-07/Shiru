@@ -68,11 +68,11 @@
   }
 
   // update AniSchedule 'Releases' feeds when a change is detected for the specified feed(s).
-  WPC.listen('feedChanged', (updateFeeds) => {
+  WPC.listen('feedChanged', ({ updateFeeds, manifest }) => {
     for (const section of manager.sections) {
       try {
         if (section.isSchedule && updateFeeds.includes(section.title)) {
-          animeSchedule.feedChanged(section.title.includes('Subbed') ? 'Sub' : section.title.includes('Dubbed') ? 'Dub' : 'Hentai').then((changed) => {
+          animeSchedule.feedChanged(section.title.includes('Subbed') ? 'Sub' : section.title.includes('Dubbed') ? 'Dub' : 'Hentai', false, true, manifest).then((changed) => {
             if (changed) section.preview.value = section.load(1, 50, section.variables)
           })
         }
