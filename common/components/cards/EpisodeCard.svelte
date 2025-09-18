@@ -83,16 +83,14 @@
     clearTimeouts()
     blurTimeout = setTimeout(() => {
       const focused = document.activeElement
-      if (container && !container.contains(focused) && (!previewCard || !previewCard.contains(focused))) {
-        if (previewCard) {
-          previewCard.classList.add('card-load-out')
-          previewCard.addEventListener('animationend', () => {
-            preview = false
-            setTimeout(() => {
-              if (!preview) prompt.set(false)
-            }).unref?.()
-          }, { once: true })
-        }
+      if (container && previewCard && focused?.offsetParent !== null && !container.contains(focused) && !previewCard.contains(focused)) {
+        previewCard.classList.add('card-load-out')
+        previewCard.addEventListener('animationend', () => {
+          preview = false
+          setTimeout(() => {
+            if (!preview) prompt.set(false)
+          }).unref?.()
+        }, { once: true })
       }
     })
     blurTimeout.unref?.()
