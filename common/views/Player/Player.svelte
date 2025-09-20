@@ -41,7 +41,6 @@
   })
 
   export function playFile (file) {
-    window.dispatchEvent(new Event('overlay-check'))
     if (!isNaN(file)) handleCurrent(videos?.[file])
     else handleCurrent(file)
   }

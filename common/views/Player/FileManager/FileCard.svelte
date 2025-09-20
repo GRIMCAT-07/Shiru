@@ -88,7 +88,7 @@
     }
 </script>
 
-<div class='file-item shadow-lg position-relative d-flex align-items-center mx-20 my-5 p-5 scale {$$restProps.class}' class:pointer={!playing} role='button' tabindex='0' title={file?.name} use:blurExit={ () => { if (prompt) setTimeout(() => { prompt = false }) }} use:hoverExit={() => { if (prompt) setTimeout(() => { prompt = false }) }} use:click={() => { if (!behind || prompt) { prompt = false; if (!playing) { playFile(file) } } else if (!playing) { prompt = true } } } class:not-reactive={!$reactive || playing} class:behind={(behind && !notWatching)} class:current={!behind && !notWatching} class:not-watching={notWatching} class:watched={watched}>
+<div class='file-item shadow-lg position-relative d-flex align-items-center mx-20 my-5 p-5 scale {$$restProps.class}' class:pointer={!playing} role='button' tabindex='0' title={file?.name} use:blurExit={ () => { if (prompt) setTimeout(() => { prompt = false }) }} use:hoverExit={() => { if (prompt) setTimeout(() => { prompt = false }) }} use:click={() => { if (!behind || prompt) { prompt = false; if (!playing) { window.dispatchEvent(new Event('overlay-check')); playFile(file) } } else if (!playing) { prompt = true } } } class:not-reactive={!$reactive || playing} class:behind={(behind && !notWatching)} class:current={!behind && !notWatching} class:not-watching={notWatching} class:watched={watched}>
     <div class='position-absolute top-0 left-0 w-full h-full'>
         <img src={file?.media?.media?.bannerImage || ''} alt='bannerImage' class='hero-img img-cover w-full h-full' />
         <div class='position-absolute rounded-5 opacity-transition-hack' style='background: var(--notification-card-gradient)' />
@@ -145,7 +145,7 @@
                 Your Current Progress Is At <b>Episode {$mediaCache[file?.media?.media?.id]?.mediaListEntry?.progress}</b>
             {/if}
         </p>
-        <button type='button' class='cnt-button btn btn-lg btn-secondary w-230 h-33 text-dark font-scale-16 font-weight-bold shadow-none border-0 d-flex align-items-center mt-10 mb-auto' use:click={() => { prompt = false; playFile(file) } }>
+        <button type='button' class='cnt-button btn btn-lg btn-secondary w-230 h-33 text-dark font-scale-16 font-weight-bold shadow-none border-0 d-flex align-items-center mt-10 mb-auto' use:click={() => { prompt = false; window.dispatchEvent(new Event('overlay-check')); playFile(file) } }>
             <Play class='mr-10' fill='currentColor' size='1.4rem' />
             Continue Anyway?
         </button>
