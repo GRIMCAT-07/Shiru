@@ -326,11 +326,11 @@ export function matchKeys(nest, phrase, keys, threshold = 0.4) {
  */
 export function matchPhrase(search, phrase, threshold, strict = false, soft = false) {
   if (!search || !phrase) return false
-  const normalizedSearch = search.toString().toLowerCase().replace(/[^\w\s]/g, '')
+  const normalizedSearch = search.toString().toLowerCase().replace(regex, '')
   phrase = Array.isArray(phrase) ? phrase : [phrase]
   for (let p of phrase) {
     if (p) {
-      const normalizedPhrase = p.toLowerCase().replace(/[^\w\s]/g, '')
+      const normalizedPhrase = p.toLowerCase().replace(regex, '')
       if (strict) {
         if (levenshtein(normalizedSearch, normalizedPhrase) <= threshold) return true
       } else {
