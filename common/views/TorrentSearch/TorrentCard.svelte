@@ -4,6 +4,7 @@
   import { click } from '@/modules/click.js'
   import { fastPrettyBytes, since, matchPhrase, createListener } from '@/modules/util.js'
   import { getEpisodeMetadataForMedia, getKitsuMappings } from '@/modules/anime/anime.js'
+  import { malDubs } from '@/modules/anime/animedubs.js'
   import { Database, BadgeCheck, FileQuestion } from 'lucide-svelte'
   import { toast } from 'svelte-sonner'
 
@@ -31,12 +32,17 @@
   termMapping.VORBIS = { text: 'Vorbis', color: 'var(--octonary-color)' }
   termMapping.DUALAUDIO = { text: 'Dual Audio', color: 'var(--octonary-color)' }
   termMapping.ENGLISHAUDIO = { text: 'English Audio', color: 'var(--octonary-color)' }
+  termMapping.CHINESEAUDIO = { text: 'Chinese Audio', color: 'var(--octonary-color)' }
   termMapping['DUB'] = termMapping.ENGLISHAUDIO
   termMapping['DUAL'] = termMapping.DUALAUDIO
   termMapping['DUAL AUDIO'] = termMapping.DUALAUDIO
   termMapping['MULTI AUDIO'] = termMapping.DUALAUDIO
   termMapping['ENGLISH AUDIO'] = termMapping.ENGLISHAUDIO
   termMapping['ENGLISH DUB'] = termMapping.ENGLISHAUDIO
+  termMapping['CN AUDIO'] = termMapping.CHINESEAUDIO
+  termMapping['CHINESE AUDIO'] = termMapping.CHINESEAUDIO
+  termMapping['CHINESE DUB'] = termMapping.CHINESEAUDIO
+  termMapping['CN DUB'] = termMapping.CHINESEAUDIO
   termMapping['10BIT'] = { text: '10 Bit', color: 'var(--tertiary-color)' }
   termMapping['10BITS'] = termMapping['10BIT']
   termMapping['10-BIT'] = termMapping['10BIT']
@@ -52,8 +58,12 @@
   termMapping.X265 = termMapping.HEVC
   termMapping.AV1 = { text: 'AV1', color: 'var(--tertiary-color)' }
 
-  /** @param {AnitomyResult} param0 */
-  export function sanitiseTerms ({ video_term: vid, audio_term: aud, video_resolution: resolution, file_name: fileName }) {
+  /**
+   * @param {Object} search
+   * @param {AnitomyResult} param0
+   * */
+  export async function sanitiseTerms (search, { video_term: vid, audio_term: aud, video_resolution: resolution, file_name: fileName }) {
+    const isEnglishDubbed = await malDubs.isDubMedia(search?.media)
     const video = !Array.isArray(vid) ? [vid] : vid
     const audio = !Array.isArray(aud) ? [aud] : aud
 
@@ -61,13 +71,24 @@
     if (resolution) terms.unshift({ text: resolution, color: 'var(--quaternary-color)' })
 
     for (const key of Object.keys(termMapping)) {
-      if (fileName && !terms.some(existingTerm => existingTerm.text === termMapping[key].text)) {
+      if (fileName && (isEnglishDubbed || termMapping[key] !== termMapping.ENGLISHAUDIO) && !terms.some(existingTerm => existingTerm.text === termMapping[key].text)) {
         if (!fileName.toLowerCase().includes(key.toLowerCase())) {
           if (matchPhrase(key.toLowerCase(), fileName, 1)) {
             terms.push(termMapping[key])
           }
         } else {
           terms.push(termMapping[key])
+        }
+      }
+    }
+
+    // If the series has an English Dub and Other audio is detected like Chinese, we can't rely on "DUB" term alone as it could be an ONA with a Japanese Dub or a Chinese Dub.
+    if (terms.some(t => t === termMapping.CHINESEAUDIO)) {
+      const dubKeys = ['DUB'] // Remove this term.
+      for (const dubKey of dubKeys) {
+        if (terms.includes(termMapping[dubKey])) {
+          const englishIndex = terms.indexOf(termMapping.ENGLISHAUDIO)
+          if (englishIndex !== -1) terms.splice(englishIndex, 1)
         }
       }
     }
@@ -195,11 +216,13 @@
             Alt Release
           </div>
         {/if}
-        {#each sanitiseTerms(result.parseObject) as { text }, index}
-          <div class='rounded px-15 py-5 bg-very-dark text-nowrap text-white d-flex align-items-center' class:ml-10={index !== 0 } style='margin-top: 0.15rem;'>
-            {text}
-          </div>
-        {/each}
+        {#await sanitiseTerms({ media, episode }, result.parseObject) then terms}
+          {#each terms as term, index}
+            <div class='rounded px-15 py-5 bg-very-dark text-nowrap text-white d-flex align-items-center' class:ml-10={index !== 0} style='margin-top: 0.15rem;'>
+              {term.text}
+            </div>
+          {/each}
+        {/await}
       </div>
     </div>
   </div>

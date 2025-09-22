@@ -12,7 +12,6 @@
   import { anilistClient } from '@/modules/anilist.js'
   import { click } from '@/modules/click.js'
   import { X, Search, EllipsisVertical, Timer, Clapperboard, MonitorCog, ArrowDownWideNarrow, ChevronLeft, ChevronUp, ChevronDown } from 'lucide-svelte'
-  import { toast } from 'svelte-sonner'
   import Debug from 'debug'
   const debug = Debug('ui:torrents')
 
@@ -30,30 +29,40 @@
   }
 
   /**
+   * @param {Object} search
    * @param {AnitomyResult} result
    * @param {string} audioLang
+   * @param {boolean} exactMatch
    */
-  function getRequestedAudio(result, audioLang) {
-    const terms = sanitiseTerms(result)
+  async function getRequestedAudio(search, result, audioLang, exactMatch = true) {
+    const terms = await sanitiseTerms(search, result)
     const checkTerm = (term, keyword) => (Array.isArray(term.text) ? term.text : [term.text]).some(text => text.toLowerCase().includes(keyword.toLowerCase()))
-    const exactMatch = terms.some(term => checkTerm(term, audioLang))
+    const exactAudio = terms.some(term => checkTerm(term, audioLang))
     const dualAudio = terms.some(term => checkTerm(term, 'dual'))
-    return exactMatch || dualAudio
+    return exactAudio || (exactMatch ? exactAudio : dualAudio)
   }
 
   /**
+   * @param {Object} search
    * @param {Result[]} results
    * @param {string} audioLang
    * @param {string[]} torrentProvider
    */
-  function getBest(results, audioLang, torrentProvider = []) {
+  async function getBest(search, results, audioLang, torrentProvider = []) {
     if (!results || !results.length) return null
     const candidates = []
     if (audioLang !== 'jpn') {
-      candidates.push(...results.filter(r => getRequestedAudio(r.parseObject, audioLang) && r.seeders > 9))
-      candidates.push(...results.filter(r => getRequestedAudio(r.parseObject, audioLang) && r.seeders > 1))
+      const checks = await Promise.all(
+        results.map(async result => ({
+          result,
+          exactBest: (await getRequestedAudio(search, result.parseObject, audioLang)) && result.seeders > 9,
+          exactAlt: (await getRequestedAudio(search, result.parseObject, audioLang, false)) && result.seeders > 9,
+          dualBest: (await getRequestedAudio(search, result.parseObject, audioLang)) && result.seeders > 1,
+          dualAlt: (await getRequestedAudio(search, result.parseObject, audioLang, false)) && result.seeders > 1
+        })))
+      candidates.push(...checks.filter(check => check.exactBest).map(check => check.result), ...checks.filter(check => check.exactAlt).map(check => check.result), ...checks.filter(check => check.dualBest).map(check => check.result), ...checks.filter(check => check.dualAlt).map(check => check.result))
     }
-    candidates.push(...results.filter(r => (r.type === 'best' || r.type === 'alt') && r.seeders > 9))
+    candidates.push(...results.filter(result => (result.type === 'best' || result.type === 'alt') && result.seeders > 9))
     const uniqueCandidates = Array.from(new Set(candidates))
     const toConsider = uniqueCandidates.length ? uniqueCandidates : results
     if (torrentProvider?.length) {
@@ -209,7 +218,18 @@
 
   $: queryResults = sortResults($results?.torrents, $settings.torrentSort)
   $: lookup = queryResults?.results
-  $: best = getBest(lookup, $settings.audioLanguage, $settings.torrentProvider)
+
+  $: best = null
+  let current = 0
+  let bestPromiseId = current
+  $: {
+    bestPromiseId = ++current
+    resolveBest(search, lookup, $settings.audioLanguage, $settings.torrentProvider)
+  }
+  async function resolveBest(search, lookup, audioLanguage, torrentProvider = []) {
+    const result = await getBest(search, lookup, audioLanguage, torrentProvider)
+    if (bestPromiseId === current) best = result
+  }
 
   $: lookupHidden = queryResults?.hiddenResults
   $: viewHidden = false
@@ -271,6 +291,9 @@
     viewHidden = false
     $results = {}
     search = null
+    best = null
+    current = 0
+    bestPromiseId = 0
   })
 </script>
 
