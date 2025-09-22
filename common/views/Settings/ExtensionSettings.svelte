@@ -197,7 +197,7 @@
     </div>
   {/if}
   <div class='input-group wm-1200 mb-20'>
-    <input placeholder='https://example.com/index.json, gh:user/repo, or npm:package_name' type='url' class='form-control bg-dark-light mw-full rounded-2 h-43 border text-truncate' disabled={pendingSource} class:cursor-wait={pendingSource} bind:value={sourceUrl} />
+    <input placeholder='https://example.com/index.json, gh:user/repo, or npm:package_name' type='url' class='form-control bg-dark-light mw-full rounded-2 h-43 border text-truncate long-input' disabled={pendingSource} class:cursor-wait={pendingSource} bind:value={sourceUrl} />
     <button class='ml-10 btn btn-primary d-flex align-items-center justify-content-center rounded-2 w-200 h-43 font-scale-16' disabled={pendingSource || !sourceUrl?.length} class:cursor-wait={pendingSource} type='button' use:click={() => addSource()}><SquarePlus class='mr-10' size='1.8rem' /><span>Add Source</span></button>
   </div>
   <div class='wm-1200'>
@@ -225,7 +225,7 @@
   {#await availableSources then sources}
     {#if sources?.length && sources.filter(source => !Object.values(settings.sourcesNew)?.some(existing => existing.update === source))?.length}
       <div class='wm-1200'>
-        <button type='button' class='btn w-full h-full p-5 rounded-2 d-flex align-items-center' class:bg-dark-light={!viewSources} class:bg-primary={viewSources} use:click={()=> { viewSources = !viewSources }}>
+        <button type='button' class='btn w-full h-full p-5 rounded-2 d-flex align-items-center long-button' class:bg-dark-light={!viewSources} class:bg-primary={viewSources} use:click={()=> { viewSources = !viewSources }}>
           <span class='ml-10 text-truncate'>{sources.filter(source => !Object.values(settings.sourcesNew)?.some(existing => existing.update === source))?.length} Available Sources</span>
           <svelte:component this={ viewSources ? ChevronUp : ChevronDown } class='ml-auto mr-10' size='2.2rem' />
         </button>

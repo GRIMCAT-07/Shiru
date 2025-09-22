@@ -52,7 +52,7 @@
         <button type='button' class='btn btn-square ml-auto d-flex align-items-center justify-content-center rounded-2 flex-shrink-0' use:click={close}><X size='1.7rem' strokeWidth='3'/></button>
     </div>
     <FileCard {playFile} bind:file={playing} bind:files playing={true} bind:fileEdit class='mr-30'/>
-    <div class='input-group mt-10' class:d-none={files?.length < 2}>
+    <div class='input-group mt-10 long-input' class:d-none={files?.length < 2}>
         <Search size='2.6rem' strokeWidth='2.5' class='position-absolute z-10 text-dark-light h-full pl-10 ml-20 pointer-events-none' />
         <input
             type='search'

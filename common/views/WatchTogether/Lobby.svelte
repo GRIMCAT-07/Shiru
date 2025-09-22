@@ -69,7 +69,7 @@
         </button>
         <textarea
           bind:value={message}
-          class='form-control h-auto mt-20 px-15 d-flex align-items-center justify-content-center line-height-normal w-auto flex-grow-1 shadow-0'
+          class='form-control h-auto mt-20 px-15 d-flex align-items-center justify-content-center line-height-normal w-auto flex-grow-1 shadow-0 long-input'
           {rows}
           style='resize: none; min-height: 0 !important'
           autocomplete='off'

@@ -176,7 +176,7 @@
       <h3 class='mb-0 font-weight-bold text-white title mr-5 font-size-24 ml-20'>Notifications</h3>
       <button type='button' class='btn btn-square ml-auto d-flex align-items-center justify-content-center rounded-2 flex-shrink-0' use:click={close}><X size='1.7rem' strokeWidth='3'/></button>
     </div>
-    <div class='input-group mt-10' class:d-none={!$notifications?.length}>
+    <div class='input-group mt-10 long-input' class:d-none={!$notifications?.length}>
       <Search size='2.6rem' strokeWidth='2.5' class='position-absolute z-10 text-dark-light h-full pl-10 ml-20 pointer-events-none' />
       <input
         type='search'

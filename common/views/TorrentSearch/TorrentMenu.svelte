@@ -320,7 +320,7 @@
       <div class='position-absolute top-0 left-0 w-full h-full' style='background: var(--torrent-banner-gradient)' />
     </div>
   </div>
-  <div class='input-group mt-20 h-40'>
+  <div class='input-group mt-20 h-40 long-input z-11'>
     <Search size='2.6rem' strokeWidth='2.5' class='position-absolute z-10 text-dark-light h-full pl-10 pointer-events-none' />
     <input
       type='search'
