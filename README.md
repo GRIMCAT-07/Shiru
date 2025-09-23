@@ -16,8 +16,9 @@
   <a href="https://github.com/RockinChaos/Shiru/releases/latest/">⬇️ Download</a>
 </p>
 
+https://github.com/user-attachments/assets/4fa7d60e-ae48-4fb9-9d20-f129f7f907a9
+
 <p align="center">
-  <img src="./docs/out.gif" alt="Shiru Showcase"><br>
   <a href="https://discord.gg/D5FnJ7C"><img src="https://img.shields.io/discord/291764091239006208?style=flat-square" alt="Join Chat"></a>
   <a href="https://github.com/RockinChaos/Shiru/releases/latest/"><img alt="Downloads" src="https://img.shields.io/github/downloads/RockinChaos/Shiru/total?style=flat-square"></a>
   <a href="https://github.com/RockinChaos/Shiru/releases/latest/"><img alt="Latest Release" src="https://img.shields.io/github/v/release/RockinChaos/Shiru?style=flat-square"></a>
