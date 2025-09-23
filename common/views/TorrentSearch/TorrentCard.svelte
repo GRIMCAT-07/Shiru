@@ -36,6 +36,7 @@
   termMapping['DUB'] = termMapping.ENGLISHAUDIO
   termMapping['DUAL'] = termMapping.DUALAUDIO
   termMapping['DUAL AUDIO'] = termMapping.DUALAUDIO
+  termMapping['DUAL-AUDIO'] = termMapping.DUALAUDIO
   termMapping['MULTI AUDIO'] = termMapping.DUALAUDIO
   termMapping['ENGLISH AUDIO'] = termMapping.ENGLISHAUDIO
   termMapping['ENGLISH DUB'] = termMapping.ENGLISHAUDIO
@@ -62,12 +63,25 @@
    * @param {Object} search
    * @param {AnitomyResult} param0
    * */
-  export async function sanitiseTerms (search, { video_term: vid, audio_term: aud, video_resolution: resolution, file_name: fileName }) {
+  export async function sanitiseTerms (search, { video_term: vid, audio_term: aud, video_resolution: resolution, file_name: _fileName }) {
     const isEnglishDubbed = await malDubs.isDubMedia(search?.media)
     const video = !Array.isArray(vid) ? [vid] : vid
     const audio = !Array.isArray(aud) ? [aud] : aud
 
-    const terms = [...new Set([...video, ...audio].map(term => termMapping[term?.toUpperCase()]).filter(t => t))]
+    // Preprocess fileName: remove titles from search.media.titles if they exist to prevent incorrect termMappings e.g; Synduality Noir being detected as Dual Audio (SynDUALity).
+    let fileName = _fileName
+    if (fileName && search?.media?.title) {
+      for (const title of Object.values(search.media.title)) {
+        if (title) {
+          const words = title.split(/\s+/).filter(Boolean)
+          for (let n = 3; n >= 1; n--) {
+            if (words.length >= n) fileName = fileName.replace(new RegExp(words.slice(0, n).join(' ').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), '')
+          }
+        }
+      }
+    }
+
+    let terms = [...new Set([...video, ...audio].map(term => termMapping[term?.toUpperCase()]).filter(t => t))]
     if (resolution) terms.unshift({ text: resolution, color: 'var(--quaternary-color)' })
 
     for (const key of Object.keys(termMapping)) {
