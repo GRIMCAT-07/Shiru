@@ -83,14 +83,8 @@
     }
 
     // If the series has an English Dub and Other audio is detected like Chinese, we can't rely on "DUB" term alone as it could be an ONA with a Japanese Dub or a Chinese Dub.
-    if (terms.some(t => t === termMapping.CHINESEAUDIO)) {
-      const dubKeys = ['DUB'] // Remove this term.
-      for (const dubKey of dubKeys) {
-        if (terms.includes(termMapping[dubKey])) {
-          const englishIndex = terms.indexOf(termMapping.ENGLISHAUDIO)
-          if (englishIndex !== -1) terms.splice(englishIndex, 1)
-        }
-      }
+    for (const dubKey of [...(terms.some(t => t === termMapping.CHINESEAUDIO) ? ['DUB'] : []), ...(terms.some(t => t === termMapping.DUALAUDIO) && /dual\s*track/i.test(fileName) ? ['DUAL'] : [])]) { // Remove these keys
+      if (terms.includes(termMapping[dubKey])) terms = terms.filter(term => term !== termMapping[dubKey])
     }
 
     return [...terms]
