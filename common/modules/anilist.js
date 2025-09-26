@@ -664,7 +664,7 @@ class AnilistClient {
     if (variables?.id?.length === 0) return
     variables.sort = variables.sort || 'OMIT'
     if (settings.value.adult === 'none') variables.isAdult = false
-    if (settings.value.adult !== 'hentai') variables.genre_not = [ ...(variables.genre_not ? variables.genre_not : []), 'Hentai' ]
+    if (settings.value.adult !== 'hentai' && (!variables.genre_not || !variables.genre_not.includes('Hentai'))) variables.genre_not = [ ...(variables.genre_not ? variables.genre_not : []), 'Hentai' ]
 
     debug(`Searching for IDs ${JSON.stringify(variables)}`)
     const cachedEntry = cache.cachedEntry(caches.SEARCH_IDS, JSON.stringify(variables), status.value === 'offline')
@@ -695,6 +695,8 @@ class AnilistClient {
   /** returns {import('./al.d.ts').PagedQuery<{media: import('./al.d.ts').Media[]}>} */
   async searchAllIDS(variables) {
     variables.sort = variables.sort || 'OMIT'
+    if (settings.value.adult === 'none') variables.isAdult = false
+    if (settings.value.adult !== 'hentai') variables.genre_not = [ ...(variables.genre_not ? variables.genre_not : []), 'Hentai' ]
     debug(`Searching for (ALL) IDs ${JSON.stringify(variables)}`)
     const cachedEntry = cache.cachedEntry(caches.SEARCH_IDS, JSON.stringify(variables), status.value === 'offline')
     if (cachedEntry) return cachedEntry
