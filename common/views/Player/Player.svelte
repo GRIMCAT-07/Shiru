@@ -1437,6 +1437,7 @@
 
 <div
   class='player w-full h-full d-flex flex-column overflow-hidden position-relative'
+  class:ratio-16-9={!src || externalPlayback}
   class:pointer={miniplayer}
   class:rounded-top-10={miniplayer}
   class:miniplayer
