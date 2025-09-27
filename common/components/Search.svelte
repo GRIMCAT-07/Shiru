@@ -323,7 +323,7 @@
             {@const matchingBadges = filteredBadges.filter(badge => badge.key === key)}
             {#each matchingBadges as badge}
               {#if badge.key === key && (badge.key !== 'hideStatus' && (search.userList || badge.key !== 'title')) && !(badge.key === 'sort' && badge.value === 'TRENDING_DESC')}
-                <div class='badge border-0 py-5 px-10 text-capitalize mr-10 text-white text-nowrap d-flex align-items-center mb-5' class:bg-dark-light={!badge.key.includes('_not')} class:bg-danger-very-dim={badge.key.includes('_not')}>
+                <div use:click={() => removeBadge(badge)} class='badge border-0 py-5 px-10 text-capitalize mr-10 text-white text-nowrap d-flex align-items-center mb-5' class:bg-dark-light={!badge.key.includes('_not')} class:bg-danger-very-dim={badge.key.includes('_not')}>
                   <svelte:component this={badge.key === 'genre' ? genreIcons[badge.value] || badgeDisplayNames[badge.key] : badgeDisplayNames[badge.key]} class='mr-5 square-scale-18'/>
                   <span>{badge.key === 'sort' ? getSortDisplayName(badge.value) : (badge.key === 'format' || badge.key === 'format_not') ? getFormatDisplayName(badge.value) : (badge.key === 'hideMyAnime' ? 'Hide My Anime' : badge.key === 'hideSubs' ? 'Dubbed' : ('' + badge.value).replace(/_/g, ' ').toLowerCase())}</span>
                   <button on:click={() => removeBadge(badge)} class='pointer bg-transparent border-0 icon text-white position-relative pl-0 pr-0 pt-0 x-filter d-flex align-items-center z-1' type='button' data-toggle='tooltip' data-placement='bottom' data-target-breakpoint='md' data-title='Remove Filter'><X size='1.3rem' strokeWidth='3'/></button>
